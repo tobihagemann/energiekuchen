@@ -17,7 +17,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 - **Styling:** Tailwind CSS
 - **Rendering:** Client-side rendering (CSR) - keine Server-side Rendering oder Backend-Komponenten
 - **Charts:** Chart.js für Kreisdiagramm-Visualisierung
-- **State Management:** React useState/useReducer oder Zustand
+- **State Management:** React useState/useReducer
 - **Persistierung:** Browser localStorage für lokale Datenspeicherung
 - **Sharing:** URL-basierte Datenübertragung mit Base64-encoded JSON
 - **Sprache:** Deutsch (einzige unterstützte Sprache)
