@@ -1,0 +1,72 @@
+import { Activity, ValidationResult } from '@/app/types';
+
+export const VALIDATION_RULES = {
+  activity: {
+    name: {
+      minLength: 1,
+      maxLength: 50,
+      pattern: /^[a-zA-ZäöüÄÖÜß0-9\s\-_.,!?]+$/
+    },
+    value: {
+      min: 1,
+      max: 100,
+      type: 'integer'
+    },
+    color: {
+      pattern: /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
+    }
+  },
+  chart: {
+    maxActivities: 20,
+    minActivities: 0
+  }
+} as const;
+
+export function validateActivity(activity: Partial<Activity>): ValidationResult {
+  const errors: string[] = [];
+  
+  if (!activity.name || activity.name.length < VALIDATION_RULES.activity.name.minLength) {
+    errors.push('Aktivitätsname ist erforderlich');
+  }
+  
+  if (activity.name && activity.name.length > VALIDATION_RULES.activity.name.maxLength) {
+    errors.push(`Aktivitätsname darf maximal ${VALIDATION_RULES.activity.name.maxLength} Zeichen haben`);
+  }
+  
+  if (activity.name && !VALIDATION_RULES.activity.name.pattern.test(activity.name)) {
+    errors.push('Aktivitätsname enthält ungültige Zeichen');
+  }
+  
+  if (!activity.value || activity.value < VALIDATION_RULES.activity.value.min || activity.value > VALIDATION_RULES.activity.value.max) {
+    errors.push('Energiewert muss zwischen 1 und 100 liegen');
+  }
+  
+  if (!activity.color || !VALIDATION_RULES.activity.color.pattern.test(activity.color)) {
+    errors.push('Ungültige Farbe');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+export function validateChartActivities(activities: Activity[]): ValidationResult {
+  const errors: string[] = [];
+  
+  if (activities.length > VALIDATION_RULES.chart.maxActivities) {
+    errors.push(`Maximal ${VALIDATION_RULES.chart.maxActivities} Aktivitäten erlaubt`);
+  }
+  
+  const names = activities.map(a => a.name.toLowerCase());
+  const duplicates = names.filter((name, index) => names.indexOf(name) !== index);
+  
+  if (duplicates.length > 0) {
+    errors.push('Aktivitätsnamen müssen eindeutig sein');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
