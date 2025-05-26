@@ -38,6 +38,14 @@ export function ShareModal() {
     }
   }, [uiState.isShareModalOpen, shareData, generateShareData]);
 
+  // Reset data when modal closes
+  useEffect(() => {
+    if (!uiState.isShareModalOpen) {
+      setShareData(null);
+      setCopied(false);
+    }
+  }, [uiState.isShareModalOpen]);
+
   const handleCopyUrl = async () => {
     if (!shareData) return;
 
@@ -73,7 +81,7 @@ export function ShareModal() {
 
         {isGenerating ? (
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400" role="status"></div>
             <span className="ml-2 text-sm text-gray-600">
               Erstelle Sharing-Link...
             </span>
