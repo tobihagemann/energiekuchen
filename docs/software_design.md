@@ -1,115 +1,262 @@
 # Energiekuchen - Software Design Document
 
-## 1. Überblick
+## 1. Introduction and Overview
 
-### 1.1 Zweck
-Dieses Software Design Document beschreibt die technische Architektur und Implementierungsdetails für die Energiekuchen-Anwendung. Es dient als technische Referenz für die Implementierung der in der Produktspezifikation definierten Anforderungen.
+### 1.1 Purpose
+This Software Design Document provides a comprehensive technical specification for the Energiekuchen web application. It serves as a technical blueprint for developers to understand the architecture, design decisions, and implementation details required to build a robust energy visualization tool.
 
 ### 1.2 Scope
-Das Design umfasst:
-- Frontend-Architektur mit Next.js App Router
-- Komponentenstruktur und State Management
-- Datenmodellierung und lokale Persistierung
-- URL-basiertes Sharing-System
-- Responsive UI/UX Implementation
+This document covers:
+- Complete system architecture using Next.js App Router
+- Component-based design patterns and state management
+- Data modeling and local persistence strategies
+- URL-based sharing system implementation
+- Responsive and accessible user interface design
+- Performance optimization and testing strategies
 
-### 1.3 Technologie-Stack
-- **Framework:** Next.js 15.x mit App Router
-- **UI:** React 19.x mit TypeScript
-- **Styling:** Tailwind CSS 4.x
-- **Charts:** Chart.js mit react-chartjs-2
-- **State Management:** React useState/useReducer mit Context API
-- **Icons:** Heroicons
-- **Notifications:** react-hot-toast
-- **QR Codes:** qrcode
-- **Color Picker:** react-colorful
+### 1.3 Project Overview
+Energiekuchen is a client-side web application that helps German-speaking users visualize and balance their energy distribution through dual interactive pie charts. The application enables users to:
+- Create and manage positive energy sources (activities that give energy)
+- Track negative energy drains (activities that consume energy)
+- Share their energy profiles via URL-encoded data
+- Export and import their configurations
+- Maintain data locally without server dependencies
 
-## 2. Architektur
+### 1.4 Technology Stack
+- **Frontend Framework:** Next.js 15.x with App Router
+- **UI Library:** React 19.x with TypeScript
+- **Styling:** Tailwind CSS 4.x with responsive design
+- **Data Visualization:** Chart.js with react-chartjs-2
+- **State Management:** React Context API with useReducer
+- **Icons:** Heroicons for consistent iconography
+- **Notifications:** react-hot-toast for user feedback
+- **QR Code Generation:** qrcode library
+- **Color Management:** react-colorful for color selection
 
-### 2.1 Ordnerstruktur
+## 2. System Architecture
+
+### 2.1 Architecture Overview
+
+The Energiekuchen application follows a client-side architecture pattern with Next.js App Router, providing a static export capability for deployment without server requirements. The architecture emphasizes separation of concerns, reusable components, and efficient state management.
+
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        UI[User Interface Components]
+        SC[State Management - Context API]
+        RT[React Router - App Router]
+    end
+    
+    subgraph "Data Layer"
+        LS[Local Storage]
+        VS[Validation Service]
+        SS[Sharing Service]
+    end
+    
+    subgraph "Presentation Layer"
+        CH[Chart.js Visualization]
+        TW[Tailwind CSS Styling]
+        IC[Heroicons]
+    end
+    
+    UI --> SC
+    SC --> LS
+    SC --> VS
+    UI --> CH
+    UI --> TW
+    UI --> IC
+    SC --> SS
+    
+    classDef client fill:#e1f5fe
+    classDef data fill:#f3e5f5
+    classDef presentation fill:#e8f5e8
+    
+    class UI,SC,RT client
+    class LS,VS,SS data
+    class CH,TW,IC presentation
+```
+
+### 2.2 Application Flow
+
+```mermaid
+flowchart TD
+    A[User Loads App] --> B{Data in LocalStorage?}
+    B -->|Yes| C[Load Saved Data]
+    B -->|No| D[Initialize Default State]
+    C --> E[Render Dashboard]
+    D --> E
+    E --> F[User Interactions]
+    F --> G{Action Type}
+    G -->|Add Activity| H[Validate Input]
+    G -->|Edit Activity| I[Update State]
+    G -->|Delete Activity| J[Remove from State]
+    G -->|Share| K[Generate Share URL]
+    H --> L[Update Context State]
+    I --> L
+    J --> L
+    L --> M[Save to LocalStorage]
+    M --> N[Re-render Components]
+    K --> O[Display Share Modal]
+    N --> F
+    O --> F
+```
+
+### 2.3 Directory Structure
+
 ```
 /app
-  /(main)                 # Hauptanwendung (grouped route)
-    page.tsx             # Dashboard
-    layout.tsx           # Layout wrapper
-  /share
-    /[data]
-      page.tsx           # Shared energy charts viewer
-  /hilfe
-    page.tsx            # Help page
-  /datenschutz
-    page.tsx            # Privacy policy
-  /impressum
-    page.tsx            # Imprint
-  /components
-    /ui                 # Basis UI-Komponenten
-      Button.tsx
-      Input.tsx
-      Modal.tsx
-      Slider.tsx
-      ColorPicker.tsx
-      Toast.tsx
-    /charts             # Chart-spezifische Komponenten
-      EnergyChart.tsx
-      ChartLegend.tsx
-      ChartTooltip.tsx
-    /forms              # Formular-Komponenten
-      ActivityForm.tsx
-      SettingsForm.tsx
-    /layout             # Layout-Komponenten
-      Header.tsx
-      Sidebar.tsx
-      Footer.tsx
-    /features           # Feature-spezifische Komponenten
-      ActivityList.tsx
-      ShareModal.tsx
-      ImportExportPanel.tsx
-  /lib
-    /contexts           # React Context providers
-      EnergyContext.tsx
-      UIContext.tsx
-    /utils              # Utility-Funktionen
-      storage.ts
-      sharing.ts
-      validation.ts
-      calculations.ts
-      constants.ts
-    /hooks              # Custom React hooks
-      useLocalStorage.ts
-      useChartData.ts
-      useResponsive.ts
-  /types                # TypeScript-Definitionen
-    index.ts
-    chart.ts
-    storage.ts
-  globals.css
-  layout.tsx
-  page.tsx             # Root redirect to /(main)
+├── (main)/                 # Main application group
+│   ├── page.tsx           # Dashboard
+│   └── layout.tsx         # Main layout wrapper
+├── share/
+│   └── [data]/
+│       └── page.tsx       # Shared chart viewer
+├── hilfe/
+│   └── page.tsx          # Help page
+├── datenschutz/
+│   └── page.tsx          # Privacy policy
+├── impressum/
+│   └── page.tsx          # Legal imprint
+├── components/
+│   ├── ui/               # Base UI components
+│   │   ├── Button.tsx
+│   │   ├── Input.tsx
+│   │   ├── Modal.tsx
+│   │   ├── Slider.tsx
+│   │   ├── ColorPicker.tsx
+│   │   └── Toast.tsx
+│   ├── charts/           # Chart components
+│   │   ├── EnergyChart.tsx
+│   │   └── ChartLegend.tsx
+│   ├── forms/            # Form components
+│   │   └── ActivityForm.tsx
+│   ├── layout/           # Layout components
+│   │   └── Header.tsx
+│   └── features/         # Feature-specific components
+│       ├── ActivityList.tsx
+│       ├── ShareModal.tsx
+│       ├── SettingsModal.tsx
+│       ├── ImportExportModal.tsx
+│       └── HelpModal.tsx
+├── lib/
+│   ├── contexts/         # React Context providers
+│   │   ├── EnergyContext.tsx
+│   │   └── UIContext.tsx
+│   ├── hooks/            # Custom React hooks
+│   │   ├── useLocalStorage.ts
+│   │   ├── useChartData.ts
+│   │   └── useResponsive.ts
+│   └── utils/            # Utility functions
+│       ├── storage.ts
+│       ├── sharing.ts
+│       ├── validation.ts
+│       ├── calculations.ts
+│       ├── constants.ts
+│       └── cn.ts
+├── types/                # TypeScript definitions
+│   ├── index.ts
+│   ├── chart.ts
+│   └── storage.ts
+├── globals.css
+├── layout.tsx           # Root layout
+└── page.tsx            # Root page redirect
 ```
 
-### 2.2 Komponentenhierarchie
-```
-RootLayout
-├── Header
-├── Main Content
-│   ├── EnergyChart (Positive)
-│   │   ├── ChartLegend
-│   │   └── ChartTooltip
-│   ├── EnergyChart (Negative)
-│   │   ├── ChartLegend
-│   │   └── ChartTooltip
-│   ├── ActivityList (for each chart)
-│   └── ActivityForm
-├── Sidebar
-│   ├── SettingsForm
-│   └── ImportExportPanel
-├── ShareModal
-└── Toast Notifications
+### 2.4 Component Hierarchy
+
+```mermaid
+graph TD
+    A[RootLayout] --> B[Header]
+    A --> C[Main Content]
+    A --> D[Toast Notifications]
+    
+    C --> E[EnergyChart - Positive]
+    C --> F[EnergyChart - Negative]
+    C --> G[ActivityList - Positive]
+    C --> H[ActivityList - Negative]
+    C --> I[ActivityForm]
+    
+    E --> J[ChartLegend]
+    F --> K[ChartLegend]
+    
+    A --> L[ShareModal]
+    A --> M[SettingsModal]
+    A --> N[ImportExportModal]
+    A --> O[HelpModal]
+    
+    I --> P[Input Components]
+    I --> Q[ColorPicker]
+    I --> R[Slider]
+    I --> S[Button]
+    
+    classDef layout fill:#e3f2fd
+    classDef chart fill:#f1f8e9
+    classDef form fill:#fff3e0
+    classDef modal fill:#fce4ec
+    
+    class A,B,C layout
+    class E,F,J,K chart
+    class G,H,I,P,Q,R,S form
+    class L,M,N,O modal
 ```
 
-## 3. Datenmodellierung
+## 3. Data Design
 
-### 3.1 TypeScript Interfaces
+### 3.1 Data Model Architecture
+
+The application uses a hierarchical data model that supports the dual-chart visualization requirement while maintaining data integrity and performance.
+
+```mermaid
+erDiagram
+    EnergyKuchen ||--|| PositiveChart : contains
+    EnergyKuchen ||--|| NegativeChart : contains
+    EnergyKuchen ||--|| AppSettings : contains
+    PositiveChart ||--o{ Activity : has
+    NegativeChart ||--o{ Activity : has
+    
+    EnergyKuchen {
+        string version
+        string lastModified
+        PositiveChart positive
+        NegativeChart negative
+        AppSettings settings
+    }
+    
+    PositiveChart {
+        string id
+        string type
+        Activity[] activities
+        ChartSize size
+        string title
+    }
+    
+    NegativeChart {
+        string id
+        string type
+        Activity[] activities
+        ChartSize size
+        string title
+    }
+    
+    Activity {
+        string id
+        string name
+        number value
+        string color
+        string createdAt
+        string updatedAt
+    }
+    
+    AppSettings {
+        ChartSize chartSize
+        ColorScheme colorScheme
+        boolean showTooltips
+        boolean showLegends
+        string language
+    }
+```
+
+### 3.2 TypeScript Interfaces
 
 ```typescript
 // types/index.ts
@@ -149,1532 +296,1178 @@ export interface AppSettings {
 export type ChartSize = 'small' | 'medium' | 'large';
 export type ColorScheme = 'default' | 'high-contrast' | 'colorblind-friendly';
 
-// types/chart.ts
-export interface ChartConfiguration {
-  type: 'doughnut';
-  data: ChartData;
-  options: ChartOptions;
-}
-
-export interface ChartData {
-  labels: string[];
-  datasets: Dataset[];
-}
-
-export interface Dataset {
-  data: number[];
-  backgroundColor: string[];
-  borderColor: string[];
-  borderWidth: number;
-  hoverBackgroundColor: string[];
-  hoverBorderColor: string[];
-}
-
-// types/storage.ts
-export interface StorageManager {
-  save: (data: EnergyKuchen) => void;
-  load: () => EnergyKuchen | null;
-  clear: () => void;
-  export: () => string;
-  import: (data: string) => EnergyKuchen;
-}
-
-export interface ShareData {
-  encoded: string;
-  url: string;
-  qrCode: string;
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
 }
 ```
 
-### 3.2 Datenvalidation Schema
+### 3.3 Data Validation Schema
 
-```typescript
-// lib/utils/validation.ts
-export const VALIDATION_RULES = {
-  activity: {
-    name: {
-      minLength: 1,
-      maxLength: 50,
-      pattern: /^[a-zA-ZäöüÄÖÜß0-9\s\-_.,!?]+$/
-    },
-    value: {
-      min: 1,
-      max: 100,
-      type: 'integer'
-    },
-    color: {
-      pattern: /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
-    }
-  },
-  chart: {
-    maxActivities: 20,
-    minActivities: 0
-  }
-} as const;
+The application implements comprehensive input validation to ensure data integrity and user experience:
 
-export function validateActivity(activity: Partial<Activity>): ValidationResult {
-  const errors: string[] = [];
-  
-  if (!activity.name || activity.name.length < VALIDATION_RULES.activity.name.minLength) {
-    errors.push('Aktivitätsname ist erforderlich');
-  }
-  
-  if (activity.name && activity.name.length > VALIDATION_RULES.activity.name.maxLength) {
-    errors.push(`Aktivitätsname darf maximal ${VALIDATION_RULES.activity.name.maxLength} Zeichen haben`);
-  }
-  
-  if (!activity.value || activity.value < VALIDATION_RULES.activity.value.min || activity.value > VALIDATION_RULES.activity.value.max) {
-    errors.push('Energiewert muss zwischen 1 und 100 liegen');
-  }
-  
-  if (!activity.color || !VALIDATION_RULES.activity.color.pattern.test(activity.color)) {
-    errors.push('Ungültige Farbe');
-  }
-  
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
-}
+**Activity Validation Rules:**
+- **Name**: 1-50 characters, supporting German characters, numbers, spaces, and basic punctuation
+- **Value**: Integer between 1-100 representing energy intensity
+- **Color**: Valid hex color code (3 or 6 digits)
+
+**Chart Validation Rules:**
+- **Maximum Activities**: 20 activities per chart (positive or negative)
+- **Minimum Activities**: 0 activities (empty chart allowed)
+
+**Input Sanitization:**
+- HTML entities are escaped to prevent XSS attacks
+- Special characters are validated against allowed patterns
+- Numeric inputs are parsed and range-checked
+
+### 3.4 Data Storage Strategy
+
+```mermaid
+flowchart TD
+    A[User Action] --> B[Context State Update]
+    B --> C[Data Validation]
+    C --> D{Validation Pass?}
+    D -->|Yes| E[Update State]
+    D -->|No| F[Show Error Message]
+    E --> G[Auto-save to LocalStorage]
+    G --> H[Update UI Components]
+    F --> I[Maintain Previous State]
+    
+    subgraph "Storage Format"
+        J[JSON Structure]
+        K[Version Control]
+        L[Data Compression for Sharing]
+    end
+    
+    G --> J
+    J --> K
+    J --> L
+    
+    classDef action fill:#e8f5e8
+    classDef validation fill:#fff3e0
+    classDef storage fill:#e3f2fd
+    
+    class A,B,E,H action
+    class C,D,F,I validation
+    class G,J,K,L storage
 ```
 
-## 4. State Management
+### 3.5 State Management Design
 
-### 4.1 React Context API Architecture
-
-Die Anwendung verwendet React's eingebaute State Management Lösung mit `useReducer` für komplexe Zustandsübergänge und Context API für globale Zustandsverwaltung.
+The application uses React Context API with useReducer for state management, providing a centralized store for application data while maintaining component isolation.
 
 ```typescript
-// lib/contexts/EnergyContext.tsx
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+// State Management Pattern
+interface EnergyState {
+  data: EnergyKuchen;
+  isLoading: boolean;
+  lastSaved: string | null;
+  syncStatus: 'idle' | 'saving' | 'error';
+}
 
-// Energy Reducer Actions
 type EnergyAction = 
   | { type: 'SET_DATA'; payload: EnergyKuchen }
   | { type: 'ADD_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'> } }
   | { type: 'UPDATE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string; updates: Partial<Activity> } }
   | { type: 'DELETE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } }
-  | { type: 'REORDER_ACTIVITIES'; payload: { chartType: 'positive' | 'negative'; fromIndex: number; toIndex: number } }
-  | { type: 'UPDATE_CHART_SIZE'; payload: { chartType: 'positive' | 'negative'; size: ChartSize } }
   | { type: 'UPDATE_SETTINGS'; payload: Partial<AppSettings> }
-  | { type: 'RESET_DATA' }
-  | { type: 'SET_LOADING'; payload: boolean };
+  | { type: 'RESET_DATA' };
+```
 
-interface EnergyState {
-  data: EnergyKuchen;
-  isLoading: boolean;
-  lastSaved: string | null;
+## 4. Interface Design
+
+### 4.1 API Interface Patterns
+
+The application follows a consistent interface pattern for all major operations, ensuring predictable behavior and easy testing.
+
+```typescript
+// Storage Interface
+export interface IStorageManager {
+  save(data: EnergyKuchen): Promise<void>;
+  load(): Promise<EnergyKuchen | null>;
+  clear(): Promise<void>;
+  export(): Promise<string>;
+  import(data: string): Promise<EnergyKuchen>;
+  isAvailable(): boolean;
 }
 
-// Energy Reducer
-function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
-  switch (action.type) {
-    case 'SET_DATA':
-      return {
-        ...state,
-        data: action.payload,
-        lastSaved: new Date().toISOString()
-      };
-    
-    case 'ADD_ACTIVITY': {
-      const { chartType, activity } = action.payload;
-      const newActivity: Activity = {
-        id: crypto.randomUUID(),
-        ...activity,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      
-      return {
-        ...state,
-        data: {
-          ...state.data,
-          [chartType]: {
-            ...state.data[chartType],
-            activities: [...state.data[chartType].activities, newActivity]
-          },
-          lastModified: new Date().toISOString()
-        },
-        lastSaved: new Date().toISOString()
-      };
-    }
-    
-    case 'UPDATE_ACTIVITY': {
-      const { chartType, activityId, updates } = action.payload;
-      return {
-        ...state,
-        data: {
-          ...state.data,
-          [chartType]: {
-            ...state.data[chartType],
-            activities: state.data[chartType].activities.map(activity =>
-              activity.id === activityId
-                ? { ...activity, ...updates, updatedAt: new Date().toISOString() }
-                : activity
-            )
-          },
-          lastModified: new Date().toISOString()
-        },
-        lastSaved: new Date().toISOString()
-      };
-    }
-    
-    case 'DELETE_ACTIVITY': {
-      const { chartType, activityId } = action.payload;
-      return {
-        ...state,
-        data: {
-          ...state.data,
-          [chartType]: {
-            ...state.data[chartType],
-            activities: state.data[chartType].activities.filter(activity => activity.id !== activityId)
-          },
-          lastModified: new Date().toISOString()
-        },
-        lastSaved: new Date().toISOString()
-      };
-    }
-    
-    case 'UPDATE_SETTINGS':
-      return {
-        ...state,
-        data: {
-          ...state.data,
-          settings: { ...state.data.settings, ...action.payload },
-          lastModified: new Date().toISOString()
-        },
-        lastSaved: new Date().toISOString()
-      };
-    
-    case 'RESET_DATA':
-      return {
-        ...state,
-        data: getDefaultEnergyKuchen(),
-        lastSaved: new Date().toISOString()
-      };
-    
-    case 'SET_LOADING':
-      return {
-        ...state,
-        isLoading: action.payload
-      };
-    
-    default:
-      return state;
-  }
+// Sharing Interface
+export interface ISharingManager {
+  generateShareData(data: EnergyKuchen): Promise<ShareData>;
+  decodeShareData(encoded: string): Promise<EnergyKuchen>;
+  validateShareData(data: any): boolean;
+  compressData(data: EnergyKuchen): Promise<string>;
 }
 
-// Context Definition
-interface EnergyContextType {
-  state: EnergyState;
-  dispatch: React.Dispatch<EnergyAction>;
-  actions: {
-    addActivity: (chartType: 'positive' | 'negative', activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'>) => void;
-    updateActivity: (chartType: 'positive' | 'negative', activityId: string, updates: Partial<Activity>) => void;
-    deleteActivity: (chartType: 'positive' | 'negative', activityId: string) => void;
-    reorderActivities: (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => void;
-    updateChartSize: (chartType: 'positive' | 'negative', size: ChartSize) => void;
-    updateSettings: (settings: Partial<AppSettings>) => void;
-    resetData: () => void;
-    importData: (data: EnergyKuchen) => void;
-    exportData: () => string;
-  };
-}
-
-const EnergyContext = createContext<EnergyContextType | undefined>(undefined);
-
-// Provider Component
-export function EnergyProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(energyReducer, {
-    data: getDefaultEnergyKuchen(),
-    isLoading: false,
-    lastSaved: null
-  });
-  
-  // LocalStorage persistence
-  useEffect(() => {
-    const savedData = localStorage.getItem('energiekuchen-data');
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        dispatch({ type: 'SET_DATA', payload: parsedData });
-      } catch (error) {
-        console.error('Failed to load saved data:', error);
-      }
-    }
-  }, []);
-  
-  useEffect(() => {
-    localStorage.setItem('energiekuchen-data', JSON.stringify(state.data));
-  }, [state.data]);
-  
-  // Action creators
-  const actions = {
-    addActivity: (chartType: 'positive' | 'negative', activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'>) => {
-      dispatch({ type: 'ADD_ACTIVITY', payload: { chartType, activity } });
-    },
-    updateActivity: (chartType: 'positive' | 'negative', activityId: string, updates: Partial<Activity>) => {
-      dispatch({ type: 'UPDATE_ACTIVITY', payload: { chartType, activityId, updates } });
-    },
-    deleteActivity: (chartType: 'positive' | 'negative', activityId: string) => {
-      dispatch({ type: 'DELETE_ACTIVITY', payload: { chartType, activityId } });
-    },
-    reorderActivities: (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => {
-      dispatch({ type: 'REORDER_ACTIVITIES', payload: { chartType, fromIndex, toIndex } });
-    },
-    updateChartSize: (chartType: 'positive' | 'negative', size: ChartSize) => {
-      dispatch({ type: 'UPDATE_CHART_SIZE', payload: { chartType, size } });
-    },
-    updateSettings: (settings: Partial<AppSettings>) => {
-      dispatch({ type: 'UPDATE_SETTINGS', payload: settings });
-    },
-    resetData: () => {
-      dispatch({ type: 'RESET_DATA' });
-    },
-    importData: (data: EnergyKuchen) => {
-      dispatch({ type: 'SET_DATA', payload: data });
-    },
-    exportData: () => {
-      return JSON.stringify(state.data);
-    }
-  };
-  
-  return (
-    <EnergyContext.Provider value={{ state, dispatch, actions }}>
-      {children}
-    </EnergyContext.Provider>
-  );
-}
-
-// Custom Hook
-export function useEnergy() {
-  const context = useContext(EnergyContext);
-  if (context === undefined) {
-    throw new Error('useEnergy must be used within an EnergyProvider');
-  }
-  return context;
-}
-
-// lib/contexts/UIContext.tsx
-interface UIState {
-  // Modal states
-  isShareModalOpen: boolean;
-  isSettingsModalOpen: boolean;
-  isImportModalOpen: boolean;
-  
-  // Form states
-  editingActivity: { chartType: 'positive' | 'negative'; activityId: string } | null;
-  
-  // UI preferences
-  sidebarCollapsed: boolean;
-  currentView: 'dashboard' | 'settings' | 'help';
-}
-
-type UIAction =
-  | { type: 'OPEN_SHARE_MODAL' }
-  | { type: 'CLOSE_SHARE_MODAL' }
-  | { type: 'OPEN_SETTINGS_MODAL' }
-  | { type: 'CLOSE_SETTINGS_MODAL' }
-  | { type: 'OPEN_IMPORT_MODAL' }
-  | { type: 'CLOSE_IMPORT_MODAL' }
-  | { type: 'SET_EDITING_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } }
-  | { type: 'CLEAR_EDITING_ACTIVITY' }
-  | { type: 'TOGGLE_SIDEBAR' }
-  | { type: 'SET_CURRENT_VIEW'; payload: 'dashboard' | 'settings' | 'help' };
-
-function uiReducer(state: UIState, action: UIAction): UIState {
-  switch (action.type) {
-    case 'OPEN_SHARE_MODAL':
-      return { ...state, isShareModalOpen: true };
-    case 'CLOSE_SHARE_MODAL':
-      return { ...state, isShareModalOpen: false };
-    case 'SET_EDITING_ACTIVITY':
-      return { ...state, editingActivity: action.payload };
-    case 'CLEAR_EDITING_ACTIVITY':
-      return { ...state, editingActivity: null };
-    case 'TOGGLE_SIDEBAR':
-      return { ...state, sidebarCollapsed: !state.sidebarCollapsed };
-    case 'SET_CURRENT_VIEW':
-      return { ...state, currentView: action.payload };
-    default:
-      return state;
-  }
-}
-
-interface UIContextType {
-  state: UIState;
-  actions: {
-    openShareModal: () => void;
-    closeShareModal: () => void;
-    setEditingActivity: (chartType: 'positive' | 'negative', activityId: string) => void;
-    clearEditingActivity: () => void;
-    toggleSidebar: () => void;
-    setCurrentView: (view: 'dashboard' | 'settings' | 'help') => void;
-  };
-}
-
-const UIContext = createContext<UIContextType | undefined>(undefined);
-
-export function UIProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(uiReducer, {
-    isShareModalOpen: false,
-    isSettingsModalOpen: false,
-    isImportModalOpen: false,
-    editingActivity: null,
-    sidebarCollapsed: false,
-    currentView: 'dashboard'
-  });
-  
-  const actions = {
-    openShareModal: () => dispatch({ type: 'OPEN_SHARE_MODAL' }),
-    closeShareModal: () => dispatch({ type: 'CLOSE_SHARE_MODAL' }),
-    setEditingActivity: (chartType: 'positive' | 'negative', activityId: string) => 
-      dispatch({ type: 'SET_EDITING_ACTIVITY', payload: { chartType, activityId } }),
-    clearEditingActivity: () => dispatch({ type: 'CLEAR_EDITING_ACTIVITY' }),
-    toggleSidebar: () => dispatch({ type: 'TOGGLE_SIDEBAR' }),
-    setCurrentView: (view: 'dashboard' | 'settings' | 'help') => 
-      dispatch({ type: 'SET_CURRENT_VIEW', payload: view })
-  };
-  
-  return (
-    <UIContext.Provider value={{ state, actions }}>
-      {children}
-    </UIContext.Provider>
-  );
-}
-
-export function useUI() {
-  const context = useContext(UIContext);
-  if (context === undefined) {
-    throw new Error('useUI must be used within a UIProvider');
-  }
-  return context;
+// Validation Interface
+export interface IValidationService {
+  validateActivity(activity: Partial<Activity>): ValidationResult;
+  validateChart(chart: Partial<EnergyChart>): ValidationResult;
+  validateSettings(settings: Partial<AppSettings>): ValidationResult;
+  sanitizeInput(input: string): string;
 }
 ```
 
-### 4.2 App Setup mit Context Providers
+### 4.2 Component Interface Contracts
 
 ```typescript
-// app/layout.tsx
-import { EnergyProvider } from '@/lib/contexts/EnergyContext';
-import { UIProvider } from '@/lib/contexts/UIContext';
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="de">
-      <body>
-        <EnergyProvider>
-          <UIProvider>
-            {children}
-          </UIProvider>
-        </EnergyProvider>
-      </body>
-    </html>
-  );
-}
-
-// app/page.tsx - Dashboard Component
-import { useEnergy } from '@/lib/contexts/EnergyContext';
-import { useUI } from '@/lib/contexts/UIContext';
-
-export default function Dashboard() {
-  const { state, actions } = useEnergy();
-  const { state: uiState, actions: uiActions } = useUI();
-  
-  const handleAddActivity = (chartType: 'positive' | 'negative') => {
-    const newActivity = {
-      name: 'Neue Aktivität',
-      value: 50,
-      color: getDefaultColor(chartType)
-    };
-    actions.addActivity(chartType, newActivity);
-  };
-  
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Positive Energy Chart */}
-          <ChartSection
-            chartType="positive"
-            chart={state.data.positive}
-            onAddActivity={() => handleAddActivity('positive')}
-            onEditActivity={(activityId) => 
-              uiActions.setEditingActivity('positive', activityId)
-            }
-          />
-          
-          {/* Negative Energy Chart */}
-          <ChartSection
-            chartType="negative"
-            chart={state.data.negative}
-            onAddActivity={() => handleAddActivity('negative')}
-            onEditActivity={(activityId) => 
-              uiActions.setEditingActivity('negative', activityId)
-            }
-          />
-        </div>
-      </main>
-      
-      {/* Modals */}
-      {uiState.isShareModalOpen && (
-        <ShareModal onClose={uiActions.closeShareModal} />
-      )}
-      
-      {uiState.editingActivity && (
-        <EditActivityModal
-          activity={uiState.editingActivity}
-          onClose={uiActions.clearEditingActivity}
-        />
-      )}
-    </div>
-  );
-}
-```
-
-## 5. Komponenten-Design
-
-### 5.1 EnergyChart Komponente
-
-```typescript
-// app/components/charts/EnergyChart.tsx
-interface EnergyChartProps {
+// Chart Component Interface
+export interface EnergyChartProps {
   chartType: 'positive' | 'negative';
   activities: Activity[];
   size: ChartSize;
   onActivityClick?: (activity: Activity) => void;
   onActivityHover?: (activity: Activity | null) => void;
+  onActivityEdit?: (activity: Activity) => void;
+  onActivityDelete?: (activityId: string) => void;
+  className?: string;
+  'data-testid'?: string;
+}
+
+// Form Component Interface
+export interface ActivityFormProps {
+  activity?: Activity;
+  chartType: 'positive' | 'negative';
+  onSubmit: (activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onCancel: () => void;
+  isLoading?: boolean;
+  errors?: ValidationError[];
+}
+
+// Modal Component Interface
+export interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  className?: string;
+}
+```
+
+### 4.3 Context API Interfaces
+
+```typescript
+// Energy Context Interface
+export interface EnergyContextType {
+  state: EnergyState;
+  actions: {
+    addActivity: (chartType: 'positive' | 'negative', activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+    updateActivity: (chartType: 'positive' | 'negative', activityId: string, updates: Partial<Activity>) => Promise<void>;
+    deleteActivity: (chartType: 'positive' | 'negative', activityId: string) => Promise<void>;
+    reorderActivities: (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => Promise<void>;
+    updateSettings: (settings: Partial<AppSettings>) => Promise<void>;
+    resetData: () => Promise<void>;
+    importData: (data: EnergyKuchen) => Promise<void>;
+    exportData: () => Promise<string>;
+  };
+  utils: {
+    getChartBalance: () => ChartBalance;
+    getTotalActivities: () => number;
+    getActivityById: (chartType: 'positive' | 'negative', id: string) => Activity | null;
+  };
+}
+
+// UI Context Interface
+export interface UIContextType {
+  state: UIState;
+  actions: {
+    openModal: (modal: ModalType, data?: any) => void;
+    closeModal: (modal: ModalType) => void;
+    setEditingActivity: (chartType: 'positive' | 'negative', activityId: string) => void;
+    clearEditingActivity: () => void;
+    showNotification: (message: string, type: NotificationType) => void;
+    setCurrentView: (view: ViewType) => void;
+  };
+}
+```
+
+### 4.4 Event Handling Interfaces
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Component
+    participant Context
+    participant Storage
+    participant Validation
+    
+    User->>Component: User Action (Add Activity)
+    Component->>Validation: Validate Input
+    Validation-->>Component: Validation Result
+    alt Validation Success
+        Component->>Context: Dispatch Action
+        Context->>Storage: Save Data
+        Storage-->>Context: Confirm Save
+        Context-->>Component: Update State
+        Component-->>User: Show Success
+    else Validation Failure
+        Component-->>User: Show Error
+    end
+```
+
+### 4.5 Error Handling Interface
+
+```typescript
+// Error Handling Interface
+export interface IErrorHandler {
+  handleError(error: Error, context: string): void;
+  handleValidationError(errors: ValidationError[]): void;
+  handleStorageError(error: StorageError): void;
+  handleNetworkError(error: NetworkError): void;
+  getUserMessage(error: Error): string;
+  reportError(error: Error, context: ErrorContext): void;
+}
+
+// Error Types
+export interface AppError extends Error {
+  code: string;
+  context: string;
+  timestamp: string;
+  userMessage: string;
+}
+
+export interface ValidationError {
+  field: string;
+  message: string;
+  code: string;
+  value?: any;
+}
+
+export interface StorageError extends AppError {
+  operation: 'save' | 'load' | 'clear' | 'export' | 'import';
+  data?: any;
+}
+```
+
+## 5. Component Design
+
+### 5.1 Component Architecture Pattern
+
+The application follows a component-based architecture with clear separation of concerns, emphasizing reusability, testability, and maintainability.
+
+```mermaid
+graph TD
+    subgraph "Presentation Layer"
+        A[Layout Components]
+        B[UI Components]
+        C[Feature Components]
+    end
+    
+    subgraph "Business Logic Layer"
+        D[Custom Hooks]
+        E[Context Providers]
+        F[Utility Functions]
+    end
+    
+    subgraph "Data Layer"
+        G[Storage Services]
+        H[Validation Services]
+        I[Sharing Services]
+    end
+    
+    A --> D
+    B --> D
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    F --> H
+    F --> I
+    
+    classDef presentation fill:#e3f2fd
+    classDef business fill:#f1f8e9
+    classDef data fill:#fff3e0
+    
+    class A,B,C presentation
+    class D,E,F business
+    class G,H,I data
+```
+
+### 5.2 Core Component Specifications
+
+#### 5.2.1 EnergyChart Component
+
+```typescript
+// Component Responsibility: Render interactive pie chart with Chart.js
+export interface EnergyChartProps {
+  chartType: 'positive' | 'negative';
+  className?: string;
+  onActivityClick?: (activityId: string) => void;
+}
+
+// State Management: Gets data from useChartData hook
+// Dependencies: Chart.js, react-chartjs-2, useChartData hook
+// Accessibility: ARIA labels, keyboard navigation, screen reader support
+```
+
+#### 5.2.2 ActivityForm Component
+
+```typescript
+// Component Responsibility: Handle activity creation and editing
+export interface ActivityFormProps {
+  chartType: 'positive' | 'negative';
+  activity?: Activity;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+// State Management: Local form state with validation
+// Dependencies: react-colorful, validation utilities
+// Features: Real-time validation, color picker, energy slider
+```
+
+#### 5.2.3 ActivityList Component
+
+```typescript
+// Component Responsibility: Display and manage list of activities
+export interface ActivityListProps {
+  chartType: 'positive' | 'negative';
+  activities: Activity[];
   className?: string;
 }
 
-export function EnergyChart({ 
-  chartType, 
-  activities, 
-  size, 
-  onActivityClick, 
-  onActivityHover,
-  className 
-}: EnergyChartProps) {
-  const chartRef = useRef<HTMLCanvasElement>(null);
-  const chartInstance = useRef<Chart | null>(null);
-  
-  const { data, options } = useChartData(activities, chartType, size);
-  
-  useEffect(() => {
-    if (!chartRef.current) return;
+// Features: Inline editing, activity management, responsive design
+```
+
+### 5.3 Custom Hooks Design
+
+#### 5.3.1 useChartData Hook
+
+```typescript
+// Purpose: Transform activity data for Chart.js consumption
+export function useChartData(
+  activities: Activity[], 
+  chartType: 'positive' | 'negative', 
+  size: ChartSize
+) {
+  // Returns: { data, options, isEmpty }
+  // Optimization: Memoized data transformation
+  // Features: Responsive sizing, color management, accessibility labels
+}
+```
+
+#### 5.3.2 useLocalStorage Hook
+
+```typescript
+// Purpose: Manage localStorage operations with React state sync
+export function useLocalStorage<T>(
+  key: string, 
+  defaultValue: T
+): [T, (value: T) => void, () => void] {
+  // Returns: [value, setValue, clearValue]
+  // Features: JSON serialization, error handling, SSR compatibility
+}
+```
+
+#### 5.3.3 useResponsive Hook
+
+```typescript
+// Purpose: Handle responsive design breakpoints
+export function useResponsive() {
+  // Returns: { isMobile, isTablet, isDesktop, breakpoint }
+  // Features: Window resize listening, SSR-safe implementation
+}
+```
+
+### 5.4 Context Provider Architecture
+
+```mermaid
+graph TB
+    subgraph "Application Root"
+        A[App Component]
+    end
     
-    // Destroy existing chart
-    if (chartInstance.current) {
-      chartInstance.current.destroy();
-    }
+    subgraph "Context Providers"
+        B[EnergyProvider]
+        C[UIProvider]
+        D[ErrorProvider]
+    end
     
-    // Create new chart
-    chartInstance.current = new Chart(chartRef.current, {
-      type: 'doughnut',
-      data,
-      options: {
-        ...options,
-        onClick: (event, elements) => {
-          if (elements.length > 0 && onActivityClick) {
-            const index = elements[0].index;
-            onActivityClick(activities[index]);
-          }
-        },
-        onHover: (event, elements) => {
-          if (elements.length > 0 && onActivityHover) {
-            const index = elements[0].index;
-            onActivityHover(activities[index]);
-          } else {
-            onActivityHover?.(null);
-          }
-        }
-      }
-    });
+    subgraph "Feature Components"
+        E[Dashboard]
+        F[ShareModal]
+        G[SettingsModal]
+        H[ActivityForm]
+    end
     
-    return () => {
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-      }
-    };
-  }, [data, options, activities, onActivityClick, onActivityHover]);
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    D --> F
+    D --> G
+    D --> H
+    
+    classDef root fill:#ffebee
+    classDef provider fill:#e8f5e8
+    classDef component fill:#e3f2fd
+    
+    class A root
+    class B,C,D provider
+    class E,F,G,H component
+```
+
+### 5.5 Component State Management Strategy
+
+#### 5.5.1 State Categorization
+
+```typescript
+// Global State (Context API)
+interface GlobalState {
+  energyData: EnergyKuchen;      // Core application data
+  uiState: UIState;              // Modal states, current view
+  userPreferences: UserSettings;  // Settings and preferences
+}
+
+// Component State (useState/useReducer)
+interface ComponentState {
+  formData: FormState;           // Form inputs and validation
+  animations: AnimationState;    // UI animations and transitions
+  interactions: InteractionState; // User interactions and feedback
+}
+
+// Derived State (useMemo/Custom Hooks)
+interface DerivedState {
+  chartData: ChartData;          // Processed chart data
+  validationResults: ValidationResults; // Input validation status
+  calculatedMetrics: Metrics;    // Balance calculations, totals
+}
+```
+
+#### 5.5.2 State Update Patterns
+
+```mermaid
+flowchart TD
+    A[User Interaction] --> B{State Type}
+    B -->|Global| C[Context Action]
+    B -->|Local| D[Component State]
+    B -->|Derived| E[Recompute]
+    
+    C --> F[Reducer Function]
+    F --> G[Validate Action]
+    G --> H{Valid?}
+    H -->|Yes| I[Update State]
+    H -->|No| J[Reject Action]
+    I --> K[Persist to Storage]
+    K --> L[Notify Components]
+    
+    D --> M[Update Component]
+    M --> N[Trigger Effects]
+    
+    E --> O[Memoized Calculation]
+    O --> P[Return Result]
+    
+    classDef interaction fill:#fff3e0
+    classDef validation fill:#ffebee
+    classDef update fill:#e8f5e8
+    
+    class A,B interaction
+    class G,H,J validation
+    class I,K,L,M,N,O,P update
+```
+
+### 5.6 Component Performance Optimization
+
+#### 5.6.1 Memoization Strategy
+
+```typescript
+// Component Memoization
+const EnergyChart = React.memo(({ activities, chartType, size, ...props }) => {
+  // Memoize expensive chart data calculations
+  const chartData = useMemo(() => 
+    generateChartData(activities, chartType), 
+    [activities, chartType]
+  );
   
-  const sizeClasses = {
-    small: 'w-64 h-64',
-    medium: 'w-80 h-80',
-    large: 'w-96 h-96'
-  };
+  // Memoize chart options that depend on size
+  const chartOptions = useMemo(() => 
+    generateChartOptions(size), 
+    [size]
+  );
+  
+  return <Chart data={chartData} options={chartOptions} {...props} />;
+});
+
+// Callback Memoization
+const ActivityList = ({ activities, onEdit, onDelete }) => {
+  const handleEdit = useCallback((activity) => {
+    onEdit(activity);
+  }, [onEdit]);
+  
+  const handleDelete = useCallback((activityId) => {
+    onDelete(activityId);
+  }, [onDelete]);
   
   return (
-    <div className={cn('relative', sizeClasses[size], className)}>
-      <canvas ref={chartRef} />
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="text-center">
-          <div className="text-2xl mb-1">
-            {chartType === 'positive' ? '⚡' : '🔋'}
-          </div>
-          <div className="text-sm font-medium text-gray-600">
-            {chartType === 'positive' ? 'Energie+' : 'Energie-'}
-          </div>
-        </div>
-      </div>
+    <div>
+      {activities.map(activity => (
+        <ActivityItem 
+          key={activity.id}
+          activity={activity}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      ))}
     </div>
   );
-}
-```
-
-### 5.2 ActivityForm Komponente
-
-```typescript
-// app/components/forms/ActivityForm.tsx
-import { useEnergy } from '@/lib/contexts/EnergyContext';
-import { useUI } from '@/lib/contexts/UIContext';
-
-interface ActivityFormProps {
-  activity?: Activity;
-  chartType: 'positive' | 'negative';
-  onCancel: () => void;
-  isLoading?: boolean;
-}
-
-export function ActivityForm({ 
-  activity, 
-  chartType, 
-  onCancel, 
-  isLoading = false 
-}: ActivityFormProps) {
-  const { actions } = useEnergy();
-  const { actions: uiActions } = useUI();
-  
-  const [formData, setFormData] = useState({
-    name: activity?.name || '',
-    value: activity?.value || 50,
-    color: activity?.color || getDefaultColor(chartType)
-  });
-  
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const validation = validateActivity(formData);
-    if (!validation.isValid) {
-      setErrors(validation.errors.reduce((acc, error) => {
-        acc[error.field] = error.message;
-        return acc;
-      }, {}));
-      return;
-    }
-    
-    setErrors({});
-    
-    // Use Context API actions
-    if (activity) {
-      // Update existing activity
-      actions.updateActivity(chartType, activity.id, formData);
-    } else {
-      // Add new activity
-      actions.addActivity(chartType, formData);
-    }
-    
-    // Close form/modal
-    uiActions.clearEditingActivity();
-    onCancel();
-  };
-  
-  const colorPalette = getColorPalette(chartType);
-  
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="activity-name">Aktivitätsname</Label>
-        <Input
-          id="activity-name"
-          value={formData.name}
-          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-          placeholder="z.B. Sport, Meditation, Überstunden..."
-          maxLength={50}
-          error={errors.name}
-          required
-        />
-        <div className="text-xs text-gray-500 mt-1">
-          {formData.name.length}/50 Zeichen
-        </div>
-      </div>
-      
-      <div>
-        <Label htmlFor="activity-value">
-          Energiewert: {formData.value}
-        </Label>
-        <Slider
-          id="activity-value"
-          min={1}
-          max={100}
-          step={1}
-          value={formData.value}
-          onChange={(value) => setFormData(prev => ({ ...prev, value }))}
-          className="mt-2"
-        />
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>Wenig (1)</span>
-          <span>Viel (100)</span>
-        </div>
-      </div>
-      
-      <div>
-        <Label>Farbe</Label>
-        <div className="grid grid-cols-6 gap-2 mt-2">
-          {colorPalette.map((color) => (
-            <button
-              key={color}
-              type="button"
-              className={cn(
-                'w-8 h-8 rounded-full border-2 transition-all',
-                formData.color === color
-                  ? 'border-gray-800 scale-110'
-                  : 'border-gray-200 hover:border-gray-400'
-              )}
-              style={{ backgroundColor: color }}
-              onClick={() => setFormData(prev => ({ ...prev, color }))}
-              aria-label={`Farbe ${color} auswählen`}
-            />
-          ))}
-        </div>
-        <div className="mt-2">
-          <ColorPicker
-            color={formData.color}
-            onChange={(color) => setFormData(prev => ({ ...prev, color }))}
-          />
-        </div>
-      </div>
-      
-      <div className="flex gap-2 pt-4">
-        <Button
-          type="submit"
-          disabled={isLoading}
-          className="flex-1"
-        >
-          {isLoading ? 'Speichern...' : activity ? 'Aktualisieren' : 'Hinzufügen'}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isLoading}
-        >
-          Abbrechen
-        </Button>
-      </div>
-    </form>
-  );
-}
-```
-
-### 5.3 Custom Hooks für Context Integration
-
-```typescript
-// lib/hooks/useEnergyActions.ts
-import { useEnergy } from '@/lib/contexts/EnergyContext';
-import { useCallback } from 'react';
-
-export function useEnergyActions() {
-  const { state, actions } = useEnergy();
-  
-  const addActivityWithValidation = useCallback(
-    (chartType: 'positive' | 'negative', activityData: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const validation = validateActivity(activityData);
-      if (!validation.isValid) {
-        throw new Error(validation.errors.map(e => e.message).join(', '));
-      }
-      actions.addActivity(chartType, activityData);
-    },
-    [actions]
-  );
-  
-  const getChartBalance = useCallback(() => {
-    const positiveTotal = state.data.positive.activities.reduce((sum, act) => sum + act.value, 0);
-    const negativeTotal = state.data.negative.activities.reduce((sum, act) => sum + act.value, 0);
-    
-    return {
-      positive: positiveTotal,
-      negative: negativeTotal,
-      balance: positiveTotal - negativeTotal,
-      ratio: negativeTotal > 0 ? positiveTotal / negativeTotal : positiveTotal
-    };
-  }, [state.data]);
-  
-  const exportToShare = useCallback(() => {
-    return actions.exportData();
-  }, [actions]);
-  
-  return {
-    ...actions,
-    addActivityWithValidation,
-    getChartBalance,
-    exportToShare,
-    data: state.data,
-    isLoading: state.isLoading
-  };
-}
-
-// lib/hooks/useChartData.ts
-import { useEnergy } from '@/lib/contexts/EnergyContext';
-import { useMemo } from 'react';
-
-export function useChartData(chartType: 'positive' | 'negative') {
-  const { state } = useEnergy();
-  const chart = state.data[chartType];
-  
-  const chartData = useMemo(() => {
-    if (!chart.activities.length) {
-      return {
-        labels: ['Keine Aktivitäten'],
-        datasets: [{
-          data: [1],
-          backgroundColor: ['#e5e7eb'],
-          borderColor: ['#d1d5db'],
-          borderWidth: 2,
-        }]
-      };
-    }
-    
-    return {
-      labels: chart.activities.map(activity => activity.name),
-      datasets: [{
-        data: chart.activities.map(activity => activity.value),
-        backgroundColor: chart.activities.map(activity => activity.color),
-        borderColor: chart.activities.map(activity => activity.color),
-        borderWidth: 2,
-        hoverBorderWidth: 3,
-      }]
-    };
-  }, [chart.activities]);
-  
-  const chartOptions = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: true,
-    plugins: {
-      legend: {
-        position: 'bottom' as const,
-        labels: {
-          padding: 20,
-          usePointStyle: true,
-          font: {
-            size: 12
-          }
-        }
-      },
-      tooltip: {
-        callbacks: {
-          label: (context: any) => {
-            const percentage = ((context.raw / context.dataset.data.reduce((a: number, b: number) => a + b, 0)) * 100).toFixed(1);
-            return `${context.label}: ${context.raw} (${percentage}%)`;
-          }
-        }
-      }
-    },
-    cutout: '50%',
-    elements: {
-      arc: {
-        borderWidth: 2
-      }
-    }
-  }), []);
-  
-  return {
-    data: chartData,
-    options: chartOptions,
-    activities: chart.activities,
-    size: chart.size,
-    isEmpty: chart.activities.length === 0
-  };
-}
-```
-
-## 6. Utility-Funktionen
-
-### 6.1 Storage Management
-
-```typescript
-// lib/utils/storage.ts
-export class StorageManager {
-  private static readonly STORAGE_KEY = 'energiekuchen-data';
-  private static readonly STORAGE_VERSION = '1.0';
-  
-  static save(data: EnergyKuchen): void {
-    try {
-      const dataWithVersion = {
-        ...data,
-        version: this.STORAGE_VERSION,
-        lastModified: new Date().toISOString()
-      };
-      
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(dataWithVersion));
-    } catch (error) {
-      console.error('Fehler beim Speichern:', error);
-      throw new Error('Daten konnten nicht gespeichert werden');
-    }
-  }
-  
-  static load(): EnergyKuchen | null {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (!stored) return null;
-      
-      const parsed = JSON.parse(stored);
-      
-      // Version migration if needed
-      if (parsed.version !== this.STORAGE_VERSION) {
-        return this.migrateData(parsed);
-      }
-      
-      return this.validateAndClean(parsed);
-    } catch (error) {
-      console.error('Fehler beim Laden:', error);
-      return null;
-    }
-  }
-  
-  static export(): string {
-    const data = this.load();
-    if (!data) throw new Error('Keine Daten zum Exportieren vorhanden');
-    
-    return JSON.stringify(data, null, 2);
-  }
-  
-  static import(jsonString: string): EnergyKuchen {
-    try {
-      const data = JSON.parse(jsonString);
-      const validated = this.validateAndClean(data);
-      this.save(validated);
-      return validated;
-    } catch (error) {
-      throw new Error('Ungültige Daten zum Importieren');
-    }
-  }
-  
-  static clear(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
-  }
-  
-  private static validateAndClean(data: any): EnergyKuchen {
-    // Implement validation logic
-    if (!data.positive || !data.negative) {
-      throw new Error('Ungültige Datenstruktur');
-    }
-    
-    return {
-      version: this.STORAGE_VERSION,
-      lastModified: data.lastModified || new Date().toISOString(),
-      positive: this.validateChart(data.positive, 'positive'),
-      negative: this.validateChart(data.negative, 'negative'),
-      settings: this.validateSettings(data.settings)
-    };
-  }
-  
-  private static validateChart(chart: any, type: 'positive' | 'negative'): EnergyChart {
-    return {
-      id: chart.id || crypto.randomUUID(),
-      type,
-      activities: (chart.activities || []).map(this.validateActivity),
-      size: ['small', 'medium', 'large'].includes(chart.size) ? chart.size : 'medium',
-      title: chart.title
-    };
-  }
-  
-  private static validateActivity(activity: any): Activity {
-    const validation = validateActivity(activity);
-    if (!validation.isValid) {
-      throw new Error(`Ungültige Aktivität: ${validation.errors.join(', ')}`);
-    }
-    
-    return {
-      id: activity.id || crypto.randomUUID(),
-      name: activity.name,
-      value: Math.max(1, Math.min(100, activity.value)),
-      color: activity.color,
-      createdAt: activity.createdAt || new Date().toISOString(),
-      updatedAt: activity.updatedAt || new Date().toISOString()
-    };
-  }
-}
-```
-
-### 6.2 Sharing System
-
-```typescript
-// lib/utils/sharing.ts
-export class SharingManager {
-  private static readonly MAX_URL_LENGTH = 2000;
-  private static readonly BASE_URL = process.env.NODE_ENV === 'production' 
-    ? 'https://energiekuchen.de' 
-    : 'http://localhost:3000';
-  
-  static async generateShareData(data: EnergyKuchen): Promise<ShareData> {
-    // Remove unnecessary fields for sharing
-    const shareableData = this.prepareShareableData(data);
-    
-    // Compress and encode
-    let encoded = this.encodeData(shareableData);
-    
-    // Check URL length and compress if necessary
-    const url = `${this.BASE_URL}/share/${encoded}`;
-    if (url.length > this.MAX_URL_LENGTH) {
-      encoded = await this.compressData(shareableData);
-    }
-    
-    const finalUrl = `${this.BASE_URL}/share/${encoded}`;
-    const qrCode = await this.generateQRCode(finalUrl);
-    
-    return {
-      encoded,
-      url: finalUrl,
-      qrCode
-    };
-  }
-  
-  static decodeShareData(encoded: string): EnergyKuchen {
-    try {
-      // Try direct decode first
-      let decoded = this.decodeData(encoded);
-      
-      // If that fails, try decompression
-      if (!decoded) {
-        decoded = this.decompressData(encoded);
-      }
-      
-      if (!decoded) {
-        throw new Error('Ungültige Share-Daten');
-      }
-      
-      return this.validateSharedData(decoded);
-    } catch (error) {
-      throw new Error('Geteilte Daten konnten nicht geladen werden');
-    }
-  }
-  
-  private static prepareShareableData(data: EnergyKuchen) {
-    return {
-      v: data.version,
-      p: {
-        a: data.positive.activities.map(a => ({
-          n: a.name,
-          v: a.value,
-          c: a.color
-        })),
-        s: data.positive.size
-      },
-      n: {
-        a: data.negative.activities.map(a => ({
-          n: a.name,
-          v: a.value,
-          c: a.color
-        })),
-        s: data.negative.size
-      },
-      s: {
-        cs: data.settings.chartSize,
-        sc: data.settings.colorScheme
-      }
-    };
-  }
-  
-  private static encodeData(data: any): string {
-    const json = JSON.stringify(data);
-    return btoa(unescape(encodeURIComponent(json)))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
-  }
-  
-  private static decodeData(encoded: string): any {
-    try {
-      const padded = encoded + '==='.slice(0, 4 - (encoded.length % 4));
-      const base64 = padded.replace(/-/g, '+').replace(/_/g, '/');
-      const json = decodeURIComponent(escape(atob(base64)));
-      return JSON.parse(json);
-    } catch {
-      return null;
-    }
-  }
-  
-  private static async compressData(data: any): Promise<string> {
-    // Use compression library or implement simple compression
-    const json = JSON.stringify(data);
-    
-    // Simple compression: remove spaces and use shorter keys
-    const compressed = json
-      .replace(/\s/g, '')
-      .replace(/"name"/g, '"n"')
-      .replace(/"value"/g, '"v"')
-      .replace(/"color"/g, '"c"')
-      .replace(/"activities"/g, '"a"')
-      .replace(/"size"/g, '"s"');
-    
-    return this.encodeData(compressed);
-  }
-  
-  private static async generateQRCode(url: string): Promise<string> {
-    const QRCode = await import('qrcode');
-    return QRCode.toDataURL(url, {
-      width: 256,
-      margin: 2,
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      }
-    });
-  }
-  
-  private static validateSharedData(data: any): EnergyKuchen {
-    // Convert compressed format back to full format
-    return {
-      version: data.v || '1.0',
-      lastModified: new Date().toISOString(),
-      positive: {
-        id: crypto.randomUUID(),
-        type: 'positive',
-        activities: (data.p?.a || []).map((a: any) => ({
-          id: crypto.randomUUID(),
-          name: a.n,
-          value: a.v,
-          color: a.c,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        })),
-        size: data.p?.s || 'medium'
-      },
-      negative: {
-        id: crypto.randomUUID(),
-        type: 'negative',
-        activities: (data.n?.a || []).map((a: any) => ({
-          id: crypto.randomUUID(),
-          name: a.n,
-          value: a.v,
-          color: a.c,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        })),
-        size: data.n?.s || 'medium'
-      },
-      settings: {
-        chartSize: data.s?.cs || 'medium',
-        colorScheme: data.s?.sc || 'default',
-        showTooltips: true,
-        showLegends: true,
-        language: 'de'
-      }
-    };
-  }
-}
-```
-
-## 7. Responsive Design & Accessibility
-
-### 7.1 Responsive Breakpoints
-
-```typescript
-// lib/utils/constants.ts
-export const BREAKPOINTS = {
-  mobile: '320px',
-  tablet: '768px',
-  desktop: '1024px',
-  wide: '1440px'
-} as const;
-
-export const RESPONSIVE_CHART_SIZES = {
-  mobile: {
-    small: 'w-48 h-48',
-    medium: 'w-56 h-56',
-    large: 'w-64 h-64'
-  },
-  tablet: {
-    small: 'w-56 h-56',
-    medium: 'w-72 h-72',
-    large: 'w-80 h-80'
-  },
-  desktop: {
-    small: 'w-64 h-64',
-    medium: 'w-80 h-80',
-    large: 'w-96 h-96'
-  }
-} as const;
-
-export const TOUCH_TARGET_SIZE = '44px';
-```
-
-### 7.2 Accessibility Features
-
-```typescript
-// lib/hooks/useAccessibility.ts
-export function useAccessibility() {
-  const [announcements, setAnnouncements] = useState<string[]>([]);
-  
-  const announce = useCallback((message: string) => {
-    setAnnouncements(prev => [...prev, message]);
-    // Clear after announcement
-    setTimeout(() => {
-      setAnnouncements(prev => prev.slice(1));
-    }, 1000);
-  }, []);
-  
-  const getAriaLabel = useCallback((activity: Activity, chartType: 'positive' | 'negative') => {
-    const typeLabel = chartType === 'positive' ? 'energiegebend' : 'energiezehrend';
-    return `${activity.name}, ${typeLabel}, Wert ${activity.value} von 100`;
-  }, []);
-  
-  const getChartDescription = useCallback((activities: Activity[], chartType: 'positive' | 'negative') => {
-    const typeLabel = chartType === 'positive' ? 'Energiequellen' : 'Energieverbraucher';
-    const total = activities.reduce((sum, activity) => sum + activity.value, 0);
-    return `${typeLabel} Diagramm mit ${activities.length} Aktivitäten, Gesamtwert ${total}`;
-  }, []);
-  
-  return {
-    announcements,
-    announce,
-    getAriaLabel,
-    getChartDescription
-  };
-}
-```
-
-## 8. Performance & Optimierung
-
-### 8.1 Code Splitting Strategy
-
-```typescript
-// app/(main)/page.tsx - Lazy loading for better performance
-const EnergyChart = lazy(() => import('@/components/charts/EnergyChart'));
-const ShareModal = lazy(() => import('@/components/features/ShareModal'));
-const SettingsPanel = lazy(() => import('@/components/features/SettingsPanel'));
-
-export default function Dashboard() {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Suspense fallback={<ChartSkeleton />}>
-        <EnergyChart chartType="positive" />
-        <EnergyChart chartType="negative" />
-      </Suspense>
-      
-      <Suspense fallback={null}>
-        <ShareModal />
-        <SettingsPanel />
-      </Suspense>
-    </div>
-  );
-}
-```
-
-### 8.2 Memoization Strategy
-
-```typescript
-// lib/hooks/useChartData.ts
-export function useChartData(activities: Activity[], chartType: 'positive' | 'negative', size: ChartSize) {
-  const data = useMemo(() => {
-    if (activities.length === 0) {
-      return getEmptyChartData(chartType);
-    }
-    
-    return {
-      labels: activities.map(a => a.name),
-      datasets: [{
-        data: activities.map(a => a.value),
-        backgroundColor: activities.map(a => a.color),
-        borderColor: activities.map(a => lightenColor(a.color, 0.2)),
-        borderWidth: 2,
-        hoverBackgroundColor: activities.map(a => lightenColor(a.color, 0.1)),
-        hoverBorderColor: activities.map(a => darkenColor(a.color, 0.1)),
-      }]
-    };
-  }, [activities, chartType]);
-  
-  const options = useMemo(() => {
-    return getChartOptions(chartType, size);
-  }, [chartType, size]);
-  
-  return { data, options };
-}
-```
-
-## 9. Testing-Strategie
-
-### 9.1 Unit Tests Structure
-
-```typescript
-// __tests__/utils/storage.test.ts
-describe('StorageManager', () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-  
-  describe('save and load', () => {
-    it('should save and load data correctly', () => {
-      const testData = createTestEnergyKuchen();
-      StorageManager.save(testData);
-      
-      const loaded = StorageManager.load();
-      expect(loaded).toEqual(testData);
-    });
-    
-    it('should handle corrupted data gracefully', () => {
-      localStorage.setItem('energiekuchen-data', 'invalid json');
-      
-      const loaded = StorageManager.load();
-      expect(loaded).toBeNull();
-    });
-  });
-  
-  describe('validation', () => {
-    it('should validate activity data', () => {
-      const invalidActivity = { name: '', value: -1, color: 'invalid' };
-      const result = validateActivity(invalidActivity);
-      
-      expect(result.isValid).toBe(false);
-      expect(result.errors).toHaveLength(3);
-    });
-  });
-});
-
-// __tests__/components/EnergyChart.test.tsx
-describe('EnergyChart', () => {
-  it('should render chart with activities', () => {
-    const activities = [
-      createTestActivity({ name: 'Test Activity', value: 50 })
-    ];
-    
-    render(
-      <EnergyChart 
-        chartType="positive" 
-        activities={activities} 
-        size="medium" 
-      />
-    );
-    
-    expect(screen.getByRole('img')).toBeInTheDocument();
-    expect(screen.getByText('Energie+')).toBeInTheDocument();
-  });
-  
-  it('should handle click events', () => {
-    const onActivityClick = jest.fn();
-    const activities = [createTestActivity()];
-    
-    render(
-      <EnergyChart 
-        chartType="positive" 
-        activities={activities} 
-        size="medium"
-        onActivityClick={onActivityClick}
-      />
-    );
-    
-    fireEvent.click(screen.getByRole('img'));
-    expect(onActivityClick).toHaveBeenCalledWith(activities[0]);
-  });
-});
-```
-
-### 9.2 E2E Tests with Playwright
-
-```typescript
-// e2e/energy-chart.spec.ts
-import { test, expect } from '@playwright/test';
-
-test.describe('Energy Chart Management', () => {
-  test('should create and edit activities', async ({ page }) => {
-    await page.goto('/');
-    
-    // Add positive activity
-    await page.click('[data-testid="add-positive-activity"]');
-    await page.fill('[data-testid="activity-name"]', 'Sport');
-    await page.fill('[data-testid="activity-value"]', '75');
-    await page.click('[data-testid="color-green"]');
-    await page.click('[data-testid="save-activity"]');
-    
-    // Verify activity appears in chart
-    await expect(page.locator('[data-testid="positive-chart"]')).toContainText('Sport');
-    
-    // Edit activity
-    await page.click('[data-testid="activity-sport"] [data-testid="edit-button"]');
-    await page.fill('[data-testid="activity-name"]', 'Fitness');
-    await page.click('[data-testid="save-activity"]');
-    
-    await expect(page.locator('[data-testid="positive-chart"]')).toContainText('Fitness');
-  });
-  
-  test('should share energy chart', async ({ page }) => {
-    // Create some test data
-    await createTestActivities(page);
-    
-    // Open share modal
-    await page.click('[data-testid="share-button"]');
-    
-    // Verify share URL is generated
-    const shareUrl = await page.locator('[data-testid="share-url"]').textContent();
-    expect(shareUrl).toContain('/share/');
-    
-    // Test share URL works
-    await page.goto(shareUrl!);
-    await expect(page.locator('[data-testid="positive-chart"]')).toBeVisible();
-    await expect(page.locator('[data-testid="negative-chart"]')).toBeVisible();
-  });
-});
-```
-
-## 10. Deployment & Build Configuration
-
-### 10.1 Build Configuration
-
-```typescript
-// next.config.ts
-const nextConfig = {
-  output: 'export',
-  trailingSlash: true,
-  images: {
-    unoptimized: true
-  },
-  
-  // PWA configuration for offline usage
-  experimental: {
-    appDir: true
-  },
-  
-  // Optimization
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production'
-  },
-  
-  // Security headers
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY'
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin'
-          }
-        ]
-      }
-    ];
-  }
 };
-
-export default nextConfig;
 ```
 
-### 10.2 Error Handling
+#### 5.6.2 Code Splitting Implementation
 
 ```typescript
-// lib/utils/errorHandling.ts
-export class ErrorHandler {
-  static handleError(error: Error, context: string) {
-    console.error(`Error in ${context}:`, error);
-    
-    // Show user-friendly message
-    toast.error(this.getUserMessage(error));
-  }
-  
-  private static getUserMessage(error: Error): string {
-    if (error.message.includes('storage')) {
-      return 'Fehler beim Speichern der Daten. Bitte versuchen Sie es erneut.';
-    }
-    
-    if (error.message.includes('share')) {
-      return 'Fehler beim Teilen. Bitte überprüfen Sie Ihre Internetverbindung.';
-    }
-    
-    return 'Ein unerwarteter Fehler ist aufgetreten. Bitte laden Sie die Seite neu.';
-  }
-}
+// Route-based code splitting
+const SharePage = lazy(() => import('@/app/share/[data]/page'));
+const HelpPage = lazy(() => import('@/app/hilfe/page'));
+const SettingsModal = lazy(() => import('@/components/features/SettingsModal'));
 
-// Global error boundary
-export function GlobalErrorBoundary({ children }: { children: React.ReactNode }) {
+// Feature-based code splitting
+const ChartExport = lazy(() => import('@/components/features/ChartExport'));
+const AdvancedSettings = lazy(() => import('@/components/features/AdvancedSettings'));
+
+// Component with suspense
+export function Dashboard() {
   return (
-    <ErrorBoundary
-      FallbackComponent={ErrorFallback}
-      onError={(error, errorInfo) => {
-        ErrorHandler.handleError(error, 'React Error Boundary');
-      }}
-    >
-      {children}
-    </ErrorBoundary>
+    <div>
+      <EnergyChart chartType="positive" />
+      <EnergyChart chartType="negative" />
+      
+      <Suspense fallback={<LoadingSpinner />}>
+        <SettingsModal />
+      </Suspense>
+    </div>
   );
 }
 ```
 
-## 11. Implementation Roadmap
+## 6. User Interface Design
 
-### Phase 1: Core Functionality
-1. Setup Next.js project with TypeScript and Tailwind
-2. Implement basic data models and validation
-3. Create EnergyChart component with Chart.js
-4. Implement basic CRUD operations for activities
-5. Add localStorage persistence
+### 6.1 Design System Architecture
 
-### Phase 2: UI/UX Enhancement
-1. Implement responsive design
-2. Add drag & drop functionality
-3. Create comprehensive form validation
-4. Implement accessibility features
-5. Add animations and transitions
+The user interface follows a cohesive design system built with Tailwind CSS, emphasizing accessibility, responsiveness, and visual consistency.
 
-### Phase 3: Sharing & Advanced Features
-1. Implement URL-based sharing system
-2. Add import/export functionality
-3. Create QR code generation
-4. Implement settings management
-5. Add comprehensive error handling
+```mermaid
+graph TD
+    subgraph "Design Tokens"
+        A[Colors]
+        B[Typography]
+        C[Spacing]
+        D[Breakpoints]
+    end
+    
+    subgraph "Base Components"
+        E[Button]
+        F[Input]
+        G[Modal]
+        H[Slider]
+    end
+    
+    subgraph "Layout Components"
+        I[Header]
+        J[Grid System]
+        K[Container]
+    end
+    
+    subgraph "Feature Components"
+        L[EnergyChart]
+        M[ActivityForm]
+        N[ShareModal]
+    end
+    
+    A --> E
+    B --> E
+    C --> E
+    A --> F
+    B --> F
+    C --> F
+    
+    E --> L
+    F --> M
+    G --> N
+    
+    D --> I
+    D --> J
+    D --> K
+    
+    classDef tokens fill:#fff3e0
+    classDef base fill:#e8f5e8
+    classDef layout fill:#e3f2fd
+    classDef feature fill:#f3e5f5
+    
+    class A,B,C,D tokens
+    class E,F,G,H base
+    class I,J,K layout
+    class L,M,N feature
+```
 
-### Phase 4: Testing & Optimization
-1. Write comprehensive unit tests
-2. Implement E2E testing
-3. Performance optimization
-4. Accessibility auditing
-5. Browser compatibility testing
+### 6.2 Visual Design Specifications
 
-### Phase 5: Deployment
-1. Setup production deployment on Vercel
-2. Configure domain and SSL
-3. Final testing and bug fixes
-4. Documentation and user guide
+#### 6.2.1 Color Palette
 
-## 12. Dependencies
+The application uses a carefully designed color system that supports the energy visualization theme:
 
-### Required Package Installation
+**Primary Energy Theme (Yellow/Orange):**
+- Light background: `#fffbeb` - Used for subtle UI backgrounds
+- Subtle accent: `#fef3c7` - For secondary elements
+- Main yellow: `#fbbf24` - Primary brand color
+- Active state: `#f59e0b` - Interactive element states
+- Hover state: `#d97706` - Darker hover effects
+
+**Positive Energy Colors (Green Spectrum):**
+- Light background: `#dcfce7` - Chart backgrounds and highlights
+- Medium green: `#4ade80` - Secondary positive elements
+- Primary green: `#22c55e` - Main positive energy color
+- Dark green: `#16a34a` - Strong emphasis and active states
+
+**Negative Energy Colors (Red/Orange Spectrum):**
+- Light background: `#fee2e2` - Chart backgrounds and highlights
+- Medium red: `#fb7185` - Secondary negative elements
+- Primary red: `#ef4444` - Main negative energy color
+- Dark red: `#dc2626` - Strong emphasis and active states
+
+**Neutral Colors (Gray Palette):**
+- Ultra light: `#f9fafb` - Page backgrounds
+- Light: `#f3f4f6` - Card backgrounds
+- Medium light: `#d1d5db` - Borders and dividers
+- Medium: `#6b7280` - Secondary text
+- Dark: `#374151` - Primary text
+- Very dark: `#111827` - Headings and emphasis
+
+#### 6.2.2 Typography Scale
+
+The typography system emphasizes readability and consistency across all device sizes:
+
+**Font Families:**
+- **Sans-serif**: Inter, system-ui, sans-serif (primary text)
+- **Monospace**: JetBrains Mono, monospace (code and technical content)
+
+**Font Sizes and Line Heights:**
+- **Extra small**: 0.75rem (12px) with 1rem line height - for captions and labels
+- **Small**: 0.875rem (14px) with 1.25rem line height - for secondary text
+- **Base**: 1rem (16px) with 1.5rem line height - for body text
+- **Large**: 1.125rem (18px) with 1.75rem line height - for emphasis
+- **Extra large**: 1.25rem (20px) with 1.75rem line height - for large text
+- **2X large**: 1.5rem (24px) with 2rem line height - for headings
+- **3X large**: 1.875rem (30px) with 2.25rem line height - for major headings
+
+**Font Weights:**
+- **Normal** (400): Regular body text
+- **Medium** (500): Subtle emphasis
+- **Semi-bold** (600): Strong emphasis and labels
+- **Bold** (700): Headings and important content
+
+#### 6.2.3 Responsive Breakpoints
+
+The responsive design system supports multiple device categories:
+
+**Device Breakpoints:**
+- **Mobile**: 320px and up - Small mobile devices
+- **Tablet**: 768px and up - Tablets and large mobile devices
+- **Desktop**: 1024px and up - Desktop and laptop computers
+- **Wide**: 1440px and up - Large desktop displays
+
+**Component Sizing Guidelines:**
+- **Chart sizes** vary by device:
+  - Mobile: Small (200px), Medium (240px), Large (280px)
+  - Tablet: Small (240px), Medium (300px), Large (360px)
+  - Desktop: Small (280px), Medium (360px), Large (440px)
+
+**Touch Target Standards:**
+- **Minimum**: 44px - WCAG AA compliance requirement
+- **Comfortable**: 48px - Preferred touch target size for better usability
+
+**Spacing System:**
+- **Extra small**: 0.25rem (4px) - Tight spacing
+- **Small**: 0.5rem (8px) - Close elements
+- **Medium**: 1rem (16px) - Standard spacing
+- **Large**: 1.5rem (24px) - Section spacing
+- **Extra large**: 2rem (32px) - Major sections
+- **2X large**: 3rem (48px) - Page-level spacing
+```
+
+### 6.3 Layout Design Patterns
+
+#### 6.3.1 Responsive Grid System
+
+```mermaid
+graph TD
+    subgraph "Mobile Layout (320px-767px)"
+        A[Header - Full Width]
+        B[Positive Chart - Full Width]
+        C[Positive Activities - Full Width]
+        D[Negative Chart - Full Width]
+        E[Negative Activities - Full Width]
+        F[Action Buttons - Full Width]
+    end
+    
+    subgraph "Tablet Layout (768px-1023px)"
+        G[Header - Full Width]
+        H[Chart Row - Two Columns]
+        I[Activities Row - Two Columns]
+        J[Actions Row - Centered]
+    end
+    
+    subgraph "Desktop Layout (1024px+)"
+        K[Header - Full Width]
+        L[Main Grid - Two Columns with Sidebar]
+        M[Chart Section - Primary]
+        N[Controls Section - Secondary]
+    end
+    
+    A --> B --> C --> D --> E --> F
+    G --> H --> I --> J
+    K --> L --> M
+    L --> N
+    
+    classDef mobile fill:#fff3e0
+    classDef tablet fill:#e8f5e8
+    classDef desktop fill:#e3f2fd
+    
+    class A,B,C,D,E,F mobile
+    class G,H,I,J tablet
+    class K,L,M,N desktop
+```
+
+#### 6.3.2 Component Layout Specifications
+
+The application uses responsive layout patterns that adapt to different screen sizes:
+
+**Dashboard Layout:**
+- **Mobile**: Single column with vertical spacing (4px padding, 24px gaps)
+- **Tablet**: Two-column grid with moderate spacing (24px padding, 24px gaps)
+- **Desktop**: Three-column grid with generous spacing (32px padding, 32px gaps)
+
+**Chart Section Layout:**
+- **Mobile**: Centered column with tight spacing (16px between elements)
+- **Tablet**: Centered column with moderate spacing (24px between elements)
+- **Desktop**: Centered column with generous spacing (32px between elements)
+
+**Activity List Layout:**
+- **Mobile**: Compact vertical list (8px spacing)
+- **Tablet**: Comfortable vertical list (12px spacing)
+- **Desktop**: Spacious vertical list (16px spacing)
+
+**Modal Layout:**
+- **Mobile**: Full-screen modal with small margins (16px inset)
+- **Tablet**: Large modal with moderate margins (32px inset)
+- **Desktop**: Constrained modal with large margins (64px inset, max-width container)
+
+### 6.4 Accessibility Design Standards
+
+#### 6.4.1 WCAG 2.1 AA Compliance
+
+The application meets Web Content Accessibility Guidelines (WCAG) 2.1 AA standards:
+
+**Color Contrast Requirements:**
+- **Normal text**: Minimum 4.5:1 contrast ratio
+- **Large text**: Minimum 3.0:1 contrast ratio  
+- **Graphics and UI elements**: Minimum 3.0:1 contrast ratio
+
+**Focus Indicators:**
+- **Outline width**: 2px visible border
+- **Outline color**: Blue (#3b82f6) for consistent recognition
+- **Outline offset**: 2px spacing from element
+- **Border radius**: 0.375rem for rounded appearance
+
+**ARIA Labels and Descriptions:**
+- **Charts**: "Energiediagramm mit {count} Aktivitäten"
+- **Activities**: "{name} Aktivität mit Wert {value}"
+- **Buttons**: "{action} Button" with clear action description
+- **Modals**: "{title} Modal Dialog" with descriptive titles
+
+**Keyboard Navigation Support:**
+- **Tab order**: Sequential and logical navigation
+- **Skip links**: Available for main content areas
+- **Modal trapping**: Focus contained within open modals
+- **Escape key**: Closes modals and cancels actions
+
+#### 6.4.2 Screen Reader Support
+
+The application provides comprehensive screen reader optimization:
+
+**Live Regions for Dynamic Content:**
+- **Announcements**: Polite announcements (`aria-live="polite"`) for status updates
+- **Alerts**: Assertive alerts (`aria-live="assertive"`) for important notifications
+- **Status updates**: Atomic status regions that announce complete content changes
+
+**Descriptive Text for UI Elements:**
+- **Charts**: "Kreisdiagramm zeigt Energieverteilung" - describes chart purpose
+- **Activities**: "Aktivität {name} mit {value} Energiepunkten" - details activity values
+- **Forms**: "Formular zum {action} einer Aktivität" - explains form purpose
+- **Buttons**: "Schaltfläche für {action}" - clarifies button functionality
+
+**Semantic Landmarks:**
+- **Main content**: `<main>` element for primary application content
+- **Navigation**: `<nav>` element for menu and navigation areas
+- **Banner**: `<header>` element for page header and branding
+- **Content info**: `<footer>` element for footer information
+- **Complementary**: `<aside>` element for secondary content
+
+### 6.5 Animation and Interaction Design
+
+#### 6.5.1 Animation Specifications
+
+The animation system provides smooth, performant interactions:
+
+**Transition Timing:**
+- **Fast**: 150ms ease-in-out for immediate feedback (button presses, toggles)
+- **Normal**: 250ms ease-in-out for standard transitions (modal opens, page changes)
+- **Slow**: 350ms ease-in-out for complex animations (large content changes)
+
+**Chart Animations:**
+- **Entry animation**: 800ms ease-out with 100ms delay for staggered appearance
+- **Update animation**: 500ms ease-in-out for data changes
+- **Hover effects**: 200ms with 1.05x scale for interactive feedback
+
+**Modal Animations:**
+- **Backdrop**: Blur effect with opacity transition over 300ms
+- **Panel**: Transform and opacity changes over 300ms ease-out
+- **Enter state**: Full scale (100%) and opacity for visibility
+- **Exit state**: Reduced scale (95%) and fade out for smooth dismissal
+
+**Micro-interactions:**
+- **Button press**: Scale down to 95% over 100ms for tactile feedback
+- **Card hover**: Shadow elevation over 200ms for depth perception
+- **Input focus**: Ring effect and color transition over 150ms for clear focus indication
+
+#### 6.5.2 User Feedback Systems
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI
+    participant Feedback
+    participant State
+    
+    User->>UI: Interaction (Click, Input, etc.)
+    UI->>Feedback: Show Loading State
+    UI->>State: Process Action
+    State-->>UI: Action Result
+    
+    alt Success
+        UI->>Feedback: Show Success Message
+        Feedback-->>User: Visual/Audio Confirmation
+    else Error
+        UI->>Feedback: Show Error Message
+        Feedback-->>User: Error Notification
+    else Warning
+        UI->>Feedback: Show Warning
+        Feedback-->>User: Warning Alert
+    end
+    
+    Feedback->>Feedback: Auto-dismiss (if applicable)
+```
+
+## 7. Assumptions and Dependencies
+
+### 7.1 Technical Assumptions
+
+#### 7.1.1 Browser and Platform Support
+
+The application supports modern browsers with the following minimum requirements:
+
+**Minimum Browser Versions:**
+- **Chrome**: Version 90 and above
+- **Firefox**: Version 88 and above
+- **Safari**: Version 14 and above
+- **Microsoft Edge**: Version 90 and above
+
+**Required Browser Features:**
+- **Local Storage**: Essential for data persistence across sessions
+- **Canvas API**: Required for Chart.js chart rendering
+- **ES2017**: Modern JavaScript features for optimal performance
+- **Web Workers**: Optional feature for background data processing
+- **Clipboard API**: Required for share functionality
+
+**Performance Requirements:**
+- **Minimum memory**: 512MB RAM for smooth operation
+- **Local storage**: 50MB available storage for user data
+- **Connection**: Works offline after initial page load
+
+#### 7.1.2 Development Environment Assumptions
 
 ```bash
-# Core dependencies
-npm install next@latest react@latest react-dom@latest
-npm install @types/node @types/react @types/react-dom typescript
+# Required Development Tools
+Node.js: >= 22.0.0
+npm: >= 9.0.0
+TypeScript: >= 5.0.0
+Next.js: >= 15.1.0
 
-# UI and Styling
-npm install tailwindcss
-npm install @heroicons/react
+# Development OS Support
+- macOS 10.15+
+- Windows 10+
+- Ubuntu 20.04+
 
-# Charts and Visualization
-npm install chart.js react-chartjs-2
-npm install qrcode @types/qrcode
-
-# Form and Input
-npm install react-colorful
-npm install react-hot-toast
-
-# Development and Testing
-npm install --save-dev @testing-library/react @testing-library/jest-dom
-npm install --save-dev @playwright/test
-npm install --save-dev jest jest-environment-jsdom
+# IDE/Editor Support
+- VS Code (recommended)
+- WebStorm
+- Vim/Neovim with appropriate plugins
 ```
 
-Diese umfassende Software Design Document bietet eine detaillierte technische Roadmap für die Implementation der Energiekuchen-Anwendung. Sie deckt alle Aspekte von der Architektur über die Komponenten bis hin zu Testing und Deployment ab und bietet genügend Details für eine erfolgreiche Umsetzung.
+#### 7.1.3 Performance Assumptions
+
+The application is designed to meet specific performance targets:
+
+**Load Time Expectations:**
+- **Initial load**: Less than 3 seconds for first-time visitors
+- **Subsequent loads**: Less than 1 second with browser caching
+- **User interactions**: Less than 100ms response time for immediate feedback
+
+**Data Limitations:**
+- **Maximum activities per chart**: 20 activities to maintain performance
+- **Maximum data size**: 1MB in localStorage for user data storage
+- **Maximum share URL length**: 2048 characters for browser compatibility
+
+**Memory Usage Guidelines:**
+- **Baseline memory**: Less than 50MB during normal operation
+- **Peak memory**: Less than 100MB during intensive operations
+- **Memory leaks**: None detected through testing and monitoring
+
+### 7.2 External Dependencies
+
+#### 7.2.1 Critical Production Dependencies
+
+```json
+{
+  "dependencies": {
+    "next": "15.1.8",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "typescript": "^5",
+    "chart.js": "^4.4.9",
+    "react-chartjs-2": "^5.3.0",
+    "tailwindcss": "^4.1.7",
+    "@heroicons/react": "^2.2.0",
+    "react-hot-toast": "^2.5.2",
+    "react-colorful": "^5.6.1",
+    "qrcode": "^1.5.4",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.3.0",
+    "uuid": "^11.1.0"
+  }
+}
+```
+
+#### 7.2.2 Development Dependencies
+
+```json
+{
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/qrcode": "^1.5.5",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.8",
+    "postcss": "^8.5.3",
+    "@tailwindcss/postcss": "^4.1.7",
+    "@eslint/eslintrc": "^3"
+  }
+}
+```
+
+#### 7.2.3 Dependency Risk Assessment
+
+```mermaid
+graph TD
+    subgraph "Critical Dependencies"
+        A[React 19]
+        B[Next.js 15]
+        C[Chart.js 4]
+        D[Tailwind CSS 4]
+    end
+    
+    subgraph "Risk Levels"
+        E[Low Risk - Stable APIs]
+        F[Medium Risk - Version Updates]
+        G[High Risk - Breaking Changes]
+    end
+    
+    subgraph "Mitigation Strategies"
+        H[Version Pinning]
+        I[Fallback Implementations]
+        J[Regular Updates]
+        K[Security Monitoring]
+    end
+    
+    A --> E
+    B --> F
+    C --> E
+    D --> F
+    
+    E --> H
+    F --> J
+    G --> I
+    
+    H --> K
+    I --> K
+    J --> K
+    
+    classDef critical fill:#ffebee
+    classDef risk fill:#fff3e0
+    classDef mitigation fill:#e8f5e8
+    
+    class A,B,C,D critical
+    class E,F,G risk
+    class H,I,J,K mitigation
+```
+
+### 7.3 Infrastructure Assumptions
+
+#### 7.3.1 Deployment Environment
+
+The application is deployed using modern static hosting with the following configuration:
+
+**Platform and Domain:**
+- **Hosting platform**: Vercel for static site deployment
+- **Domain**: energiekuchen.de for production environment
+
+**Build Configuration:**
+- **Node.js version**: 22.x for consistent build environment
+- **Build command**: `npm run build` for production optimization
+- **Output directory**: `out` for static file generation
+- **Install command**: `npm ci` for reproducible dependency installation
+
+**Environment Variables:**
+- **NODE_ENV**: Set to 'production' for optimized builds
+- **NEXT_TELEMETRY_DISABLED**: Set to '1' to disable telemetry collection
+
+**Feature Configuration:**
+- **Static export**: Enabled for client-side only operation
+- **Server functions**: Disabled (not needed for client-side app)
+- **Database**: Not used (localStorage only)
+- **Authentication**: Not implemented (single-user application)
+
+#### 7.3.2 Content Delivery Network
+
+The application leverages a global CDN for optimal performance:
+
+**CDN Provider and Strategy:**
+- **Provider**: Vercel Edge Network for worldwide distribution
+- **Primary regions**: Frankfurt (fra1) for German users, with Paris (cdg1) and London (lhr1) as backup
+
+**Caching Strategy:**
+- **Static assets**: 1 year cache duration for images, CSS, and JavaScript
+- **HTML pages**: 1 hour cache for dynamic content updates
+- **API routes**: No caching (not applicable for client-side app)
+
+**Performance Optimizations:**
+- **Image optimization**: Disabled due to static export limitations
+- **Compression**: Both gzip and brotli compression enabled
+- **Minification**: Enabled for CSS and JavaScript bundles
+- **Bundle splitting**: Automatic code splitting for optimal loading
+
+### 7.4 Security Assumptions
+
+#### 7.4.1 Client-Side Security Model
+
+The application implements a comprehensive security strategy focused on client-side protection:
+
+**Data Storage Security:**
+- **Storage location**: localStorage only, no server-side data transmission
+- **Encryption**: Relies on browser-native security mechanisms
+- **Data sensitivity**: Low-risk user activity preferences only
+- **Privacy protection**: No personal data transmitted to external servers
+
+**Input Validation and Sanitization:**
+- **Client-side validation**: Complete input validation before processing
+- **Server-side validation**: Not applicable (client-side only application)
+- **Input sanitization**: HTML entity encoding and XSS prevention measures
+
+**Data Sharing Security:**
+- **Data encoding**: Base64 URL-safe encoding for share functionality
+- **Compression**: LZ-string compression for large datasets in URLs
+- **Validation**: Schema validation when decoding shared data
+- **URL length limits**: Restricted to 2048 characters for browser compatibility
+
+**Content Security Measures:**
+- **Content Security Policy**: Strict CSP headers to prevent code injection
+- **XSS protection**: React's built-in protection against cross-site scripting
+- **CSRF protection**: Not applicable due to client-side only architecture
+- **Clickjacking prevention**: X-Frame-Options: DENY header implementation
+
+#### 7.4.2 Privacy Compliance
+
+The application adheres to privacy best practices and regulatory requirements:
+
+**Data Processing Practices:**
+- **Personal data**: No personal information collected or processed
+- **Analytics**: No analytics tracking implemented
+- **Cookies**: No cookies used for tracking or functionality
+- **User tracking**: No behavioral tracking or profiling
+
+**User Rights and Control:**
+- **Data access**: Full local access through browser developer tools
+- **Data portability**: Export functionality for user data backup
+- **Data deletion**: Clear data functionality to remove all stored information
+- **Data modification**: Complete editing capabilities for all user content
+
+**Legal and Regulatory Compliance:**
+- **GDPR compliance**: Not applicable due to absence of data collection
+- **Cookie policy**: Not required (no cookies used)
+- **Privacy policy**: Informational document explaining local-only operation
+- **Terms of service**: Usage guidelines and application limitations
+
+### 7.5 Operational Assumptions
+
+#### 7.5.1 Maintenance and Updates
+
+The application follows a structured maintenance approach to ensure reliability and security:
+
+**Update Frequency Guidelines:**
+- **Security updates**: Applied within 48 hours of discovery or patch availability
+- **Dependency updates**: Monthly review and updates for non-breaking changes
+- **Feature releases**: Quarterly major releases with new functionality
+- **Bug fixes**: Resolved and deployed within 1 week of confirmation
+
+**Monitoring and Quality Assurance:**
+- **Error tracking**: Client-side error boundaries to catch and handle runtime errors
+- **Performance monitoring**: Core Web Vitals tracking for user experience metrics
+- **User feedback**: Manual collection through help modal and contact methods
+- **Uptime monitoring**: Vercel platform status monitoring for availability
+
+**Backup and Recovery Strategy:**
+- **Source code**: Git repository with distributed backup across platforms
+- **User data**: User-managed through export functionality (no server-side storage)
+- **Configuration**: Infrastructure as code for reproducible deployments
+
+#### 7.5.2 Scalability Considerations
+
+```mermaid
+graph TD
+    subgraph "Current Scale"
+        A[Single User Application]
+        B[Client-Side Only]
+        C[No Server Resources]
+    end
+    
+    subgraph "Growth Scenarios"
+        D[Increased Traffic]
+        E[Feature Expansion]
+        F[Multi-User Features]
+    end
+    
+    subgraph "Scaling Solutions"
+        G[CDN Optimization]
+        H[Code Splitting]
+        I[Backend Introduction]
+    end
+    
+    A --> D
+    B --> E
+    C --> F
+    
+    D --> G
+    E --> H
+    F --> I
+    
+    classDef current fill:#e8f5e8
+    classDef growth fill:#fff3e0
+    classDef solution fill:#e3f2fd
+    
+    class A,B,C current
+    class D,E,F growth
+    class G,H,I solution
+```
