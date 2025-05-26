@@ -70,3 +70,41 @@ export function validateChartActivities(activities: Activity[]): ValidationResul
     errors
   };
 }
+
+export function validateActivityName(name: string): ValidationResult {
+  const errors: string[] = [];
+  
+  if (!name || name.length < VALIDATION_RULES.activity.name.minLength) {
+    errors.push('Name darf nicht leer sein');
+  }
+  
+  if (name && name.length > VALIDATION_RULES.activity.name.maxLength) {
+    errors.push(`Name darf maximal ${VALIDATION_RULES.activity.name.maxLength} Zeichen haben`);
+  }
+  
+  if (name && !VALIDATION_RULES.activity.name.pattern.test(name)) {
+    errors.push('Name enthält ungültige Zeichen');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+export function validateActivityValue(value: number): ValidationResult {
+  const errors: string[] = [];
+  
+  if (value < VALIDATION_RULES.activity.value.min || value > VALIDATION_RULES.activity.value.max) {
+    errors.push('Wert muss zwischen 1 und 100 liegen');
+  }
+  
+  if (!Number.isInteger(value)) {
+    errors.push('Wert muss eine ganze Zahl sein');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
