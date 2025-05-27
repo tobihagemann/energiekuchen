@@ -1,8 +1,8 @@
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useChartData } from '@/app/lib/hooks/useChartData';
+import * as calculations from '@/app/lib/utils/calculations';
 import { Activity } from '@/app/types';
 import { renderHook } from '@testing-library/react';
-import * as calculations from '@/app/lib/utils/calculations';
 
 // Mock dependencies
 jest.mock('@/app/lib/contexts/EnergyContext');
@@ -39,10 +39,6 @@ describe('useChartData', () => {
     mockedCalculations.calculatePercentage.mockImplementation((value: number, total: number) =>
       Math.round((value / total) * 100)
     );
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   it('should return chart data for positive chart with activities', () => {

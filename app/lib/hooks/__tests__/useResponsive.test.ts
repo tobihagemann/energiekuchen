@@ -26,17 +26,12 @@ Object.defineProperty(window, 'removeEventListener', {
 
 describe('useResponsive', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     // Reset to default desktop size
     Object.defineProperty(window, 'innerWidth', {
       writable: true,
       configurable: true,
       value: 1024,
     });
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   describe('initial screen size detection', () => {

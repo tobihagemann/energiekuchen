@@ -1,89 +1,65 @@
-# Testing Learnings: React, Jest, and Test Debugging
+# Testing Learnings: React, Jest, and Business Logic Testing
 
 ## Overview
-During the process of fixing failing tests in the Energiekuchen React application, several key challenges emerged that required multiple iterations and deep learning. This document captures the main insights and patterns discovered.
+During the process of developing and maintaining unit tests for the Energiekuchen React application's business logic layer, several key challenges emerged that required multiple iterations and deep learning. This document captures the main insights and patterns discovered while testing hooks, contexts, and utility functions.
+
+**Note:** This application follows a focused testing strategy where unit tests cover only business logic (utils, hooks, contexts), while UI components are tested via E2E tests for real user interactions.
 
 ## Key Challenges and Learnings
 
 ### 1. React act() Warnings in Modern React (18+)
 
 **The Mistake Pattern:**
-- Initially tried to fix act() warnings by only wrapping user interactions like `fireEvent.click()`
-- Missed that `render()` and `renderHook()` calls can trigger state updates that also need act() wrapping
-- Assumed act() was only needed for explicit state changes, not initial component mounting
+- Initially tried to fix act() warnings by only wrapping user interactions in hook tests
+- Missed that `renderHook()` calls can trigger state updates that also need act() wrapping
+- Assumed act() was only needed for explicit state changes, not initial hook mounting
 
 **The Learning:**
 ```javascript
-// ❌ Wrong: Only wrapping user interactions
-const { getByText } = render(<Component />);
+// ❌ Wrong: Only wrapping state updates
+const { result } = renderHook(() => useEnergy(), { wrapper });
 act(() => {
-  fireEvent.click(getByText('Button'));
+  result.current.addActivity('positive', { name: 'Sport', value: 50, color: '#10B981' });
 });
 
-// ✅ Correct: Wrapping renders that trigger state updates
+// ✅ Correct: Wrapping hook renders that trigger effects
 act(() => {
-  const { getByText } = render(<Component />);
+  const { result } = renderHook(() => useLocalStorage('key', 'default'));
 });
 ```
 
-**Key Insight:** In React 18+, ANY state update - including those from useEffect hooks during initial render - must be wrapped in act(). The warning appears when React detects state changes outside of act() during testing.
+**Key Insight:** In React 18+, ANY state update - including those from useEffect hooks during initial hook mounting - must be wrapped in act(). This is especially important when testing custom hooks that initialize with localStorage or trigger side effects.
 
-### 2. Modal Portal Testing and DOM Structure Differences
+### 2. Mock Timing and Async Hook Logic
 
 **The Mistake Pattern:**
-- Expected all modal tests to work the same way with `screen.getBy*()` queries
-- Didn't realize that mocking `createPortal` changes where elements are rendered in the DOM
-- Some modals required container queries while others worked fine with screen queries
+- Wrote tests expecting to see intermediate states in context or hook tests, but mocked async operations resolved immediately
+- Didn't account for how mocking changes the timing of operations in business logic
+- Tests failed because async operations completed before assertions could run
 
 **The Learning:**
 ```javascript
-// ❌ Wrong: Using screen queries when portal is mocked differently
-// In ImportExportModal.test.tsx - createPortal mocked to render to container
-jest.mock('react-dom', () => ({
-  ...jest.requireActual('react-dom'),
-  createPortal: (element: ReactNode) => element, // Renders to test container
-}));
-
-render(<ImportExportModal />);
-expect(screen.getByRole('dialog')).toBeInTheDocument(); // Fails!
-
-// ✅ Correct: Use container queries when portal mock changes DOM structure
-const { container } = render(<ImportExportModal />);
-expect(container.querySelector('[role="dialog"]')).toBeInTheDocument();
-```
-
-**Key Insight:** When `createPortal` is mocked to render directly to the test container instead of `document.body`, the DOM structure differs from normal React Testing Library expectations. This requires using `container.querySelector()` instead of `screen` queries because the elements aren't in the typical query scope.
-
-**Real Example Comparison:**
-- **ShareModal**: Uses standard portal behavior → `screen.getByRole('dialog')` works
-- **ImportExportModal**: Mocks portal to container → needs `container.querySelector('[role="dialog"]')`
-
-### 3. Mock Timing and Async Test Logic
-
-**The Mistake Pattern:**
-- Wrote tests expecting to see loading states, but mocked async operations resolved immediately
-- Didn't account for how mocking changes the timing of operations
-- Tests failed because loading spinners disappeared before assertions could run
-
-**The Learning:**
-```javascript
-// ❌ Wrong: Expecting to catch loading state with immediate mock resolution
-generateShareData.mockResolvedValue(mockData);
-render(<ShareModal />);
-expect(screen.getByTestId('loading-spinner')).toBeInTheDocument(); // Fails!
-
-// ✅ Correct: Adjust test logic for immediate resolution
-generateShareData.mockResolvedValue(mockData);
+// ❌ Wrong: Expecting to catch intermediate state with immediate mock resolution
+StorageManager.save = jest.fn().mockResolvedValue(undefined);
+const { result } = renderHook(() => useEnergy(), { wrapper });
 act(() => {
-  render(<ShareModal />);
+  result.current.saveData();
 });
-// Loading state already completed, test the final state instead
-expect(screen.getByText('Share Data')).toBeInTheDocument();
+expect(result.current.isSaving).toBe(true); // Fails - already completed!
+
+// ✅ Correct: Test the final state or use delayed mocks
+StorageManager.save = jest.fn().mockResolvedValue(undefined);
+const { result } = renderHook(() => useEnergy(), { wrapper });
+act(() => {
+  result.current.saveData();
+});
+// Test the final state after async operation
+expect(StorageManager.save).toHaveBeenCalled();
 ```
 
-**Key Insight:** When mocking async operations to resolve immediately, test logic must account for the changed timing. Don't test intermediate states that may not exist with mocked timing.
+**Key Insight:** When mocking async operations to resolve immediately, test logic must account for the changed timing. Focus on testing the final state and side effects rather than intermediate loading states.
 
-### 4. Test Isolation and Mock Cleanup
+### 3. Test Isolation and Mock Cleanup
 
 **The Mistake Pattern:**
 - Forgot to properly clean up mocks between tests
@@ -110,7 +86,7 @@ afterEach(() => {
 
 **Key Insight:** Test isolation is critical. Each test should start with a clean slate, especially when dealing with global objects like localStorage or when using mocks.
 
-### 5. YAGNI Principle: Don't Test What Doesn't Exist
+### 4. YAGNI Principle: Don't Test What Doesn't Exist
 
 **The Mistake Pattern:**
 - Spent significant time testing SSR scenarios that don't exist in the codebase
@@ -141,22 +117,80 @@ it('should persist user preferences in localStorage', () => {
 });
 ```
 
-**Key Insight:** **YAGNI applies to testing too!** Don't write tests for theoretical scenarios that don't exist in your current architecture. The SSR checks in `useLocalStorage` are defensive programming that may never execute. Testing them adds complexity without value.
+**Key Insight:** **YAGNI applies to testing too!** Don't write tests for theoretical scenarios that don't exist in your current architecture. The SSR checks in `useLocalStorage` are defensive programming that may never execute in a CSR-only application. Testing them adds complexity without value.
 
 **Better Approach:**
 - Remove or simplify tests for non-existent scenarios
 - Focus testing effort on actual user flows and edge cases that can happen
+- Test business logic behavior, not defensive edge cases that don't occur in your app
 - If you later add SSR, then add the tests - not before
+
+### 5. Context Provider Testing Patterns
+
+**The Mistake Pattern:**
+- Tried to test context providers in isolation without proper wrapper setup
+- Forgot that hooks using context must be wrapped with the provider during testing
+- Didn't realize that context state changes need proper act() wrapping
+
+**The Learning:**
+```javascript
+// ❌ Wrong: Testing context hook without provider
+const { result } = renderHook(() => useEnergy());
+// Error: useEnergy must be used within a EnergyProvider
+
+// ✅ Correct: Provide proper wrapper for context tests
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <EnergyProvider>{children}</EnergyProvider>
+);
+
+const { result } = renderHook(() => useEnergy(), { wrapper });
+
+act(() => {
+  result.current.addActivity('positive', {
+    name: 'Sport',
+    value: 50,
+    color: '#10B981'
+  });
+});
+
+expect(result.current.state.data.positive.activities).toHaveLength(1);
+```
+
+**Key Insight:** Context providers require proper wrapper setup in tests. Always wrap context hook tests with the appropriate provider, and remember that context state changes must be wrapped in act().
 
 ## Best Practices Discovered
 
-1. **act() Everything**: When in doubt, wrap state-changing operations in act()
-2. **Understand Portal Mocking**: When `createPortal` is mocked differently, use container queries instead of screen queries
-3. **Test Behavior, Not Implementation**: Focus on what the component/hook does, not how it detects its environment
-4. **Clean Slate Testing**: Always ensure proper mock cleanup between tests
-5. **Understand Your Mocks**: Know how mocking changes timing and behavior
-6. **Apply YAGNI to Testing**: Don't test scenarios that don't exist in your current architecture
+1. **act() Everything**: When in doubt, wrap state-changing operations in act(), especially for hooks and context tests
+2. **Test Business Logic Behavior**: Focus on what the hook/utility/context does, not implementation details
+3. **Clean Slate Testing**: Always ensure proper mock cleanup between tests, especially localStorage and other global state
+4. **Understand Your Mocks**: Know how mocking changes timing and behavior in async operations
+5. **Apply YAGNI to Testing**: Don't test scenarios that don't exist in your current architecture
+6. **Context Wrapper Pattern**: Always provide proper context wrappers when testing hooks that depend on context
+7. **Focus on Edge Cases**: Test error handling, validation, and boundary conditions in utility functions
+8. **Mock External Dependencies**: Mock localStorage, external APIs, and other side effects consistently
+9. **Leverage Jest Configuration**: Use Jest's built-in `clearMocks` and `restoreMocks` settings to avoid redundant manual cleanup
+
+## Current Testing Scope
+
+This application follows a focused testing strategy:
+
+- **✅ Unit Tests Cover:** Utils, hooks, contexts (business logic)
+- **❌ Unit Tests Don't Cover:** UI components, visual elements, user interactions  
+- **🎭 E2E Tests Cover:** Complete user journeys, UI interactions, visual testing
+
+**Why This Approach Works:**
+- Business logic is the core value and most error-prone area
+- UI components are better tested through real user interactions
+- Reduced testing complexity and maintenance overhead
+- Higher confidence in critical application logic
 
 ## Conclusion
 
-These learnings highlight the importance of understanding modern React testing patterns, the constraints of test environments, and the need to focus on behavior verification rather than environment simulation. Each challenge required multiple iterations to understand the underlying principles and find the right approach.
+These learnings highlight the importance of understanding modern React testing patterns when testing business logic components like hooks, contexts, and utilities. The focused approach of testing only business logic while using E2E tests for UI interactions has proven effective, reducing complexity while maintaining high confidence in critical application functionality.
+
+Key takeaways:
+- **Modern React testing** requires understanding act() patterns for hooks and contexts
+- **Business logic focus** reduces maintenance overhead while ensuring core functionality
+- **Proper test isolation** is critical when dealing with global state and localStorage
+- **YAGNI principle** applies to testing - don't test theoretical scenarios
+- **Context testing patterns** require proper wrapper setup and act() usage

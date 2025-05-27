@@ -21,7 +21,6 @@ describe('EnergyContext', () => {
   beforeEach(() => {
     // Clear localStorage before each test
     localStorage.clear()
-    jest.clearAllMocks()
     
     // Reset StorageManager mocks to default behavior
     jest.mocked(StorageManager.load).mockReturnValue(null)

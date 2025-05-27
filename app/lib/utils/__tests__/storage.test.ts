@@ -58,7 +58,6 @@ describe('StorageManager', () => {
     expect(() => StorageManager.save(mockData)).toThrow('Daten konnten nicht gespeichert werden')
 
     console.error = originalError
-    setItemSpy.mockRestore()
   })
 
   test('should throw error when no data to export', () => {
@@ -90,7 +89,6 @@ describe('StorageManager', () => {
     expect(loaded).toBeNull()
 
     console.error = originalError
-    getItemSpy.mockRestore()
   })
 
   test('should handle localStorage removeItem errors gracefully', () => {
@@ -107,7 +105,6 @@ describe('StorageManager', () => {
     expect(() => StorageManager.clear()).not.toThrow()
 
     console.error = originalError
-    removeItemSpy.mockRestore()
   })
 
   test('should handle corrupted JSON data in localStorage', () => {

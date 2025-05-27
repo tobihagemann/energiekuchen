@@ -31,7 +31,6 @@ describe('useLocalStorage', () => {
 
   beforeEach(() => {
     localStorageMock.clear();
-    jest.clearAllMocks();
   });
 
   it('should return initial value when localStorage is empty', () => {
@@ -137,8 +136,6 @@ describe('useLocalStorage', () => {
       `Error reading localStorage key "${testKey}":`,
       expect.any(Error)
     );
-
-    consoleSpy.mockRestore();
   });
 
   it('should handle localStorage setItem errors gracefully', () => {
@@ -159,8 +156,6 @@ describe('useLocalStorage', () => {
       `Error setting localStorage key "${testKey}":`,
       expect.any(Error)
     );
-
-    consoleSpy.mockRestore();
   });
 
   it('should handle invalid JSON in localStorage gracefully', () => {
@@ -175,7 +170,5 @@ describe('useLocalStorage', () => {
       `Error reading localStorage key "${testKey}":`,
       expect.any(Error)
     );
-
-    consoleSpy.mockRestore();
   });
 });
