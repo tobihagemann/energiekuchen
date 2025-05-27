@@ -65,7 +65,7 @@ describe('useLocalStorage', () => {
     const { result } = renderHook(() => useLocalStorage(testKey, 10));
 
     act(() => {
-      result.current[1]((prev) => prev + 5);
+      result.current[1](prev => prev + 5);
     });
 
     expect(result.current[0]).toBe(15);
@@ -132,10 +132,7 @@ describe('useLocalStorage', () => {
     const { result } = renderHook(() => useLocalStorage(testKey, initialValue));
 
     expect(result.current[0]).toBe(initialValue);
-    expect(consoleSpy).toHaveBeenCalledWith(
-      `Error reading localStorage key "${testKey}":`,
-      expect.any(Error)
-    );
+    expect(consoleSpy).toHaveBeenCalledWith(`Error reading localStorage key "${testKey}":`, expect.any(Error));
   });
 
   it('should handle localStorage setItem errors gracefully', () => {
@@ -152,10 +149,7 @@ describe('useLocalStorage', () => {
 
     // State should still update even if localStorage fails
     expect(result.current[0]).toBe('new-value');
-    expect(consoleSpy).toHaveBeenCalledWith(
-      `Error setting localStorage key "${testKey}":`,
-      expect.any(Error)
-    );
+    expect(consoleSpy).toHaveBeenCalledWith(`Error setting localStorage key "${testKey}":`, expect.any(Error));
   });
 
   it('should handle invalid JSON in localStorage gracefully', () => {
@@ -166,9 +160,6 @@ describe('useLocalStorage', () => {
     const { result } = renderHook(() => useLocalStorage(testKey, initialValue));
 
     expect(result.current[0]).toBe(initialValue);
-    expect(consoleSpy).toHaveBeenCalledWith(
-      `Error reading localStorage key "${testKey}":`,
-      expect.any(Error)
-    );
+    expect(consoleSpy).toHaveBeenCalledWith(`Error reading localStorage key "${testKey}":`, expect.any(Error));
   });
 });

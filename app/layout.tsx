@@ -1,15 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 import { Toast } from './components/ui/Toast';
-import "./globals.css";
+import './globals.css';
 import { EnergyProvider } from './lib/contexts/EnergyContext';
 import { UIProvider } from './lib/contexts/UIContext';
 
 export const metadata: Metadata = {
-  title: "Energiekuchen - Visualisiere deine Energieverteilung",
-  description: "Ein visuelles Coaching-Tool zur Bewertung und Optimierung deiner Energiequellen und -verbraucher im täglichen Leben.",
-  keywords: ["Energie", "Coaching", "Visualisierung", "Balance", "Wohlbefinden"],
-  authors: [{ name: "Energiekuchen Team" }],
-  viewport: "width=device-width, initial-scale=1",
+  title: 'Energiekuchen - Visualisiere deine Energieverteilung',
+  description: 'Ein visuelles Coaching-Tool zur Bewertung und Optimierung deiner Energiequellen und -verbraucher im täglichen Leben.',
+  keywords: ['Energie', 'Coaching', 'Visualisierung', 'Balance', 'Wohlbefinden'],
+  authors: [{ name: 'Energiekuchen Team' }],
+  viewport: 'width=device-width, initial-scale=1',
 };
 
 export default function RootLayout({

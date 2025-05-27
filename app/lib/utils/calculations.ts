@@ -15,22 +15,23 @@ export function generateUniqueId(): string {
 
 export function getChartPixelSize(size: ChartSize, isMobile: boolean = false): number {
   const breakpoint = isMobile ? 'mobile' : 'desktop';
-  
+
   const sizes = {
     mobile: { small: 200, medium: 250, large: 300 },
-    desktop: { small: 300, medium: 400, large: 500 }
+    desktop: { small: 300, medium: 400, large: 500 },
   };
-  
+
   return sizes[breakpoint][size];
 }
 
 export function sortActivitiesByValue(activities: Activity[], descending: boolean = true): Activity[] {
-  return [...activities].sort((a, b) => 
-    descending ? b.value - a.value : a.value - b.value
-  );
+  return [...activities].sort((a, b) => (descending ? b.value - a.value : a.value - b.value));
 }
 
-export function getEnergyBalance(positive: EnergyChart, negative: EnergyChart): {
+export function getEnergyBalance(
+  positive: EnergyChart,
+  negative: EnergyChart
+): {
   positiveTotal: number;
   negativeTotal: number;
   balance: number;
@@ -46,6 +47,6 @@ export function getEnergyBalance(positive: EnergyChart, negative: EnergyChart): 
     positiveTotal,
     negativeTotal,
     balance,
-    balancePercentage
+    balancePercentage,
   };
 }

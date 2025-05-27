@@ -325,9 +325,9 @@ describe('useResponsive', () => {
 
       testCases.forEach(({ width, expected }) => {
         Object.defineProperty(window, 'innerWidth', { value: width });
-        
+
         const { result } = renderHook(() => useResponsive());
-        
+
         expect(result.current).toEqual(expected);
       });
     });
@@ -339,14 +339,10 @@ describe('useResponsive', () => {
 
       testWidths.forEach(width => {
         Object.defineProperty(window, 'innerWidth', { value: width });
-        
+
         const { result } = renderHook(() => useResponsive());
-        
-        const activeStates = [
-          result.current.isMobile,
-          result.current.isTablet,
-          result.current.isDesktop
-        ].filter(Boolean);
+
+        const activeStates = [result.current.isMobile, result.current.isTablet, result.current.isDesktop].filter(Boolean);
 
         expect(activeStates).toHaveLength(1);
       });

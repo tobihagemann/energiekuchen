@@ -14,31 +14,25 @@ interface SliderProps {
   disabled?: boolean;
 }
 
-export function Slider({
-  value,
-  onChange,
-  min = 0,
-  max = 100,
-  step = 1,
-  label,
-  className,
-  disabled = false
-}: SliderProps) {
+export function Slider({ value, onChange, min = 0, max = 100, step = 1, label, className, disabled = false }: SliderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const percentage = ((value - min) / (max - min)) * 100;
 
-  const updateValue = useCallback((clientX: number) => {
-    if (!sliderRef.current || disabled) return;
+  const updateValue = useCallback(
+    (clientX: number) => {
+      if (!sliderRef.current || disabled) return;
 
-    const rect = sliderRef.current.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const newValue = min + ratio * (max - min);
-    const steppedValue = Math.round(newValue / step) * step;
-    
-    onChange(Math.max(min, Math.min(max, steppedValue)));
-  }, [min, max, step, onChange, disabled]);
+      const rect = sliderRef.current.getBoundingClientRect();
+      const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const newValue = min + ratio * (max - min);
+      const steppedValue = Math.round(newValue / step) * step;
+
+      onChange(Math.max(min, Math.min(max, steppedValue)));
+    },
+    [min, max, step, onChange, disabled]
+  );
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (disabled) return;
@@ -88,26 +82,19 @@ export function Slider({
   return (
     <div className={cn('w-full', className)}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="mb-2 block text-sm font-medium text-gray-700">
           {label}: {value}
         </label>
       )}
       <div
         ref={sliderRef}
-        className={cn(
-          'relative h-6 bg-gray-200 rounded-full cursor-pointer touch-none',
-          disabled && 'opacity-50 cursor-not-allowed'
-        )}
+        className={cn('relative h-6 cursor-pointer touch-none rounded-full bg-gray-200', disabled && 'cursor-not-allowed opacity-50')}
         onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
-      >
-        <div
-          className="absolute top-0 left-0 h-full bg-yellow-400 rounded-full transition-all duration-150"
-          style={{ width: `${percentage}%` }}
-        />
+        onTouchStart={handleTouchStart}>
+        <div className="absolute top-0 left-0 h-full rounded-full bg-yellow-400 transition-all duration-150" style={{ width: `${percentage}%` }} />
         <div
           className={cn(
-            'absolute top-1/2 w-6 h-6 bg-white border-2 border-yellow-400 rounded-full transform -translate-y-1/2 transition-all duration-150 shadow-sm',
+            'absolute top-1/2 h-6 w-6 -translate-y-1/2 transform rounded-full border-2 border-yellow-400 bg-white shadow-sm transition-all duration-150',
             isDragging && 'scale-110 shadow-md',
             disabled && 'border-gray-300'
           )}

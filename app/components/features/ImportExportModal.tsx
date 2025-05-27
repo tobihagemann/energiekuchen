@@ -40,7 +40,7 @@ export function ImportExportModal() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
       const content = e.target?.result as string;
       setImportContent(content);
     };
@@ -56,10 +56,10 @@ export function ImportExportModal() {
     setIsImporting(true);
     try {
       const importedData = importData(importContent);
-      
+
       // Update the state with imported data
       dispatch({ type: 'IMPORT_DATA', payload: importedData });
-      
+
       toast.success('Daten erfolgreich importiert!');
       setImportContent('');
       closeImportModal();
@@ -84,97 +84,66 @@ export function ImportExportModal() {
   };
 
   return (
-    <Modal 
-      isOpen={uiState.isImportModalOpen} 
-      onClose={closeImportModal}
-      title="Import / Export"
-      size="lg"
-    >
+    <Modal isOpen={uiState.isImportModalOpen} onClose={closeImportModal} title="Import / Export" size="lg">
       <div className="space-y-6">
         {/* Export Section */}
-        <div className="border rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+        <div className="rounded-lg border p-4">
+          <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold">
             <DocumentArrowDownIcon className="h-5 w-5" />
             Daten exportieren
           </h3>
-          <p className="text-gray-600 mb-4">
-            Speichern Sie Ihre Energiekuchen-Daten in einer JSON-Datei.
-          </p>
+          <p className="mb-4 text-gray-600">Speichern Sie Ihre Energiekuchen-Daten in einer JSON-Datei.</p>
           <Button onClick={handleExport} variant="secondary" className="w-full">
-            <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
+            <DocumentArrowDownIcon className="mr-2 h-4 w-4" />
             Daten exportieren
           </Button>
         </div>
 
         {/* Import Section */}
-        <div className="border rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+        <div className="rounded-lg border p-4">
+          <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold">
             <DocumentArrowUpIcon className="h-5 w-5" />
             Daten importieren
           </h3>
-          <p className="text-gray-600 mb-4">
-            Laden Sie Energiekuchen-Daten aus einer JSON-Datei oder fügen Sie JSON-Text ein.
-          </p>
-          
+          <p className="mb-4 text-gray-600">Laden Sie Energiekuchen-Daten aus einer JSON-Datei oder fügen Sie JSON-Text ein.</p>
+
           <div className="space-y-4">
             {/* File Input */}
             <div>
-              <Button 
-                onClick={triggerFileInput} 
-                variant="secondary" 
-                className="w-full mb-2"
-              >
-                <DocumentArrowUpIcon className="h-4 w-4 mr-2" />
+              <Button onClick={triggerFileInput} variant="secondary" className="mb-2 w-full">
+                <DocumentArrowUpIcon className="mr-2 h-4 w-4" />
                 Datei auswählen
               </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json"
-                onChange={handleFileImport}
-                className="hidden"
-              />
+              <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileImport} className="hidden" />
             </div>
 
             {/* Text Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Oder JSON-Text einfügen:
-              </label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Oder JSON-Text einfügen:</label>
               <textarea
                 value={importContent}
-                onChange={(e) => setImportContent(e.target.value)}
-                className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                onChange={e => setImportContent(e.target.value)}
+                className="h-32 w-full resize-none rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 placeholder='{"version": "1.0", "positive": {...}, "negative": {...}}'
               />
             </div>
 
             {/* Import Button */}
-            <Button 
-              onClick={handleImport} 
-              disabled={isImporting || !importContent.trim()}
-              className="w-full"
-            >
+            <Button onClick={handleImport} disabled={isImporting || !importContent.trim()} className="w-full">
               {isImporting ? 'Importiere...' : 'Daten importieren'}
             </Button>
           </div>
         </div>
 
         {/* Clear All Data Section */}
-        <div className="border border-red-200 rounded-lg p-4 bg-red-50">
-          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-red-700">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-red-700">
             <TrashIcon className="h-5 w-5" />
             Alle Daten löschen
           </h3>
-          <p className="text-red-600 mb-4">
-            Löscht alle Aktivitäten und setzt die Anwendung zurück. Diese Aktion kann nicht rückgängig gemacht werden.
-          </p>
-          <Button 
-            onClick={handleClearAll} 
-            variant="danger" 
-            className="w-full"
-          >
-            <TrashIcon className="h-4 w-4 mr-2" />
+          <p className="mb-4 text-red-600">Löscht alle Aktivitäten und setzt die Anwendung zurück. Diese Aktion kann nicht rückgängig gemacht werden.</p>
+          <Button onClick={handleClearAll} variant="danger" className="w-full">
+            <TrashIcon className="mr-2 h-4 w-4" />
             Alle Daten löschen
           </Button>
         </div>

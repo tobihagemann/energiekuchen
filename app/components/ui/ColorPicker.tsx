@@ -12,13 +12,7 @@ interface ColorPickerProps {
   className?: string;
 }
 
-export function ColorPicker({ 
-  color, 
-  onChange, 
-  label, 
-  presets = [], 
-  className 
-}: ColorPickerProps) {
+export function ColorPicker({ color, onChange, label, presets = [], className }: ColorPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -40,41 +34,30 @@ export function ColorPicker({
 
   return (
     <div className={cn('relative', className)} ref={containerRef}>
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label}
-        </label>
-      )}
-      
+      {label && <label className="mb-2 block text-sm font-medium text-gray-700">{label}</label>}
+
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 w-full p-2 border border-gray-300 rounded-md hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-      >
-        <div
-          className="w-6 h-6 rounded border border-gray-300"
-          style={{ backgroundColor: color }}
-        />
+        className="flex w-full items-center space-x-2 rounded-md border border-gray-300 p-2 hover:border-gray-400 focus:border-transparent focus:ring-2 focus:ring-yellow-500 focus:outline-none">
+        <div className="h-6 w-6 rounded border border-gray-300" style={{ backgroundColor: color }} />
         <span className="text-sm text-gray-700">{color}</span>
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 z-10 mt-2 p-4 bg-white border border-gray-200 rounded-lg shadow-lg">
+        <div className="absolute top-full left-0 z-10 mt-2 rounded-lg border border-gray-200 bg-white p-4 shadow-lg">
           <HexColorPicker color={color} onChange={onChange} />
-          
+
           {presets.length > 0 && (
             <div className="mt-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">Vorgaben</div>
+              <div className="mb-2 text-sm font-medium text-gray-700">Vorgaben</div>
               <div className="grid grid-cols-5 gap-2">
-                {presets.map((preset) => (
+                {presets.map(preset => (
                   <button
                     key={preset}
                     type="button"
                     onClick={() => onChange(preset)}
-                    className={cn(
-                      'w-8 h-8 rounded border-2 hover:scale-110 transition-transform',
-                      color === preset ? 'border-gray-900' : 'border-gray-300'
-                    )}
+                    className={cn('h-8 w-8 rounded border-2 transition-transform hover:scale-110', color === preset ? 'border-gray-900' : 'border-gray-300')}
                     style={{ backgroundColor: preset }}
                   />
                 ))}

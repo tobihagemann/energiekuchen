@@ -1,10 +1,10 @@
-import type { Config } from 'jest'
-import nextJest from 'next/jest.js'
+import type { Config } from 'jest';
+import nextJest from 'next/jest.js';
 
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
   dir: './',
-})
+});
 
 const config: Config = {
   coverageProvider: 'v8',
@@ -19,14 +19,8 @@ const config: Config = {
   errorOnDeprecated: true,
   maxWorkers: '50%',
   bail: process.env.CI ? 1 : false,
-  testMatch: [
-    '**/app/lib/**/__tests__/**/*.(test|spec).(js|jsx|ts|tsx)'
-  ],
-  testPathIgnorePatterns: [
-    '<rootDir>/e2e/',
-    '<rootDir>/node_modules/',
-    '<rootDir>/coverage/',
-  ],
+  testMatch: ['**/app/lib/**/__tests__/**/*.(test|spec).(js|jsx|ts|tsx)'],
+  testPathIgnorePatterns: ['<rootDir>/e2e/', '<rootDir>/node_modules/', '<rootDir>/coverage/'],
   collectCoverageFrom: [
     'app/lib/utils/**/*.{js,jsx,ts,tsx}',
     'app/lib/hooks/**/*.{js,jsx,ts,tsx}',
@@ -35,7 +29,7 @@ const config: Config = {
     '!app/**/*.d.ts',
     '!app/**/__tests__/**',
     '!app/**/*.test.*',
-    '!app/**/*.spec.*'
+    '!app/**/*.spec.*',
   ],
   coverageThreshold: {
     global: {
@@ -47,7 +41,7 @@ const config: Config = {
       branches: 90,
     },
   },
-}
+};
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
-export default createJestConfig(config)
+export default createJestConfig(config);

@@ -16,7 +16,7 @@ export class StorageManager {
     try {
       const serialized = localStorage.getItem(STORAGE_KEY);
       if (!serialized) return null;
-      
+
       return JSON.parse(serialized) as EnergyKuchen;
     } catch (error) {
       console.error('Failed to load data from localStorage:', error);
@@ -35,19 +35,19 @@ export class StorageManager {
   static export(): string {
     const data = this.load();
     if (!data) throw new Error('Keine Daten zum Exportieren vorhanden');
-    
+
     return JSON.stringify(data, null, 2);
   }
 
   static import(jsonString: string): EnergyKuchen {
     try {
       const data = JSON.parse(jsonString) as EnergyKuchen;
-      
+
       // Basic validation
       if (!data.version || !data.positive || !data.negative) {
         throw new Error('Ungültiges Datenformat');
       }
-      
+
       return data;
     } catch (error) {
       console.error('Failed to import data:', error);
@@ -64,12 +64,12 @@ export function exportData(data: EnergyKuchen): string {
 export function importData(jsonString: string): EnergyKuchen {
   try {
     const data = JSON.parse(jsonString) as EnergyKuchen;
-    
+
     // Basic validation
     if (!data.version || !data.positive || !data.negative) {
       throw new Error('Ungültiges Datenformat');
     }
-    
+
     return data;
   } catch (error) {
     console.error('Failed to import data:', error);

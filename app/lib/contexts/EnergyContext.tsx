@@ -6,7 +6,7 @@ import { Activity, AppSettings, ChartSize, EnergyKuchen } from '@/app/types';
 import React, { createContext, ReactNode, useContext, useEffect, useReducer } from 'react';
 
 // Energy Reducer Actions
-type EnergyAction = 
+type EnergyAction =
   | { type: 'SET_DATA'; payload: EnergyKuchen }
   | { type: 'ADD_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'> } }
   | { type: 'UPDATE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string; updates: Partial<Activity> } }
@@ -28,7 +28,7 @@ interface EnergyState {
 
 function createDefaultData(): EnergyKuchen {
   const now = new Date().toISOString();
-  
+
   return {
     version: '1.0',
     lastModified: now,
@@ -36,21 +36,21 @@ function createDefaultData(): EnergyKuchen {
       id: 'positive',
       type: 'positive',
       activities: [],
-      size: 'medium'
+      size: 'medium',
     },
     negative: {
       id: 'negative',
       type: 'negative',
       activities: [],
-      size: 'medium'
+      size: 'medium',
     },
     settings: {
       chartSize: 'medium',
       colorScheme: 'default',
       showTooltips: true,
       showLegends: true,
-      language: 'de'
-    }
+      language: 'de',
+    },
   };
 }
 
@@ -61,13 +61,13 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       return {
         ...state,
         data: action.payload,
-        lastSaved: new Date().toISOString()
+        lastSaved: new Date().toISOString(),
       };
-    
+
     case 'SET_LOADING':
       return {
         ...state,
-        isLoading: action.payload
+        isLoading: action.payload,
       };
 
     case 'ADD_ACTIVITY': {
@@ -75,13 +75,13 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       if (action.payload.chartType !== 'positive' && action.payload.chartType !== 'negative') {
         return state;
       }
-      
+
       const now = new Date().toISOString();
       const newActivity: Activity = {
         ...action.payload.activity,
         id: generateUniqueId(),
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
       };
 
       const updatedData = {
@@ -89,13 +89,13 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
         lastModified: now,
         [action.payload.chartType]: {
           ...state.data[action.payload.chartType],
-          activities: [...state.data[action.payload.chartType].activities, newActivity]
-        }
+          activities: [...state.data[action.payload.chartType].activities, newActivity],
+        },
       };
 
       return {
         ...state,
-        data: updatedData
+        data: updatedData,
       };
     }
 
@@ -107,16 +107,14 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
         [action.payload.chartType]: {
           ...state.data[action.payload.chartType],
           activities: state.data[action.payload.chartType].activities.map(activity =>
-            activity.id === action.payload.activityId
-              ? { ...activity, ...action.payload.updates, updatedAt: now }
-              : activity
-          )
-        }
+            activity.id === action.payload.activityId ? { ...activity, ...action.payload.updates, updatedAt: now } : activity
+          ),
+        },
       };
 
       return {
         ...state,
-        data: updatedData
+        data: updatedData,
       };
     }
 
@@ -127,15 +125,13 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
         lastModified: now,
         [action.payload.chartType]: {
           ...state.data[action.payload.chartType],
-          activities: state.data[action.payload.chartType].activities.filter(
-            activity => activity.id !== action.payload.activityId
-          )
-        }
+          activities: state.data[action.payload.chartType].activities.filter(activity => activity.id !== action.payload.activityId),
+        },
       };
 
       return {
         ...state,
-        data: updatedData
+        data: updatedData,
       };
     }
 
@@ -150,13 +146,13 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
         lastModified: now,
         [action.payload.chartType]: {
           ...state.data[action.payload.chartType],
-          activities
-        }
+          activities,
+        },
       };
 
       return {
         ...state,
-        data: updatedData
+        data: updatedData,
       };
     }
 
@@ -167,13 +163,13 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
         lastModified: now,
         [action.payload.chartType]: {
           ...state.data[action.payload.chartType],
-          size: action.payload.size
-        }
+          size: action.payload.size,
+        },
       };
 
       return {
         ...state,
-        data: updatedData
+        data: updatedData,
       };
     }
 
@@ -184,13 +180,13 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
         lastModified: now,
         settings: {
           ...state.data.settings,
-          ...action.payload
-        }
+          ...action.payload,
+        },
       };
 
       return {
         ...state,
-        data: updatedData
+        data: updatedData,
       };
     }
 
@@ -198,7 +194,7 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       return {
         ...state,
         data: createDefaultData(),
-        lastSaved: null
+        lastSaved: null,
       };
     }
 
@@ -206,7 +202,7 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       return {
         ...state,
         data: action.payload,
-        lastSaved: new Date().toISOString()
+        lastSaved: new Date().toISOString(),
       };
     }
 
@@ -214,7 +210,7 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       return {
         ...state,
         data: createDefaultData(),
-        lastSaved: new Date().toISOString()
+        lastSaved: new Date().toISOString(),
       };
     }
 
@@ -228,13 +224,13 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
           colorScheme: 'default' as const,
           showTooltips: true,
           showLegends: true,
-          language: 'de' as const
-        }
+          language: 'de' as const,
+        },
       };
 
       return {
         ...state,
-        data: updatedData
+        data: updatedData,
       };
     }
 
@@ -267,7 +263,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(energyReducer, {
     data: createDefaultData(),
     isLoading: false,
-    lastSaved: null
+    lastSaved: null,
   });
 
   // Auto-save on data changes
@@ -280,7 +276,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
   // Load data on mount
   useEffect(() => {
     dispatch({ type: 'SET_LOADING', payload: true });
-    
+
     try {
       const savedData = StorageManager.load();
       if (savedData) {
@@ -354,14 +350,10 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     saveData,
     loadData,
     importData,
-    exportData
+    exportData,
   };
 
-  return (
-    <EnergyContext.Provider value={value}>
-      {children}
-    </EnergyContext.Provider>
-  );
+  return <EnergyContext.Provider value={value}>{children}</EnergyContext.Provider>;
 }
 
 // Custom Hook

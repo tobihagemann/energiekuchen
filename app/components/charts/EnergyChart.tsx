@@ -16,11 +16,7 @@ interface EnergyChartProps {
   onActivityClick?: (activityId: string) => void;
 }
 
-export function EnergyChart({ 
-  chartType, 
-  className,
-  onActivityClick 
-}: EnergyChartProps) {
+export function EnergyChart({ chartType, className, onActivityClick }: EnergyChartProps) {
   const { chartData, activities, size } = useChartData(chartType);
   const { isMobile } = useResponsive();
   const chartRef = useRef<ChartJS<'doughnut'>>(null);
@@ -32,7 +28,7 @@ export function EnergyChart({
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: false // We'll create our own legend
+        display: false, // We'll create our own legend
       },
       tooltip: {
         enabled: true,
@@ -41,9 +37,9 @@ export function EnergyChart({
             const activity = activities[context.dataIndex];
             if (!activity) return '';
             return `${activity.name}: ${activity.value} Energie`;
-          }
-        }
-      }
+          },
+        },
+      },
     },
     onClick: (event: unknown, elements: { index: number }[]) => {
       if (elements.length > 0 && onActivityClick) {
@@ -56,8 +52,8 @@ export function EnergyChart({
     },
     cutout: '60%',
     animation: {
-      duration: 300
-    }
+      duration: 300,
+    },
   };
 
   const isEmpty = activities.length === 0;
@@ -67,40 +63,31 @@ export function EnergyChart({
   return (
     <div className={cn('flex flex-col items-center', className)}>
       <div className="mb-4 text-center">
-        <h2 className="text-xl font-semibold text-gray-900 flex items-center justify-center gap-2">
+        <h2 className="flex items-center justify-center gap-2 text-xl font-semibold text-gray-900">
           <span className="text-2xl">{icon}</span>
           {title}
         </h2>
         {!isEmpty && (
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="mt-1 text-sm text-gray-500">
             {activities.length} Aktivität{activities.length !== 1 ? 'en' : ''}
           </p>
         )}
       </div>
 
-      <div 
-        className="relative"
-        style={{ width: chartSize, height: chartSize }}
-      >
-        <Doughnut
-          ref={chartRef}
-          data={chartData}
-          options={options}
-        />
-        
+      <div className="relative" style={{ width: chartSize, height: chartSize }}>
+        <Doughnut ref={chartRef} data={chartData} options={options} />
+
         {/* Center content */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             {isEmpty ? (
               <div className="text-gray-400">
-                <div className="text-2xl mb-1">➕</div>
+                <div className="mb-1 text-2xl">➕</div>
                 <div className="text-xs">Aktivität hinzufügen</div>
               </div>
             ) : (
               <div className="text-gray-700">
-                <div className="text-lg font-semibold">
-                  {activities.reduce((sum, a) => sum + a.value, 0)}
-                </div>
+                <div className="text-lg font-semibold">{activities.reduce((sum, a) => sum + a.value, 0)}</div>
                 <div className="text-xs">Gesamt</div>
               </div>
             )}

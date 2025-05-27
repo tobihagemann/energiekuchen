@@ -33,12 +33,8 @@ describe('useChartData', () => {
   beforeEach(() => {
     // Mock calculations
     const mockedCalculations = calculations as jest.Mocked<typeof calculations>;
-    mockedCalculations.calculateTotalEnergy.mockImplementation((activities: Activity[]) =>
-      activities.reduce((sum, activity) => sum + activity.value, 0)
-    );
-    mockedCalculations.calculatePercentage.mockImplementation((value: number, total: number) =>
-      Math.round((value / total) * 100)
-    );
+    mockedCalculations.calculateTotalEnergy.mockImplementation((activities: Activity[]) => activities.reduce((sum, activity) => sum + activity.value, 0));
+    mockedCalculations.calculatePercentage.mockImplementation((value: number, total: number) => Math.round((value / total) * 100));
   });
 
   it('should return chart data for positive chart with activities', () => {
@@ -62,10 +58,7 @@ describe('useChartData', () => {
 
     expect(result.current.activities).toEqual(mockActivities);
     expect(result.current.size).toBe('small');
-    expect(result.current.chartData.labels).toEqual([
-      'Activity 1 (60%)',
-      'Activity 2 (40%)',
-    ]);
+    expect(result.current.chartData.labels).toEqual(['Activity 1 (60%)', 'Activity 2 (40%)']);
     expect(result.current.chartData.datasets[0].data).toEqual([6, 4]);
     expect(result.current.chartData.datasets[0].backgroundColor).toEqual(['#FF5733', '#33FF57']);
   });
@@ -91,10 +84,7 @@ describe('useChartData', () => {
 
     expect(result.current.activities).toEqual(mockActivities);
     expect(result.current.size).toBe('medium');
-    expect(result.current.chartData.labels).toEqual([
-      'Activity 1 (60%)',
-      'Activity 2 (40%)',
-    ]);
+    expect(result.current.chartData.labels).toEqual(['Activity 1 (60%)', 'Activity 2 (40%)']);
   });
 
   it('should return empty state chart data when no activities', () => {
@@ -149,7 +139,7 @@ describe('useChartData', () => {
 
   it('should handle single activity', () => {
     const singleActivity = [mockActivities[0]];
-    
+
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
@@ -172,7 +162,7 @@ describe('useChartData', () => {
     expect(result.current.chartData.datasets[0].data).toEqual([6]);
   });
 
-  it('should memoize chart data when activities don\'t change', () => {
+  it("should memoize chart data when activities don't change", () => {
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
@@ -190,13 +180,13 @@ describe('useChartData', () => {
     } as any);
 
     const { result, rerender } = renderHook(() => useChartData('positive'));
-    
+
     const firstChartData = result.current.chartData;
-    
+
     rerender();
-    
+
     const secondChartData = result.current.chartData;
-    
+
     expect(firstChartData).toBe(secondChartData); // Same reference due to memoization
   });
 

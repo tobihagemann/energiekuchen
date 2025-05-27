@@ -2,9 +2,7 @@ import { UIProvider, useUI } from '@/app/lib/contexts/UIContext';
 import { act, renderHook } from '@testing-library/react';
 import { ReactNode } from 'react';
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <UIProvider>{children}</UIProvider>
-);
+const wrapper = ({ children }: { children: ReactNode }) => <UIProvider>{children}</UIProvider>;
 
 describe('UIContext', () => {
   it('should provide initial state', () => {

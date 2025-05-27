@@ -4,9 +4,7 @@ import QRCode from 'qrcode';
 import { MAX_URL_LENGTH } from './constants';
 
 export class SharingManager {
-  private static readonly BASE_URL = typeof window !== 'undefined' 
-    ? window.location.origin 
-    : 'https://energiekuchen.de';
+  private static readonly BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://energiekuchen.de';
 
   static async generateShareData(data: EnergyKuchen): Promise<ShareData> {
     try {
@@ -18,20 +16,20 @@ export class SharingManager {
             id: a.id,
             name: a.name,
             value: a.value,
-            color: a.color
+            color: a.color,
           })),
-          size: data.positive.size
+          size: data.positive.size,
         },
         negative: {
           activities: data.negative.activities.map(a => ({
             id: a.id,
             name: a.name,
             value: a.value,
-            color: a.color
+            color: a.color,
           })),
-          size: data.negative.size
+          size: data.negative.size,
         },
-        settings: data.settings
+        settings: data.settings,
       };
 
       const jsonString = JSON.stringify(shareableData);
@@ -47,7 +45,7 @@ export class SharingManager {
       return {
         encoded,
         url,
-        qrCode
+        qrCode,
       };
     } catch (error) {
       console.error('Failed to generate share data:', error);
@@ -59,10 +57,10 @@ export class SharingManager {
     try {
       const jsonString = decodeURIComponent(atob(encoded));
       const data = JSON.parse(jsonString);
-      
+
       // Add missing fields for full EnergyKuchen object
       const now = new Date().toISOString();
-      
+
       return {
         ...data,
         lastModified: now,
@@ -73,8 +71,8 @@ export class SharingManager {
           activities: data.positive.activities.map((a: Activity) => ({
             ...a,
             createdAt: now,
-            updatedAt: now
-          }))
+            updatedAt: now,
+          })),
         },
         negative: {
           ...data.negative,
@@ -83,9 +81,9 @@ export class SharingManager {
           activities: data.negative.activities.map((a: Activity) => ({
             ...a,
             createdAt: now,
-            updatedAt: now
-          }))
-        }
+            updatedAt: now,
+          })),
+        },
       } as EnergyKuchen;
     } catch (error) {
       console.error('Failed to decode share data:', error);

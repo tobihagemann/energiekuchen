@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // Mock localStorage
 const localStorageMock = {
@@ -6,8 +6,8 @@ const localStorageMock = {
   setItem: jest.fn(),
   removeItem: jest.fn(),
   clear: jest.fn(),
-}
-global.localStorage = localStorageMock
+};
+global.localStorage = localStorageMock;
 
 // Mock Chart.js
 jest.mock('chart.js', () => ({
@@ -19,4 +19,4 @@ jest.mock('chart.js', () => ({
   ArcElement: jest.fn(),
   Tooltip: jest.fn(),
   Legend: jest.fn(),
-}))
+}));

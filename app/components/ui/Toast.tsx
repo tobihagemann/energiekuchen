@@ -14,20 +14,20 @@ export function Toast() {
           border: '1px solid #E5E7EB',
           borderRadius: '0.5rem',
           fontSize: '14px',
-          maxWidth: '400px'
+          maxWidth: '400px',
         },
         success: {
           iconTheme: {
             primary: '#10B981',
-            secondary: '#fff'
-          }
+            secondary: '#fff',
+          },
         },
         error: {
           iconTheme: {
             primary: '#EF4444',
-            secondary: '#fff'
-          }
-        }
+            secondary: '#fff',
+          },
+        },
       }}
     />
   );
