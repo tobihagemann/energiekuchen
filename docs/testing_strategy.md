@@ -6,10 +6,10 @@ This document outlines the testing strategy for the Energiekuchen web applicatio
 
 ## Testing Philosophy
 
-- **Test Pyramid**: Focus on unit tests for business logic, integration tests for component interactions, and E2E tests for critical user journeys
-- **Test Coverage**: Aim for 80%+ code coverage on utility functions and core business logic
-- **User-Centric**: E2E tests should mirror real user workflows
-- **German Language**: All test descriptions and error messages in German to match the application
+- **Business Logic Focus**: Unit tests focus only on pure business logic (utils, hooks, contexts)
+- **UI Testing Separation**: UI components are tested via E2E tests for real user interactions  
+- **Type Safety**: Type testing is handled by TypeScript compiler
+- **High Coverage Standards**: High coverage thresholds since we only test critical business logic
 
 ## Test Configuration
 

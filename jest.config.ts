@@ -6,37 +6,45 @@ const createJestConfig = nextJest({
   dir: './',
 })
 
-// Add any custom config to be passed to Jest
 const config: Config = {
   coverageProvider: 'v8',
   testEnvironment: 'jsdom',
-  // Add more setup options before each test is run
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  // Handle module path aliases (matching tsconfig.json paths)
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
-  // Optimize performance
+  clearMocks: true,
+  restoreMocks: true,
+  verbose: true,
+  errorOnDeprecated: true,
   maxWorkers: '50%',
-  testPathIgnorePatterns: ['<rootDir>/e2e/'],
+  bail: process.env.CI ? 1 : false,
   testMatch: [
-    '**/__tests__/**/*.(test|spec).(js|jsx|ts|tsx)'
+    '**/app/lib/**/__tests__/**/*.(test|spec).(js|jsx|ts|tsx)'
+  ],
+  testPathIgnorePatterns: [
+    '<rootDir>/e2e/',
+    '<rootDir>/node_modules/',
+    '<rootDir>/coverage/',
   ],
   collectCoverageFrom: [
-    'app/**/*.{js,jsx,ts,tsx}',
+    'app/lib/utils/**/*.{js,jsx,ts,tsx}',
+    'app/lib/hooks/**/*.{js,jsx,ts,tsx}',
+    'app/lib/contexts/**/*.{js,jsx,ts,tsx}',
+    '!app/lib/utils/cn.ts',
     '!app/**/*.d.ts',
-    '!app/layout.tsx',
-    '!app/page.tsx',
     '!app/**/__tests__/**',
     '!app/**/*.test.*',
     '!app/**/*.spec.*'
   ],
   coverageThreshold: {
     global: {
-      branches: 70,
-      functions: 80,
-      lines: 80,
-      statements: 80,
+      lines: 90,
+      branches: 85,
+    },
+    'app/lib/utils/**': {
+      lines: 95,
+      branches: 90,
     },
   },
 }

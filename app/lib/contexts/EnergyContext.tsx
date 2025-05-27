@@ -71,6 +71,11 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       };
 
     case 'ADD_ACTIVITY': {
+      // Validate chart type before processing
+      if (action.payload.chartType !== 'positive' && action.payload.chartType !== 'negative') {
+        return state;
+      }
+      
       const now = new Date().toISOString();
       const newActivity: Activity = {
         ...action.payload.activity,

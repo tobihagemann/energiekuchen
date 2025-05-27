@@ -74,6 +74,79 @@ describe('Activity Validation', () => {
     })
     expect(longHex.isValid).toBe(true)
   })
+
+  test('should reject activity with name too long', () => {
+    const result = validateActivity({
+      name: 'a'.repeat(51), // Too long name
+      value: 50,
+      color: '#10B981'
+    })
+    expect(result.isValid).toBe(false)
+    expect(result.errors).toContain('Aktivitätsname darf maximal 50 Zeichen haben')
+  })
+
+  test('should reject activity with invalid name characters', () => {
+    const result = validateActivity({
+      name: 'Test@#$%', // Invalid characters
+      value: 50,
+      color: '#10B981'
+    })
+    expect(result.isValid).toBe(false)
+    expect(result.errors).toContain('Aktivitätsname enthält ungültige Zeichen')
+  })
+
+  test('should reject activity with value too high', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 101, // Too high value
+      color: '#10B981'
+    })
+    expect(result.isValid).toBe(false)
+    expect(result.errors).toContain('Energiewert muss zwischen 1 und 100 liegen')
+  })
+
+  test('should reject activity with value too low', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 0, // Too low value
+      color: '#10B981'
+    })
+    expect(result.isValid).toBe(false)
+    expect(result.errors).toContain('Energiewert muss zwischen 1 und 100 liegen')
+  })
+
+  test('should reject activity with missing value', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      // value is missing
+      color: '#10B981'
+    })
+    expect(result.isValid).toBe(false)
+    expect(result.errors).toContain('Energiewert muss zwischen 1 und 100 liegen')
+  })
+
+  test('should reject activity with missing color', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 50
+      // color is missing
+    })
+    expect(result.isValid).toBe(false)
+    expect(result.errors).toContain('Ungültige Farbe')
+  })
+
+  test('should reject activity with multiple validation errors', () => {
+    const result = validateActivity({
+      name: '', // Empty name
+      value: 101, // Invalid value
+      color: 'invalid' // Invalid color
+    })
+    expect(result.isValid).toBe(false)
+    expect(result.errors).toHaveLength(3)
+    expect(result.errors).toContain('Aktivitätsname ist erforderlich')
+    expect(result.errors).toContain('Energiewert muss zwischen 1 und 100 liegen')
+    expect(result.errors).toContain('Ungültige Farbe')
+  })
 })
 
 describe('Chart Activities Validation', () => {
