@@ -14,7 +14,12 @@ export function ImportExportModal() {
   const { state: energyState, dispatch } = useEnergy();
   const [isImporting, setIsImporting] = useState(false);
   const [importContent, setImportContent] = useState('');
+  const [importError, setImportError] = useState('');
+  const [replaceExistingData, setReplaceExistingData] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isImportOnly = uiState.importModalMode === 'import-only';
+  const modalTitle = isImportOnly ? 'Daten importieren' : 'Import / Export';
 
   const handleExport = () => {
     try {
@@ -39,6 +44,7 @@ export function ImportExportModal() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    setImportError(''); // Clear any previous errors
     const reader = new FileReader();
     reader.onload = e => {
       const content = e.target?.result as string;
@@ -49,23 +55,34 @@ export function ImportExportModal() {
 
   const handleImport = async () => {
     if (!importContent.trim()) {
-      toast.error('Bitte Daten zum Importieren eingeben oder Datei auswählen');
+      const errorMsg = 'Bitte Daten zum Importieren eingeben oder Datei auswählen';
+      setImportError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     setIsImporting(true);
+    setImportError('');
     try {
       const importedData = importData(importContent);
 
       // Update the state with imported data
-      dispatch({ type: 'IMPORT_DATA', payload: importedData });
+      dispatch({
+        type: 'IMPORT_DATA',
+        payload: {
+          data: importedData,
+          replaceExisting: replaceExistingData,
+        },
+      });
 
       toast.success('Daten erfolgreich importiert!');
       setImportContent('');
       closeImportModal();
     } catch (error) {
       console.error('Import error:', error);
-      toast.error('Fehler beim Importieren der Daten. Bitte überprüfen Sie das Format.');
+      const errorMsg = 'Fehler beim Importieren der Daten. Bitte überprüfen Sie das Format.';
+      setImportError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsImporting(false);
     }
@@ -84,20 +101,36 @@ export function ImportExportModal() {
   };
 
   return (
-    <Modal isOpen={uiState.isImportModalOpen} onClose={closeImportModal} title="Import / Export" size="lg">
-      <div className="space-y-6">
-        {/* Export Section */}
-        <div className="rounded-lg border p-4">
-          <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-            <DocumentArrowDownIcon className="h-5 w-5" />
-            Daten exportieren
-          </h3>
-          <p className="mb-4 text-gray-600">Speichern Sie Ihre Energiekuchen-Daten in einer JSON-Datei.</p>
-          <Button onClick={handleExport} variant="secondary" className="w-full">
-            <DocumentArrowDownIcon className="mr-2 h-4 w-4" />
-            Daten exportieren
-          </Button>
-        </div>
+    <Modal isOpen={uiState.isImportModalOpen} onClose={closeImportModal} title={modalTitle} size="lg">
+      <div className="space-y-6" data-testid="import-modal">
+        {/* Error Display */}
+        {importError && (
+          <div>
+            <div
+              id="import-error"
+              data-testid="import-error"
+              className="error rounded-md border border-red-200 bg-red-50 p-3 text-red-700"
+              role="alert"
+              aria-live="polite">
+              {importError}
+            </div>
+          </div>
+        )}
+
+        {/* Export Section - only show in full mode */}
+        {!isImportOnly && (
+          <div className="rounded-lg border p-4">
+            <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold">
+              <DocumentArrowDownIcon className="h-5 w-5" />
+              Daten exportieren
+            </h3>
+            <p className="mb-4 text-gray-600">Speichern Sie Ihre Energiekuchen-Daten in einer JSON-Datei.</p>
+            <Button onClick={handleExport} variant="secondary" className="w-full" data-testid="export-button">
+              <DocumentArrowDownIcon className="mr-2 h-4 w-4" />
+              Daten exportieren
+            </Button>
+          </div>
+        )}
 
         {/* Import Section */}
         <div className="rounded-lg border p-4">
@@ -114,7 +147,7 @@ export function ImportExportModal() {
                 <DocumentArrowUpIcon className="mr-2 h-4 w-4" />
                 Datei auswählen
               </Button>
-              <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileImport} className="hidden" />
+              <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileImport} className="hidden" data-testid="import-file-input" />
             </div>
 
             {/* Text Input */}
@@ -122,31 +155,51 @@ export function ImportExportModal() {
               <label className="mb-2 block text-sm font-medium text-gray-700">Oder JSON-Text einfügen:</label>
               <textarea
                 value={importContent}
-                onChange={e => setImportContent(e.target.value)}
+                onChange={e => {
+                  setImportContent(e.target.value);
+                  setImportError(''); // Clear error when content changes
+                }}
                 className="h-32 w-full resize-none rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 placeholder='{"version": "1.0", "positive": {...}, "negative": {...}}'
+                data-testid="import-json-textarea"
               />
             </div>
 
+            {/* Replace Option */}
+            <div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={replaceExistingData}
+                  onChange={e => setReplaceExistingData(e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  data-testid="import-replace-option"
+                />
+                <span className="text-sm text-gray-700">Bestehende Daten ersetzen (anstatt hinzuzufügen)</span>
+              </label>
+            </div>
+
             {/* Import Button */}
-            <Button onClick={handleImport} disabled={isImporting || !importContent.trim()} className="w-full">
+            <Button onClick={handleImport} disabled={isImporting || !importContent.trim()} className="w-full" data-testid="import-submit">
               {isImporting ? 'Importiere...' : 'Daten importieren'}
             </Button>
           </div>
         </div>
 
-        {/* Clear All Data Section */}
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-red-700">
-            <TrashIcon className="h-5 w-5" />
-            Alle Daten löschen
-          </h3>
-          <p className="mb-4 text-red-600">Löscht alle Aktivitäten und setzt die Anwendung zurück. Diese Aktion kann nicht rückgängig gemacht werden.</p>
-          <Button onClick={handleClearAll} variant="danger" className="w-full">
-            <TrashIcon className="mr-2 h-4 w-4" />
-            Alle Daten löschen
-          </Button>
-        </div>
+        {/* Clear All Data Section - only show in full mode */}
+        {!isImportOnly && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+            <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-red-700">
+              <TrashIcon className="h-5 w-5" />
+              Alle Daten löschen
+            </h3>
+            <p className="mb-4 text-red-600">Löscht alle Aktivitäten und setzt die Anwendung zurück. Diese Aktion kann nicht rückgängig gemacht werden.</p>
+            <Button onClick={handleClearAll} variant="danger" className="w-full">
+              <TrashIcon className="mr-2 h-4 w-4" />
+              Alle Daten löschen
+            </Button>
+          </div>
+        )}
       </div>
     </Modal>
   );

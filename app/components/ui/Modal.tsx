@@ -53,16 +53,22 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', className
   };
 
   const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       {/* Backdrop */}
       <div className="bg-opacity-50 absolute inset-0 bg-black transition-opacity" onClick={onClose} />
 
       {/* Modal */}
-      <div className={cn('relative w-full rounded-lg bg-white shadow-xl transition-all', sizes[size], className)}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? 'modal-title' : undefined}
+        className={cn('relative flex max-h-[90vh] w-full flex-col rounded-lg bg-white shadow-xl transition-all', sizes[size], className)}>
         {title && (
-          <div className="flex items-center justify-between border-b border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+          <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-200 p-4 sm:p-6">
+            <h3 id="modal-title" className="text-lg font-semibold text-gray-900">
+              {title}
+            </h3>
+            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0" data-testid="close-modal">
               <span className="sr-only">Schließen</span>
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -71,7 +77,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', className
           </div>
         )}
 
-        <div className="p-6">{children}</div>
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</div>
       </div>
     </div>
   );

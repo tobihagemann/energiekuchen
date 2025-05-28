@@ -9,6 +9,7 @@ interface UIState {
   isSettingsModalOpen: boolean;
   isImportModalOpen: boolean;
   isHelpModalOpen: boolean;
+  importModalMode: 'full' | 'import-only';
 
   // Current view
   currentView: 'dashboard' | 'settings' | 'help';
@@ -26,7 +27,7 @@ type UIAction =
   | { type: 'CLOSE_SHARE_MODAL' }
   | { type: 'OPEN_SETTINGS_MODAL' }
   | { type: 'CLOSE_SETTINGS_MODAL' }
-  | { type: 'OPEN_IMPORT_MODAL' }
+  | { type: 'OPEN_IMPORT_MODAL'; payload?: 'full' | 'import-only' }
   | { type: 'CLOSE_IMPORT_MODAL' }
   | { type: 'OPEN_HELP_MODAL' }
   | { type: 'CLOSE_HELP_MODAL' }
@@ -52,7 +53,7 @@ function uiReducer(state: UIState, action: UIAction): UIState {
       return { ...state, isSettingsModalOpen: false };
 
     case 'OPEN_IMPORT_MODAL':
-      return { ...state, isImportModalOpen: true };
+      return { ...state, isImportModalOpen: true, importModalMode: action.payload || 'full' };
 
     case 'CLOSE_IMPORT_MODAL':
       return { ...state, isImportModalOpen: false };
@@ -98,7 +99,7 @@ interface UIContextType {
   closeShareModal: () => void;
   openSettingsModal: () => void;
   closeSettingsModal: () => void;
-  openImportModal: () => void;
+  openImportModal: (mode?: 'full' | 'import-only') => void;
   closeImportModal: () => void;
   openHelpModal: () => void;
   closeHelpModal: () => void;
@@ -118,6 +119,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
     isSettingsModalOpen: false,
     isImportModalOpen: false,
     isHelpModalOpen: false,
+    importModalMode: 'full',
     currentView: 'dashboard',
     editingActivity: null,
     sidebarOpen: false,
@@ -128,7 +130,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const closeShareModal = () => dispatch({ type: 'CLOSE_SHARE_MODAL' });
   const openSettingsModal = () => dispatch({ type: 'OPEN_SETTINGS_MODAL' });
   const closeSettingsModal = () => dispatch({ type: 'CLOSE_SETTINGS_MODAL' });
-  const openImportModal = () => dispatch({ type: 'OPEN_IMPORT_MODAL' });
+  const openImportModal = (mode: 'full' | 'import-only' = 'full') => dispatch({ type: 'OPEN_IMPORT_MODAL', payload: mode });
   const closeImportModal = () => dispatch({ type: 'CLOSE_IMPORT_MODAL' });
   const openHelpModal = () => dispatch({ type: 'OPEN_HELP_MODAL' });
   const closeHelpModal = () => dispatch({ type: 'CLOSE_HELP_MODAL' });

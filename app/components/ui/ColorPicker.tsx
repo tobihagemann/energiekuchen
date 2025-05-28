@@ -39,6 +39,7 @@ export function ColorPicker({ color, onChange, label, presets = [], className }:
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
+        data-testid="color-picker-button"
         className="flex w-full items-center space-x-2 rounded-md border border-gray-300 p-2 hover:border-gray-400 focus:border-transparent focus:ring-2 focus:ring-yellow-500 focus:outline-none">
         <div className="h-6 w-6 rounded border border-gray-300" style={{ backgroundColor: color }} />
         <span className="text-sm text-gray-700">{color}</span>

@@ -90,7 +90,7 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" data-testid={`activity-form-${chartType}`}>
       <div>
         <Input
           label="Aktivitätsname"
@@ -99,19 +99,34 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
           placeholder="z.B. Sport, Entspannung, Überstunden..."
           maxLength={50}
           error={errors.find(error => error.includes('name') || error.includes('Name'))}
+          data-testid="activity-name-input"
         />
       </div>
 
       <div>
-        <Slider label="Energiewert" value={formData.value} onChange={value => setFormData(prev => ({ ...prev, value }))} min={1} max={100} step={1} />
+        <Slider
+          label="Energiewert"
+          value={formData.value}
+          onChange={value => setFormData(prev => ({ ...prev, value }))}
+          min={1}
+          max={100}
+          step={1}
+          data-testid="activity-value-slider"
+        />
       </div>
 
       <div>
-        <ColorPicker label="Farbe" color={formData.color} onChange={color => setFormData(prev => ({ ...prev, color }))} presets={colorPresets} />
+        <ColorPicker
+          label="Farbe"
+          color={formData.color}
+          onChange={color => setFormData(prev => ({ ...prev, color }))}
+          presets={colorPresets}
+          data-testid="activity-color-picker"
+        />
       </div>
 
       {errors.length > 0 && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3">
+        <div className="rounded-md border border-red-200 bg-red-50 p-3" data-testid="form-errors">
           <div className="text-sm text-red-800">
             {errors.map((error, index) => (
               <div key={index}>{error}</div>
@@ -121,12 +136,12 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
       )}
 
       <div className="flex space-x-3">
-        <Button type="submit" isLoading={isSubmitting} className="flex-1">
+        <Button type="submit" isLoading={isSubmitting} className="flex-1" data-testid="submit-activity-button">
           {isEditing ? 'Aktualisieren' : 'Hinzufügen'}
         </Button>
 
         {(isEditing || onCancel) && (
-          <Button type="button" variant="secondary" onClick={handleCancel} disabled={isSubmitting}>
+          <Button type="button" variant="secondary" onClick={handleCancel} disabled={isSubmitting} data-testid="cancel-activity-button">
             Abbrechen
           </Button>
         )}

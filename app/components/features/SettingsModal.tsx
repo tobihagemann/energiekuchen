@@ -1,17 +1,46 @@
 'use client';
 
-import { ChartPieIcon, CogIcon, EyeIcon, EyeSlashIcon, InformationCircleIcon, PaintBrushIcon } from '@heroicons/react/24/outline';
+import {
+  ChartPieIcon,
+  CogIcon,
+  DocumentArrowDownIcon,
+  DocumentArrowUpIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  InformationCircleIcon,
+  PaintBrushIcon,
+} from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
+import { exportData } from '../../lib/utils/storage';
 import { ChartSize, ColorScheme } from '../../types';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 
 export function SettingsModal() {
-  const { state: uiState, closeSettingsModal } = useUI();
+  const { state: uiState, closeSettingsModal, openImportModal } = useUI();
   const { state: energyState, dispatch } = useEnergy();
   const settings = energyState.data.settings;
+
+  const handleExport = () => {
+    try {
+      const dataToExport = exportData(energyState.data);
+      const blob = new Blob([dataToExport], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `energiekuchen-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success('Daten erfolgreich exportiert!');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Fehler beim Exportieren der Daten');
+    }
+  };
 
   const handleChartSizeChange = (size: ChartSize) => {
     dispatch({
@@ -150,6 +179,25 @@ export function SettingsModal() {
                 {settings.showLegends ? <EyeIcon className="h-4 w-4" /> : <EyeSlashIcon className="h-4 w-4" />}
               </Button>
             </div>
+          </div>
+        </div>
+
+        {/* Data Management */}
+        <div className="rounded-lg border p-4">
+          <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold">
+            <DocumentArrowDownIcon className="h-5 w-5" />
+            Daten verwalten
+          </h3>
+          <p className="mb-4 text-gray-600">Exportieren oder importieren Sie Ihre Energiekuchen-Daten.</p>
+          <div className="space-y-2">
+            <Button onClick={handleExport} variant="secondary" className="w-full" data-testid="export-button">
+              <DocumentArrowDownIcon className="mr-2 h-4 w-4" />
+              Daten exportieren
+            </Button>
+            <Button onClick={() => openImportModal('full')} variant="secondary" className="w-full">
+              <DocumentArrowUpIcon className="mr-2 h-4 w-4" />
+              Daten importieren
+            </Button>
           </div>
         </div>
 

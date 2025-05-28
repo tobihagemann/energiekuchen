@@ -3,11 +3,11 @@
 import { generateUniqueId } from '@/app/lib/utils/calculations';
 import { StorageManager } from '@/app/lib/utils/storage';
 import { Activity, AppSettings, ChartSize, EnergyKuchen } from '@/app/types';
-import React, { createContext, ReactNode, useContext, useEffect, useReducer } from 'react';
+import React, { createContext, ReactNode, useContext, useEffect, useReducer, useRef } from 'react';
 
 // Energy Reducer Actions
 type EnergyAction =
-  | { type: 'SET_DATA'; payload: EnergyKuchen }
+  | { type: 'SET_DATA'; payload: EnergyKuchen; shouldSave?: boolean }
   | { type: 'ADD_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'> } }
   | { type: 'UPDATE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string; updates: Partial<Activity> } }
   | { type: 'DELETE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } }
@@ -15,7 +15,7 @@ type EnergyAction =
   | { type: 'UPDATE_CHART_SIZE'; payload: { chartType: 'positive' | 'negative'; size: ChartSize } }
   | { type: 'UPDATE_SETTINGS'; payload: Partial<AppSettings> }
   | { type: 'RESET_DATA' }
-  | { type: 'IMPORT_DATA'; payload: EnergyKuchen }
+  | { type: 'IMPORT_DATA'; payload: { data: EnergyKuchen; replaceExisting: boolean } }
   | { type: 'CLEAR_ALL_DATA' }
   | { type: 'RESET_SETTINGS' }
   | { type: 'SET_LOADING'; payload: boolean };
@@ -58,11 +58,14 @@ function createDefaultData(): EnergyKuchen {
 function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
   switch (action.type) {
     case 'SET_DATA':
-      return {
+      const newState = {
         ...state,
         data: action.payload,
-        lastSaved: new Date().toISOString(),
+        lastSaved: action.shouldSave !== false ? new Date().toISOString() : state.lastSaved,
+        // When loading data (shouldSave=false), also set loading to false
+        isLoading: action.shouldSave === false ? false : state.isLoading,
       };
+      return newState;
 
     case 'SET_LOADING':
       return {
@@ -96,6 +99,7 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       return {
         ...state,
         data: updatedData,
+        lastSaved: now,
       };
     }
 
@@ -115,6 +119,7 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       return {
         ...state,
         data: updatedData,
+        lastSaved: now,
       };
     }
 
@@ -132,6 +137,7 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       return {
         ...state,
         data: updatedData,
+        lastSaved: now,
       };
     }
 
@@ -153,6 +159,7 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       return {
         ...state,
         data: updatedData,
+        lastSaved: now,
       };
     }
 
@@ -170,6 +177,7 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       return {
         ...state,
         data: updatedData,
+        lastSaved: now,
       };
     }
 
@@ -187,6 +195,7 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       return {
         ...state,
         data: updatedData,
+        lastSaved: now,
       };
     }
 
@@ -199,10 +208,47 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
     }
 
     case 'IMPORT_DATA': {
+      const now = new Date().toISOString();
+      const { data: importedData, replaceExisting } = action.payload;
+
+      let resultData;
+
+      if (replaceExisting) {
+        // Replace existing data with imported data
+        resultData = {
+          ...importedData,
+          lastModified: now,
+          // Keep existing settings but allow imported settings to override
+          settings: {
+            ...state.data.settings,
+            ...importedData.settings,
+          },
+        };
+      } else {
+        // Merge imported activities with existing activities
+        resultData = {
+          ...importedData,
+          lastModified: now,
+          positive: {
+            ...importedData.positive,
+            activities: [...state.data.positive.activities, ...importedData.positive.activities],
+          },
+          negative: {
+            ...importedData.negative,
+            activities: [...state.data.negative.activities, ...importedData.negative.activities],
+          },
+          // Keep existing settings but allow imported settings to override
+          settings: {
+            ...state.data.settings,
+            ...importedData.settings,
+          },
+        };
+      }
+
       return {
         ...state,
-        data: action.payload,
-        lastSaved: new Date().toISOString(),
+        data: resultData,
+        lastSaved: now,
       };
     }
 
@@ -231,6 +277,7 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       return {
         ...state,
         data: updatedData,
+        lastSaved: now,
       };
     }
 
@@ -266,6 +313,8 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     lastSaved: null,
   });
 
+  const hasLoadedRef = useRef(false);
+
   // Auto-save on data changes
   useEffect(() => {
     if (state.lastSaved) {
@@ -275,16 +324,22 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
 
   // Load data on mount
   useEffect(() => {
+    if (hasLoadedRef.current) {
+      return;
+    }
+
+    hasLoadedRef.current = true;
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
       const savedData = StorageManager.load();
       if (savedData) {
-        dispatch({ type: 'SET_DATA', payload: savedData });
+        dispatch({ type: 'SET_DATA', payload: savedData, shouldSave: false });
+      } else {
+        dispatch({ type: 'SET_LOADING', payload: false });
       }
     } catch (error) {
       console.error('Failed to load saved data:', error);
-    } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, []);

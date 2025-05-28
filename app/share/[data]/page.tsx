@@ -86,21 +86,21 @@ export default function SharedEnergyChart() {
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Energy Balance Summary */}
-        <div className="mb-8 rounded-lg bg-white p-6 shadow-sm">
+        <div className="mb-8 rounded-lg bg-white p-6 shadow-sm" data-testid="energy-balance-summary">
           <h2 className="mb-4 text-lg font-medium text-gray-900">Energiebilanz</h2>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-lg bg-green-50 p-4 text-center">
+            <div className="rounded-lg bg-green-50 p-4 text-center" data-testid="positive-energy-total">
               <div className="text-2xl font-bold text-green-600">{positiveTotal}</div>
               <div className="text-sm text-green-700">Energiequellen</div>
             </div>
 
-            <div className="rounded-lg bg-red-50 p-4 text-center">
+            <div className="rounded-lg bg-red-50 p-4 text-center" data-testid="negative-energy-total">
               <div className="text-2xl font-bold text-red-600">{negativeTotal}</div>
               <div className="text-sm text-red-700">Energieverbraucher</div>
             </div>
 
-            <div className={`rounded-lg p-4 text-center ${balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
+            <div className={`rounded-lg p-4 text-center ${balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`} data-testid="energy-balance-total">
               <div className={`text-2xl font-bold ${balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
                 {balance >= 0 ? '+' : ''}
                 {balance}
@@ -134,7 +134,9 @@ export default function SharedEnergyChart() {
 
             <EnergyChart chartType="positive" className="mb-6" />
 
-            <ChartLegend activities={data.positive.activities} />
+            <div data-testid="activity-list-positive">
+              <ChartLegend activities={data.positive.activities} />
+            </div>
           </div>
 
           {/* Negative Energy Chart */}
@@ -153,7 +155,9 @@ export default function SharedEnergyChart() {
 
             <EnergyChart chartType="negative" className="mb-6" />
 
-            <ChartLegend activities={data.negative.activities} />
+            <div data-testid="activity-list-negative">
+              <ChartLegend activities={data.negative.activities} />
+            </div>
           </div>
         </div>
 

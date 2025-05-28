@@ -14,10 +14,17 @@ export class StorageManager {
 
   static load(): EnergyKuchen | null {
     try {
+      console.log('DEBUG StorageManager.load(): Starting load from localStorage');
       const serialized = localStorage.getItem(STORAGE_KEY);
-      if (!serialized) return null;
+      console.log('DEBUG StorageManager.load(): localStorage.getItem returned:', serialized);
+      if (!serialized) {
+        console.log('DEBUG StorageManager.load(): No data found in localStorage');
+        return null;
+      }
 
-      return JSON.parse(serialized) as EnergyKuchen;
+      const parsed = JSON.parse(serialized) as EnergyKuchen;
+      console.log('DEBUG StorageManager.load(): Parsed data:', parsed);
+      return parsed;
     } catch (error) {
       console.error('Failed to load data from localStorage:', error);
       return null;
@@ -40,19 +47,7 @@ export class StorageManager {
   }
 
   static import(jsonString: string): EnergyKuchen {
-    try {
-      const data = JSON.parse(jsonString) as EnergyKuchen;
-
-      // Basic validation
-      if (!data.version || !data.positive || !data.negative) {
-        throw new Error('Ungültiges Datenformat');
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Failed to import data:', error);
-      throw new Error('Ungültige Datei oder Datenformat');
-    }
+    return importData(jsonString);
   }
 }
 
@@ -63,16 +58,67 @@ export function exportData(data: EnergyKuchen): string {
 
 export function importData(jsonString: string): EnergyKuchen {
   try {
-    const data = JSON.parse(jsonString) as EnergyKuchen;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = JSON.parse(jsonString) as any;
 
-    // Basic validation
-    if (!data.version || !data.positive || !data.negative) {
-      throw new Error('Ungültiges Datenformat');
+    // Basic validation - we need at least positive or negative data
+    if (!data.positive && !data.negative) {
+      throw new Error('Ungültiges Datenformat - keine Aktivitätsdaten gefunden');
     }
 
-    return data;
+    // Validate activities have required fields
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const validateActivities = (activities: any[]): any[] => {
+      if (!Array.isArray(activities)) return [];
+
+      return activities.filter(activity => {
+        // Check required fields
+        if (!activity.name || typeof activity.name !== 'string') {
+          throw new Error('Aktivität muss einen Namen haben');
+        }
+        if (activity.value === undefined || typeof activity.value !== 'number') {
+          throw new Error('Aktivität muss einen Energiewert haben');
+        }
+        return true;
+      });
+    };
+
+    // Validate and process activities
+    const positiveActivities = data.positive?.activities ? validateActivities(data.positive.activities) : [];
+    const negativeActivities = data.negative?.activities ? validateActivities(data.negative.activities) : [];
+
+    // Create a complete data structure with defaults
+    const now = new Date().toISOString();
+    const result: EnergyKuchen = {
+      version: data.version || '1.0',
+      lastModified: data.lastModified || now,
+      positive: {
+        id: 'positive',
+        type: 'positive',
+        activities: positiveActivities,
+        size: data.positive?.size || 'medium',
+      },
+      negative: {
+        id: 'negative',
+        type: 'negative',
+        activities: negativeActivities,
+        size: data.negative?.size || 'medium',
+      },
+      settings: {
+        chartSize: data.settings?.chartSize || 'medium',
+        colorScheme: data.settings?.colorScheme || 'default',
+        showTooltips: data.settings?.showTooltips !== undefined ? data.settings.showTooltips : true,
+        showLegends: data.settings?.showLegends !== undefined ? data.settings.showLegends : true,
+        language: data.settings?.language || 'de',
+      },
+    };
+
+    return result;
   } catch (error) {
     console.error('Failed to import data:', error);
+    if (error instanceof Error && error.message.includes('Aktivität')) {
+      throw error; // Re-throw validation errors with specific messages
+    }
     throw new Error('Ungültige Datei oder Datenformat');
   }
 }

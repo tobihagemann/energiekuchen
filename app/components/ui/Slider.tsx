@@ -12,9 +12,10 @@ interface SliderProps {
   label?: string;
   className?: string;
   disabled?: boolean;
+  'data-testid'?: string;
 }
 
-export function Slider({ value, onChange, min = 0, max = 100, step = 1, label, className, disabled = false }: SliderProps) {
+export function Slider({ value, onChange, min = 0, max = 100, step = 1, label, className, disabled = false, 'data-testid': testId }: SliderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -90,7 +91,8 @@ export function Slider({ value, onChange, min = 0, max = 100, step = 1, label, c
         ref={sliderRef}
         className={cn('relative h-6 cursor-pointer touch-none rounded-full bg-gray-200', disabled && 'cursor-not-allowed opacity-50')}
         onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}>
+        onTouchStart={handleTouchStart}
+        data-testid={testId}>
         <div className="absolute top-0 left-0 h-full rounded-full bg-yellow-400 transition-all duration-150" style={{ width: `${percentage}%` }} />
         <div
           className={cn(

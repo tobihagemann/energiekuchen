@@ -68,7 +68,7 @@ export function ShareModal() {
 
   return (
     <Modal isOpen={uiState.isShareModalOpen} onClose={handleClose} title="Energiekuchen teilen" size="md">
-      <div className="space-y-6">
+      <div className="space-y-6" data-testid="share-modal">
         <div className="text-sm text-gray-600">Teilen Sie Ihre Energiekuchen mit anderen, damit sie Ihre Energieverteilung einsehen können.</div>
 
         {isGenerating ? (
@@ -82,7 +82,7 @@ export function ShareModal() {
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Sharing-Link</label>
               <div className="flex space-x-2">
-                <Input value={shareData.url} readOnly className="flex-1 text-sm" />
+                <Input value={shareData.url} readOnly className="flex-1 text-sm" data-testid="share-url" />
                 <Button onClick={handleCopyUrl} variant="secondary" className="flex-shrink-0">
                   {copied ? <CheckIcon className="h-4 w-4" /> : <ClipboardIcon className="h-4 w-4" />}
                 </Button>

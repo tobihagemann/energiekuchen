@@ -26,6 +26,21 @@ export default function RootLayout({
             <Toast />
           </UIProvider>
         </EnergyProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Remove Next.js route announcer to avoid test conflicts
+              if (typeof window !== 'undefined') {
+                setTimeout(() => {
+                  const announcer = document.getElementById('__next-route-announcer__');
+                  if (announcer) {
+                    announcer.remove();
+                  }
+                }, 100);
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
