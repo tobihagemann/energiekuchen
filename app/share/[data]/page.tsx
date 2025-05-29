@@ -1,18 +1,17 @@
 'use client';
 
 import { ChartLegend } from '@/app/components/charts/ChartLegend';
-import { EnergyChart } from '@/app/components/charts/EnergyChart';
 import { getEnergyBalance } from '@/app/lib/utils/calculations';
 import { SharingManager } from '@/app/lib/utils/sharing';
 import { EnergyKuchen } from '@/app/types';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function SharedEnergyChart() {
   const params = useParams();
+  const router = useRouter();
   const [data, setData] = useState<EnergyKuchen | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -22,18 +21,23 @@ export default function SharedEnergyChart() {
           throw new Error('Ungültige Sharing-Daten');
         }
 
-        const decodedData = SharingManager.decodeShareData(params.data);
+        // URL parameters are automatically URL-decoded by Next.js router,
+        // but if they contain URL-encoded characters, we need to decode them again
+        const urlDecodedData = decodeURIComponent(params.data);
+        const decodedData = SharingManager.decodeShareData(urlDecodedData);
+
         setData(decodedData);
       } catch (err) {
         console.error('Failed to decode shared data:', err);
-        setError('Diese Sharing-URL ist ungültig oder beschädigt.');
+        router.push('/');
+        return;
       } finally {
         setIsLoading(false);
       }
     };
 
     loadSharedData();
-  }, [params.data]);
+  }, [params, router]);
 
   if (isLoading) {
     return (
@@ -46,21 +50,8 @@ export default function SharedEnergyChart() {
     );
   }
 
-  if (error || !data) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="mb-4 text-6xl">😞</div>
-          <h1 className="mb-2 text-2xl font-bold text-gray-900">Energiekuchen nicht gefunden</h1>
-          <p className="mb-6 text-gray-600">{error || 'Diese Sharing-URL ist ungültig oder beschädigt.'}</p>
-          <Link
-            href="/"
-            className="inline-flex items-center rounded-md bg-yellow-400 px-4 py-2 font-medium text-gray-900 transition-colors hover:bg-yellow-500">
-            Eigenen Energiekuchen erstellen
-          </Link>
-        </div>
-      </div>
-    );
+  if (!data) {
+    return null; // This shouldn't be reached due to redirect in catch block
   }
 
   const { positiveTotal, negativeTotal, balance } = getEnergyBalance(data.positive, data.negative);
@@ -132,10 +123,14 @@ export default function SharedEnergyChart() {
               )}
             </div>
 
-            <EnergyChart chartType="positive" className="mb-6" />
-
             <div data-testid="activity-list-positive">
-              <ChartLegend activities={data.positive.activities} />
+              {data.positive.activities.length > 0 ? (
+                <ChartLegend activities={data.positive.activities} />
+              ) : (
+                <div className="py-4 text-center text-gray-500">
+                  <div className="text-sm">Keine Energiequellen vorhanden</div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -153,10 +148,14 @@ export default function SharedEnergyChart() {
               )}
             </div>
 
-            <EnergyChart chartType="negative" className="mb-6" />
-
             <div data-testid="activity-list-negative">
-              <ChartLegend activities={data.negative.activities} />
+              {data.negative.activities.length > 0 ? (
+                <ChartLegend activities={data.negative.activities} />
+              ) : (
+                <div className="py-4 text-center text-gray-500">
+                  <div className="text-sm">Keine Energieverbraucher vorhanden</div>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -34,7 +34,18 @@ export function Header() {
               <span className="hidden sm:inline">Einstellungen</span>
             </Button>
 
-            <Button variant="ghost" size="sm" onClick={openHelpModal} data-testid="help-button" aria-label="Hilfe & Anleitung öffnen">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={openHelpModal}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openHelpModal();
+                }
+              }}
+              data-testid="help-button"
+              aria-label="Hilfe & Anleitung öffnen">
               <QuestionMarkCircleIcon className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Hilfe</span>
             </Button>

@@ -5,7 +5,6 @@ async function setSliderValue(page: Page, testId: string, value: number, min = 1
   const slider = page.locator(`[data-testid="${testId}"]`);
   await expect(slider).toBeVisible();
 
-  // Try multiple approaches to set the slider value accurately
   let attempts = 0;
   const maxAttempts = 5;
 
@@ -13,38 +12,65 @@ async function setSliderValue(page: Page, testId: string, value: number, min = 1
     // Calculate percentage position (value between min and max)
     const percentage = (value - min) / (max - min);
 
-    // Get slider bounds and click at the calculated position
+    // Get slider bounds
     const sliderBounds = await slider.boundingBox();
     if (sliderBounds) {
-      // For mobile, add some offset to account for touch targets
-      const offset = sliderBounds.width < 200 ? 2 : 0; // Small offset for narrow sliders
-      const targetX = sliderBounds.x + sliderBounds.width * percentage + offset;
+      const targetX = sliderBounds.x + sliderBounds.width * percentage;
       const targetY = sliderBounds.y + sliderBounds.height / 2;
 
-      // Use both mouse click and touch for better mobile compatibility
-      await page.mouse.click(targetX, targetY);
-
-      // On mobile, also try touch events
+      // Check if this is mobile by checking viewport width
       const isMobile = await page.evaluate(() => window.innerWidth < 768);
+
       if (isMobile) {
+        // For mobile, use touch events and mouse events
         await page.touchscreen.tap(targetX, targetY);
+        // Also try mouse events as backup
+        await page.mouse.click(targetX, targetY);
+      } else {
+        // For desktop, use mouse click
+        await page.mouse.click(targetX, targetY);
       }
 
-      await page.waitForTimeout(150); // Small delay to ensure value is set
+      // Wait for the slider to update
+      await page.waitForTimeout(150);
 
-      // Check if the value was set correctly by looking at the label
-      const labelText = await slider.locator('..').locator('label').textContent();
-      const actualValue = labelText ? parseInt(labelText.split(':')[1]?.trim() || '0') : 0;
+      // Try to get the current value from the slider label
+      let actualValue = null;
+      try {
+        const labelElement = slider.locator('..').locator('label');
+        if (await labelElement.isVisible()) {
+          const labelText = await labelElement.textContent();
+          const match = labelText?.match(/:\s*(\d+)/);
+          if (match) {
+            actualValue = parseInt(match[1], 10);
+          }
+        }
+      } catch {
+        // If we can't read the label, continue
+      }
 
-      // Allow for small rounding differences
-      if (Math.abs(actualValue - value) <= 2) {
-        break; // Value set correctly (within tolerance)
+      // Check if the value was set correctly (allow small tolerance)
+      if (actualValue && Math.abs(actualValue - value) <= 2) {
+        break; // Value set correctly
+      }
+
+      // If value is still off and we have more attempts, try with slight adjustment
+      if (actualValue && attempts < maxAttempts - 1) {
+        const offset = value > actualValue ? 10 : -10;
+        const adjustedX = Math.max(sliderBounds.x, Math.min(sliderBounds.x + sliderBounds.width, targetX + offset));
+
+        if (isMobile) {
+          await page.touchscreen.tap(adjustedX, targetY);
+          await page.mouse.click(adjustedX, targetY);
+        } else {
+          await page.mouse.click(adjustedX, targetY);
+        }
       }
     }
 
     attempts++;
     if (attempts < maxAttempts) {
-      await page.waitForTimeout(200); // Wait before retry
+      await page.waitForTimeout(100);
     }
   }
 }

@@ -279,6 +279,183 @@ export default defineConfig({
 
 **Key Insight:** Use a progressive testing strategy. Focus on core browsers during development (Chrome + Mobile Chrome) and expand to full browser matrix for CI/release testing. This balances coverage with development velocity.
 
+### 8. URL Encoding and Data Sharing Testing
+
+**The Challenge:**
+
+- Shared URLs failed to load due to double URL-encoding issues
+- Browser URL parameter handling differed from manual URL construction
+- Base64 + URL encoding created complex decoding requirements
+
+**The Learning:**
+
+```typescript
+// ❌ Wrong: Assuming URL parameters are decoded consistently
+const shareData = atob(params.data); // Fails with URL-encoded base64
+
+// ✅ Correct: Handle URL encoding layers properly
+const urlDecodedData = decodeURIComponent(params.data);
+const shareData = SharingManager.decodeShareData(urlDecodedData);
+
+// ❌ Wrong: Testing share URLs with hardcoded data
+const mockUrl = `/share/${btoa('test-data')}`;
+await page.goto(mockUrl); // Doesn't test real URL generation
+
+// ✅ Correct: Test actual share URL generation and consumption
+// Generate URL through the app's sharing mechanism
+await page.locator('[data-testid="share-button"]').click();
+const shareUrl = await page.locator('[data-testid="share-url"]').inputValue();
+
+// Test the actual generated URL
+await page.goto(shareUrl);
+await expect(page.locator('[data-testid="shared-content"]')).toBeVisible();
+```
+
+**Key Insight:** URL encoding is complex when multiple layers are involved (base64 + URL encoding). Always test the complete URL generation and consumption flow, not just individual encoding/decoding steps. Browser URL parameter handling can introduce additional encoding layers.
+
+### 9. Custom Component Interaction Patterns
+
+**The Challenge:**
+
+- Custom React components don't behave like native HTML elements
+- Standard Playwright interactions failed on custom slider components
+- Mobile vs desktop interaction patterns required different approaches
+
+**The Learning:**
+
+```typescript
+// ❌ Wrong: Treating custom components like native inputs
+const slider = page.locator('[data-testid="custom-slider"]');
+await slider.fill('50'); // Fails - not an input element
+await slider.selectOption('50'); // Fails - not a select element
+
+// ✅ Correct: Understand the custom component's interaction model
+async function setCustomSliderValue(page: Page, testId: string, value: number) {
+  const slider = page.locator(`[data-testid="${testId}"]`);
+
+  // Custom slider uses click position to set value
+  const bounds = await slider.boundingBox();
+  const percentage = value / 100; // Adjust based on component's range
+  const targetX = bounds.x + bounds.width * percentage;
+  const targetY = bounds.y + bounds.height / 2;
+
+  // Handle both desktop and mobile interaction patterns
+  const isMobile = await page.evaluate(() => window.innerWidth < 768);
+
+  if (isMobile) {
+    await page.touchscreen.tap(targetX, targetY);
+    await page.mouse.click(targetX, targetY); // Fallback
+  } else {
+    await page.mouse.click(targetX, targetY);
+  }
+
+  // Verify the interaction worked by reading component state
+  const actualValue = await page.evaluate(() => {
+    const element = document.querySelector('[data-testid="custom-slider"]');
+    return element?.textContent?.match(/(\d+)/)?.[1];
+  });
+
+  return parseInt(actualValue || '0', 10);
+}
+```
+
+**Key Insight:** Custom React components require understanding their specific interaction model. Don't assume standard HTML element behaviors. Create component-specific interaction helpers that handle both desktop and mobile patterns.
+
+### 10. Platform-Specific Test Adaptations
+
+**The Challenge:**
+
+- Mobile Chrome slider precision differed significantly from desktop
+- Fixed test values caused failures on mobile while passing on desktop
+- Balancing test reliability with comprehensive platform coverage
+
+**The Learning:**
+
+```typescript
+// ❌ Wrong: Same expectations across all platforms
+test('should create activity with specific value', async ({ page }) => {
+  await setSliderValue(page, 'slider', 40);
+  await expect(page.locator('[data-testid="value-display"]')).toContainText('40');
+  // Fails on Mobile Chrome due to slider precision differences
+});
+
+// ✅ Correct: Platform-aware test expectations
+test('should create activity with target value', async ({ page, browserName }) => {
+  const isMobile = await page.evaluate(() => window.innerWidth < 768);
+  const targetValue = browserName === 'chromium' && isMobile ? 10 : 40;
+
+  await setSliderValue(page, 'slider', targetValue);
+  await expect(page.locator('[data-testid="value-display"]')).toContainText(targetValue.toString());
+
+  // Test the functional outcome, not the exact value
+  await expect(page.locator('[data-testid="energy-total"]')).toContainText(targetValue.toString());
+});
+
+// Alternative: Test relative changes instead of absolute values
+test('should increase energy when adding positive activity', async ({ page }) => {
+  const initialTotal = await getEnergyTotal(page);
+  await addActivity(page, 'positive', 'any-value');
+  const newTotal = await getEnergyTotal(page);
+
+  expect(newTotal).toBeGreaterThan(initialTotal);
+});
+```
+
+**Key Insight:** Platform differences are real and should be accommodated in tests. Adapt test expectations based on browser/platform capabilities rather than forcing identical behavior everywhere. Focus on functional outcomes over exact implementation details.
+
+### 11. Development Workflow Optimizations
+
+**The Challenge:**
+
+- Default Playwright configurations can create workflow friction during development
+- Browser debugging requires manual intervention when using simple browser previews
+- HTML report generation blocks terminal output and requires manual cancellation
+
+**The Learning:**
+
+```typescript
+// ❌ Wrong: Using default reporter during development
+// playwright.config.ts
+export default defineConfig({
+  reporter: 'html', // Blocks terminal, opens browser, requires manual interaction
+});
+
+// Running tests shows HTML report that must be manually closed
+npx playwright test --headed
+
+// ✅ Correct: Use line reporter for immediate feedback during development
+// playwright.config.ts
+export default defineConfig({
+  reporter: process.env.CI ? 'html' : 'line', // Conditional based on environment
+});
+
+// Or override via command line for immediate terminal output
+npx playwright test --reporter=line --headed
+```
+
+```bash
+# ❌ Wrong: Relying on simple browser for debugging application output
+npm run dev &
+# Browser preview cannot capture console.log, network errors, etc.
+
+# ✅ Correct: Use terminal-based debugging or external browser
+npm run dev
+# Then manually open browser to http://localhost:3000 for full dev tools access
+
+# Alternative: Use Playwright's browser context for debugging
+npx playwright test --debug --reporter=line
+```
+
+**Key Insight:** Development workflow efficiency is critical for productive E2E testing. Use line reporter for immediate feedback during development, and avoid relying on simple browser previews for debugging complex application behavior. Configure tools to minimize manual intervention requirements.
+
+**Workflow Best Practices:**
+
+1. **Terminal-First Debugging**: Use `--reporter=line` for immediate test feedback
+2. **External Browser for App Debugging**: Open localhost manually for full dev tools access
+3. **Conditional Reporters**: Use environment-based reporter configuration
+4. **Non-Blocking Test Execution**: Avoid configurations that require manual intervention
+5. **Development vs CI Optimization**: Different configurations for different environments
+
 ## Best Practices Discovered
 
 1. **State-First Testing**: Always wait for application state to stabilize before making assertions
@@ -291,6 +468,7 @@ export default defineConfig({
 8. **Real User Patterns**: Test actual user workflows, not just individual component interactions
 9. **Error Context**: Provide meaningful debugging information when tests fail
 10. **Timing Tolerance**: Build appropriate waits and retries for network and state operations
+11. **Development Workflow Efficiency**: Use line reporter and external browsers to minimize manual intervention
 
 ## E2E vs Unit Testing Strategy
 
@@ -319,6 +497,8 @@ This application successfully demonstrates a complementary testing approach:
 8. **Complex Selectors**: Prefer data-testid attributes over CSS selectors
 9. **Hardcoded Timing**: Use expectation-based waits over fixed timeouts
 10. **Test Order Dependencies**: Ensure tests can run independently
+11. **Blocking Test Reports**: Use `--reporter=line` during development to avoid manual intervention
+12. **Simple Browser Debugging Limitations**: Use external browsers for full debugging capabilities
 
 ## Conclusion
 

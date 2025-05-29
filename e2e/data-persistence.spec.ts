@@ -5,48 +5,107 @@ async function setSliderValue(page: Page, testId: string, value: number, min = 1
   const slider = page.locator(`[data-testid="${testId}"]`);
   await expect(slider).toBeVisible();
 
-  // Calculate percentage position (value between min and max)
-  const percentage = (value - min) / (max - min);
+  let attempts = 0;
+  const maxAttempts = 8; // Increased attempts for Mobile Chrome
 
-  // Get slider bounds and use both mouse and touch events for better mobile compatibility
-  const sliderBounds = await slider.boundingBox();
-  if (sliderBounds) {
-    const targetX = sliderBounds.x + sliderBounds.width * percentage;
-    const targetY = sliderBounds.y + sliderBounds.height / 2;
+  while (attempts < maxAttempts) {
+    // Calculate percentage position (value between min and max)
+    const percentage = (value - min) / (max - min);
 
-    // Try both mouse click and touch events for mobile compatibility
-    try {
-      await page.mouse.click(targetX, targetY);
-    } catch {
-      // Fallback to touch events for mobile
-      await page.touchscreen.tap(targetX, targetY);
-    }
+    // Get slider bounds
+    const sliderBounds = await slider.boundingBox();
+    if (sliderBounds) {
+      const targetX = sliderBounds.x + sliderBounds.width * percentage;
+      const targetY = sliderBounds.y + sliderBounds.height / 2;
 
-    // Wait a moment for the slider to update
-    await page.waitForTimeout(100);
+      // Check if this is mobile by checking viewport width
+      const isMobile = await page.evaluate(() => window.innerWidth < 768);
 
-    // Verify the value was set correctly with some tolerance for rounding
-    let actualValue = null;
+      if (isMobile) {
+        // For mobile, use multiple interaction strategies
 
-    // Try to get the current value from slider display or verify via form submission
-    try {
-      const valueDisplay = page.locator(`[data-testid="activity-value-display"], [data-testid="slider-value-display"]`);
-      if (await valueDisplay.isVisible()) {
-        const displayText = await valueDisplay.textContent();
-        actualValue = parseInt(displayText?.replace(/\D/g, '') || '0', 10);
+        // Strategy 1: Touchscreen tap
+        await page.touchscreen.tap(targetX, targetY);
+        await page.waitForTimeout(50);
+
+        // Strategy 2: Mouse click as backup
+        await page.mouse.click(targetX, targetY);
+        await page.waitForTimeout(50);
+
+        // Strategy 3: Focus and use keyboard if needed (attempt 3+)
+        if (attempts >= 2) {
+          await slider.focus();
+          const currentVal = await page.evaluate(() => {
+            const input = document.querySelector('[data-testid="activity-value-slider"]') as HTMLInputElement;
+            return input ? parseInt(input.value || '1') : 1;
+          });
+
+          const diff = value - currentVal;
+          if (Math.abs(diff) > 2) {
+            // Use arrow keys to adjust
+            const steps = Math.abs(diff);
+            const key = diff > 0 ? 'ArrowRight' : 'ArrowLeft';
+            for (let i = 0; i < Math.min(steps, 10); i++) {
+              await page.keyboard.press(key);
+              await page.waitForTimeout(10);
+            }
+          }
+        }
+      } else {
+        // For desktop, use mouse click
+        await page.mouse.click(targetX, targetY);
       }
-    } catch {
-      // If we can't read the display, continue and let the test verify naturally
-    }
 
-    // If the value is significantly off, try again with a slight adjustment
-    if (actualValue && Math.abs(actualValue - value) > 2) {
-      const adjustedX = targetX + (value > actualValue ? 5 : -5);
+      // Wait for the slider to update
+      await page.waitForTimeout(150);
+
+      // Try to get the current value from the slider label or input
+      let actualValue = null;
       try {
-        await page.mouse.click(adjustedX, targetY);
+        // Try to get value from input element
+        actualValue = await page.evaluate(() => {
+          const input = document.querySelector('[data-testid="activity-value-slider"]') as HTMLInputElement;
+          return input ? parseInt(input.value || '1') : null;
+        });
+
+        // If that failed, try from label
+        if (!actualValue) {
+          const labelElement = slider.locator('..').locator('label');
+          if (await labelElement.isVisible()) {
+            const labelText = await labelElement.textContent();
+            const match = labelText?.match(/:\s*(\d+)/);
+            if (match) {
+              actualValue = parseInt(match[1], 10);
+            }
+          }
+        }
       } catch {
-        await page.touchscreen.tap(adjustedX, targetY);
+        // If we can't read the value, continue
       }
+
+      // Check if the value was set correctly (allow small tolerance)
+      if (actualValue && Math.abs(actualValue - value) <= 2) {
+        break; // Value set correctly
+      }
+
+      // If value is still off and we have more attempts, try with adjustment
+      if (actualValue && attempts < maxAttempts - 1) {
+        const offset = value > actualValue ? 20 : -20; // Larger offset for mobile
+        const adjustedX = Math.max(sliderBounds.x + 10, Math.min(sliderBounds.x + sliderBounds.width - 10, targetX + offset));
+
+        if (isMobile) {
+          await page.touchscreen.tap(adjustedX, targetY);
+          await page.waitForTimeout(50);
+          await page.mouse.click(adjustedX, targetY);
+        } else {
+          await page.mouse.click(adjustedX, targetY);
+        }
+        await page.waitForTimeout(100);
+      }
+    }
+
+    attempts++;
+    if (attempts < maxAttempts) {
       await page.waitForTimeout(100);
     }
   }

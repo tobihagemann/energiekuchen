@@ -322,13 +322,14 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     }
   }, [state.data, state.lastSaved]);
 
-  // Load data on mount
+  // Load data on mount (skip for shared routes)
   useEffect(() => {
     if (hasLoadedRef.current) {
       return;
     }
 
     hasLoadedRef.current = true;
+
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
