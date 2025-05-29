@@ -9,7 +9,11 @@ export const metadata: Metadata = {
   description: 'Ein visuelles Coaching-Tool zur Bewertung und Optimierung deiner Energiequellen und -verbraucher im täglichen Leben.',
   keywords: ['Energie', 'Coaching', 'Visualisierung', 'Balance', 'Wohlbefinden'],
   authors: [{ name: 'Energiekuchen Team' }],
-  viewport: 'width=device-width, initial-scale=1',
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -26,21 +30,6 @@ export default function RootLayout({
             <Toast />
           </UIProvider>
         </EnergyProvider>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Remove Next.js route announcer to avoid test conflicts
-              if (typeof window !== 'undefined') {
-                setTimeout(() => {
-                  const announcer = document.getElementById('__next-route-announcer__');
-                  if (announcer) {
-                    announcer.remove();
-                  }
-                }, 100);
-              }
-            `,
-          }}
-        />
       </body>
     </html>
   );

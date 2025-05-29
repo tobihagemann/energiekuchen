@@ -206,13 +206,6 @@ test.describe('Data Persistence', () => {
   });
 
   test('should persist activity deletions', async ({ page }) => {
-    // Listen for console messages
-    page.on('console', msg => {
-      if (msg.text().includes('DEBUG')) {
-        console.log('BROWSER:', msg.text());
-      }
-    });
-
     // Add multiple activities
     await page.locator('[data-testid="add-activity-button-positive"]').click();
     await page.locator('[data-testid="activity-name-input"]').fill('Reading');
@@ -230,7 +223,6 @@ test.describe('Data Persistence', () => {
     await page.waitForSelector('[data-testid^="delete-activity-button-"]');
     const deleteButtons = page.locator('[data-testid^="delete-activity-button-"]');
     const buttonCount = await deleteButtons.count();
-    console.log('DEBUG: Found', buttonCount, 'delete buttons');
 
     // Use the first delete button (for Reading)
     if (buttonCount > 0) {
@@ -246,21 +238,13 @@ test.describe('Data Persistence', () => {
 
     // Get the text content to check which activity remains
     const activitiesText = await page.locator('[data-testid="activity-list-positive"]').textContent();
-    console.log('DEBUG: Activities text after deletion:', activitiesText);
 
     // One of the activities should remain (could be either Reading or Meditation depending on order)
     const hasReading = activitiesText?.includes('Reading') || false;
     const hasMeditation = activitiesText?.includes('Meditation') || false;
     const hasActivities = hasReading || hasMeditation;
-    console.log('DEBUG: After deletion - hasReading:', hasReading, 'hasMeditation:', hasMeditation);
 
     expect(hasActivities).toBe(true);
-
-    // Debug: Check what's actually in localStorage after deletion
-    const localStorageAfterDeletion = await page.evaluate(() => {
-      return localStorage.getItem('energiekuchen-data');
-    });
-    console.log('DEBUG: localStorage after deletion:', localStorageAfterDeletion);
 
     // Reload page
     await page.reload();
@@ -281,11 +265,9 @@ test.describe('Data Persistence', () => {
 
     // Verify only one activity persisted
     const persistedActivitiesText = await page.locator('[data-testid="activity-list-positive"]').textContent();
-    console.log('DEBUG: Persisted activities text:', persistedActivitiesText);
     const persistedHasReading = persistedActivitiesText?.includes('Reading') || false;
     const persistedHasMeditation = persistedActivitiesText?.includes('Meditation') || false;
     const persistedHasActivities = persistedHasReading || persistedHasMeditation;
-    console.log('DEBUG: persistedHasReading:', persistedHasReading, 'persistedHasMeditation:', persistedHasMeditation);
 
     expect(persistedHasActivities).toBe(true);
     // Should not have both activities

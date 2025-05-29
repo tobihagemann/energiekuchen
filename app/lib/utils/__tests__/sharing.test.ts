@@ -30,18 +30,7 @@ Object.defineProperty(window, 'location', {
 
 describe('SharingManager', () => {
   test('should generate and decode share data', async () => {
-    const fixedTimestamp = '2024-01-01T00:00:00.000Z';
     const mockData = createMockEnergyKuchen();
-
-    // Fix timestamps to avoid millisecond differences
-    mockData.positive.activities.forEach(activity => {
-      activity.createdAt = fixedTimestamp;
-      activity.updatedAt = fixedTimestamp;
-    });
-    mockData.negative.activities.forEach(activity => {
-      activity.createdAt = fixedTimestamp;
-      activity.updatedAt = fixedTimestamp;
-    });
 
     const shareData = await SharingManager.generateShareData(mockData);
     const decoded = SharingManager.decodeShareData(shareData.encoded);

@@ -14,16 +14,12 @@ export class StorageManager {
 
   static load(): EnergyKuchen | null {
     try {
-      console.log('DEBUG StorageManager.load(): Starting load from localStorage');
       const serialized = localStorage.getItem(STORAGE_KEY);
-      console.log('DEBUG StorageManager.load(): localStorage.getItem returned:', serialized);
       if (!serialized) {
-        console.log('DEBUG StorageManager.load(): No data found in localStorage');
         return null;
       }
 
       const parsed = JSON.parse(serialized) as EnergyKuchen;
-      console.log('DEBUG StorageManager.load(): Parsed data:', parsed);
       return parsed;
     } catch (error) {
       console.error('Failed to load data from localStorage:', error);

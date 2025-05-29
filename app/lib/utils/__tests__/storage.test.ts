@@ -53,8 +53,8 @@ describe('StorageManager', () => {
 
   test('should handle localStorage errors gracefully', () => {
     // Mock localStorage to throw error
-    const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
-    setItemSpy.mockImplementation(() => {
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = jest.fn(() => {
       throw new Error('Storage quota exceeded');
     });
 
@@ -65,6 +65,8 @@ describe('StorageManager', () => {
     const mockData = createMockEnergyKuchen();
     expect(() => StorageManager.save(mockData)).toThrow('Daten konnten nicht gespeichert werden');
 
+    // Restore original methods
+    localStorage.setItem = originalSetItem;
     console.error = originalError;
   });
 
@@ -84,8 +86,8 @@ describe('StorageManager', () => {
   });
 
   test('should handle localStorage getItem errors gracefully', () => {
-    const getItemSpy = jest.spyOn(Storage.prototype, 'getItem');
-    getItemSpy.mockImplementation(() => {
+    const originalGetItem = localStorage.getItem;
+    localStorage.getItem = jest.fn(() => {
       throw new Error('Storage error');
     });
 
@@ -96,12 +98,14 @@ describe('StorageManager', () => {
     const loaded = StorageManager.load();
     expect(loaded).toBeNull();
 
+    // Restore original methods
+    localStorage.getItem = originalGetItem;
     console.error = originalError;
   });
 
   test('should handle localStorage removeItem errors gracefully', () => {
-    const removeItemSpy = jest.spyOn(Storage.prototype, 'removeItem');
-    removeItemSpy.mockImplementation(() => {
+    const originalRemoveItem = localStorage.removeItem;
+    localStorage.removeItem = jest.fn(() => {
       throw new Error('Storage error');
     });
 
@@ -112,6 +116,8 @@ describe('StorageManager', () => {
     // Should not throw
     expect(() => StorageManager.clear()).not.toThrow();
 
+    // Restore original methods
+    localStorage.removeItem = originalRemoveItem;
     console.error = originalError;
   });
 

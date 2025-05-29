@@ -1,6 +1,1 @@
 @import 'tailwindcss';
-
-/* Hide Next.js route announcer to avoid conflicts with error message role=alert in tests */
-#__next-route-announcer__ {
-  display: none !important;
-}

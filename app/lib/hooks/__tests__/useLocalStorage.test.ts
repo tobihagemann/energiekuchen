@@ -116,7 +116,7 @@ describe('useLocalStorage', () => {
     expect(numberResult.current[0]).toBe(42);
 
     // Test array
-    const { result: arrayResult } = renderHook(() => useLocalStorage('array-key', []));
+    const { result: arrayResult } = renderHook(() => useLocalStorage<number[]>('array-key', []));
     act(() => {
       arrayResult.current[1]([1, 2, 3]);
     });

@@ -530,10 +530,10 @@ describe('EnergyContext', () => {
       },
       settings: {
         chartSize: 'large' as const,
-        colorScheme: 'dark' as const,
+        colorScheme: 'high-contrast' as const,
         showTooltips: false,
         showLegends: false,
-        language: 'en' as const,
+        language: 'de' as const,
       },
     };
 
@@ -586,15 +586,15 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.updateSettings({
         chartSize: 'large',
-        colorScheme: 'dark',
+        colorScheme: 'high-contrast',
         showTooltips: false,
         showLegends: false,
-        language: 'en',
+        language: 'de',
       });
     });
 
     expect(result.current.state.data.settings.chartSize).toBe('large');
-    expect(result.current.state.data.settings.colorScheme).toBe('dark');
+    expect(result.current.state.data.settings.colorScheme).toBe('high-contrast');
 
     // Test reset settings by importing data with default settings
     const defaultData = {
@@ -662,10 +662,10 @@ describe('EnergyContext', () => {
       },
       settings: {
         chartSize: 'large' as const,
-        colorScheme: 'dark' as const,
+        colorScheme: 'high-contrast' as const,
         showTooltips: false,
         showLegends: false,
-        language: 'en' as const,
+        language: 'de' as const,
       },
     };
 
@@ -711,10 +711,10 @@ describe('EnergyContext', () => {
       },
       settings: {
         chartSize: 'large' as const,
-        colorScheme: 'dark' as const,
+        colorScheme: 'high-contrast' as const,
         showTooltips: false,
         showLegends: false,
-        language: 'en' as const,
+        language: 'de' as const,
       },
     };
 
@@ -758,14 +758,14 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.updateSettings({
         chartSize: 'large',
-        colorScheme: 'dark',
+        colorScheme: 'high-contrast',
         showTooltips: false,
-        language: 'en',
+        language: 'de',
       });
     });
 
     expect(result.current.state.data.settings.chartSize).toBe('large');
-    expect(result.current.state.data.settings.colorScheme).toBe('dark');
+    expect(result.current.state.data.settings.colorScheme).toBe('high-contrast');
 
     // Reset settings
     act(() => {

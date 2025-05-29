@@ -242,7 +242,7 @@ describe('UIContext', () => {
 
     if (context.dispatch) {
       act(() => {
-        context.dispatch({ type: 'UNKNOWN_ACTION' });
+        context.dispatch!({ type: 'UNKNOWN_ACTION' });
       });
     }
 

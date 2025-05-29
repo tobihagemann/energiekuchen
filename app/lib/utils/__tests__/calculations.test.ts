@@ -1,3 +1,4 @@
+import { createMockActivity } from '@/app/__tests__/utils/mocks';
 import {
   calculatePercentage,
   calculateTotalEnergy,
@@ -12,9 +13,9 @@ describe('calculations utilities', () => {
   describe('calculateTotalEnergy', () => {
     it('calculates total energy for activities', () => {
       const activities: Activity[] = [
-        { id: '1', activity: 'Running', value: 80, color: '#ff0000' },
-        { id: '2', activity: 'Reading', value: 60, color: '#00ff00' },
-        { id: '3', activity: 'Music', value: 70, color: '#0000ff' },
+        createMockActivity({ name: 'Running', value: 80 }),
+        createMockActivity({ name: 'Reading', value: 60 }),
+        createMockActivity({ name: 'Music', value: 70 }),
       ];
 
       const total = calculateTotalEnergy(activities);
@@ -27,30 +28,21 @@ describe('calculations utilities', () => {
     });
 
     it('handles activities with zero values', () => {
-      const activities: Activity[] = [
-        { id: '1', activity: 'Test', value: 0, color: '#ff0000' },
-        { id: '2', activity: 'Test2', value: 50, color: '#00ff00' },
-      ];
+      const activities: Activity[] = [createMockActivity({ name: 'Test', value: 0 }), createMockActivity({ name: 'Test2', value: 50 })];
 
       const total = calculateTotalEnergy(activities);
       expect(total).toBe(50);
     });
 
     it('handles negative values', () => {
-      const activities: Activity[] = [
-        { id: '1', activity: 'Test', value: -20, color: '#ff0000' },
-        { id: '2', activity: 'Test2', value: 50, color: '#00ff00' },
-      ];
+      const activities: Activity[] = [createMockActivity({ name: 'Test', value: -20 }), createMockActivity({ name: 'Test2', value: 50 })];
 
       const total = calculateTotalEnergy(activities);
       expect(total).toBe(30);
     });
 
     it('handles decimal values', () => {
-      const activities: Activity[] = [
-        { id: '1', activity: 'Test', value: 10.5, color: '#ff0000' },
-        { id: '2', activity: 'Test2', value: 20.7, color: '#00ff00' },
-      ];
+      const activities: Activity[] = [createMockActivity({ name: 'Test', value: 10.5 }), createMockActivity({ name: 'Test2', value: 20.7 })];
 
       const total = calculateTotalEnergy(activities);
       expect(total).toBe(31.2);
@@ -164,9 +156,9 @@ describe('calculations utilities', () => {
 
   describe('sortActivitiesByValue', () => {
     const activities: Activity[] = [
-      { id: '1', activity: 'Low', value: 30, color: '#ff0000' },
-      { id: '2', activity: 'High', value: 90, color: '#00ff00' },
-      { id: '3', activity: 'Medium', value: 60, color: '#0000ff' },
+      createMockActivity({ name: 'Low', value: 30 }),
+      createMockActivity({ name: 'High', value: 90 }),
+      createMockActivity({ name: 'Medium', value: 60 }),
     ];
 
     it('sorts activities in descending order by default', () => {
@@ -175,9 +167,9 @@ describe('calculations utilities', () => {
       expect(sorted[0].value).toBe(90);
       expect(sorted[1].value).toBe(60);
       expect(sorted[2].value).toBe(30);
-      expect(sorted[0].activity).toBe('High');
-      expect(sorted[1].activity).toBe('Medium');
-      expect(sorted[2].activity).toBe('Low');
+      expect(sorted[0].name).toBe('High');
+      expect(sorted[1].name).toBe('Medium');
+      expect(sorted[2].name).toBe('Low');
     });
 
     it('sorts activities in ascending order when specified', () => {
@@ -186,9 +178,9 @@ describe('calculations utilities', () => {
       expect(sorted[0].value).toBe(30);
       expect(sorted[1].value).toBe(60);
       expect(sorted[2].value).toBe(90);
-      expect(sorted[0].activity).toBe('Low');
-      expect(sorted[1].activity).toBe('Medium');
-      expect(sorted[2].activity).toBe('High');
+      expect(sorted[0].name).toBe('Low');
+      expect(sorted[1].name).toBe('Medium');
+      expect(sorted[2].name).toBe('High');
     });
 
     it('does not mutate the original array', () => {
@@ -204,7 +196,7 @@ describe('calculations utilities', () => {
     });
 
     it('handles single activity', () => {
-      const singleActivity: Activity[] = [{ id: '1', activity: 'Solo', value: 50, color: '#ff0000' }];
+      const singleActivity: Activity[] = [createMockActivity({ name: 'Solo', value: 50 })];
 
       const sorted = sortActivitiesByValue(singleActivity);
       expect(sorted).toEqual(singleActivity);
@@ -212,9 +204,9 @@ describe('calculations utilities', () => {
 
     it('handles activities with equal values', () => {
       const equalValues: Activity[] = [
-        { id: '1', activity: 'A', value: 50, color: '#ff0000' },
-        { id: '2', activity: 'B', value: 50, color: '#00ff00' },
-        { id: '3', activity: 'C', value: 50, color: '#0000ff' },
+        createMockActivity({ name: 'A', value: 50 }),
+        createMockActivity({ name: 'B', value: 50 }),
+        createMockActivity({ name: 'C', value: 50 }),
       ];
 
       const sorted = sortActivitiesByValue(equalValues);
@@ -224,9 +216,9 @@ describe('calculations utilities', () => {
 
     it('handles negative values', () => {
       const withNegative: Activity[] = [
-        { id: '1', activity: 'Positive', value: 50, color: '#ff0000' },
-        { id: '2', activity: 'Negative', value: -20, color: '#00ff00' },
-        { id: '3', activity: 'Zero', value: 0, color: '#0000ff' },
+        createMockActivity({ name: 'Positive', value: 50 }),
+        createMockActivity({ name: 'Negative', value: -20 }),
+        createMockActivity({ name: 'Zero', value: 0 }),
       ];
 
       const sorted = sortActivitiesByValue(withNegative);
@@ -238,19 +230,17 @@ describe('calculations utilities', () => {
 
   describe('getEnergyBalance', () => {
     const positiveChart: EnergyChart = {
+      id: 'positive',
       type: 'positive',
-      activities: [
-        { id: '1', activity: 'Exercise', value: 80, color: '#ff0000' },
-        { id: '2', activity: 'Music', value: 60, color: '#00ff00' },
-      ],
+      size: 'medium',
+      activities: [createMockActivity({ name: 'Exercise', value: 80 }), createMockActivity({ name: 'Music', value: 60 })],
     };
 
     const negativeChart: EnergyChart = {
+      id: 'negative',
       type: 'negative',
-      activities: [
-        { id: '3', activity: 'Stress', value: 70, color: '#ff0000' },
-        { id: '4', activity: 'Fatigue', value: 30, color: '#00ff00' },
-      ],
+      size: 'medium',
+      activities: [createMockActivity({ name: 'Stress', value: 70 }), createMockActivity({ name: 'Fatigue', value: 30 })],
     };
 
     it('calculates energy balance correctly', () => {
@@ -271,8 +261,10 @@ describe('calculations utilities', () => {
 
     it('handles negative energy being higher', () => {
       const higherNegativeChart: EnergyChart = {
+        id: 'negative',
         type: 'negative',
-        activities: [{ id: '3', activity: 'Stress', value: 200, color: '#ff0000' }],
+        size: 'medium',
+        activities: [createMockActivity({ name: 'Stress', value: 200 })],
       };
 
       const balance = getEnergyBalance(positiveChart, higherNegativeChart);
@@ -285,8 +277,10 @@ describe('calculations utilities', () => {
 
     it('handles equal positive and negative energy', () => {
       const equalNegativeChart: EnergyChart = {
+        id: 'negative',
         type: 'negative',
-        activities: [{ id: '3', activity: 'Stress', value: 140, color: '#ff0000' }],
+        size: 'medium',
+        activities: [createMockActivity({ name: 'Stress', value: 140 })],
       };
 
       const balance = getEnergyBalance(positiveChart, equalNegativeChart);
@@ -296,8 +290,8 @@ describe('calculations utilities', () => {
     });
 
     it('handles empty charts', () => {
-      const emptyPositive: EnergyChart = { type: 'positive', activities: [] };
-      const emptyNegative: EnergyChart = { type: 'negative', activities: [] };
+      const emptyPositive: EnergyChart = { id: 'positive', type: 'positive', size: 'medium', activities: [] };
+      const emptyNegative: EnergyChart = { id: 'negative', type: 'negative', size: 'medium', activities: [] };
 
       const balance = getEnergyBalance(emptyPositive, emptyNegative);
 
@@ -308,7 +302,7 @@ describe('calculations utilities', () => {
     });
 
     it('handles one empty chart', () => {
-      const emptyNegative: EnergyChart = { type: 'negative', activities: [] };
+      const emptyNegative: EnergyChart = { id: 'negative', type: 'negative', size: 'medium', activities: [] };
 
       const balance = getEnergyBalance(positiveChart, emptyNegative);
 
@@ -321,12 +315,16 @@ describe('calculations utilities', () => {
     it('rounds balance percentage correctly', () => {
       // Create scenario that results in non-integer percentage
       const customPositive: EnergyChart = {
+        id: 'positive',
         type: 'positive',
-        activities: [{ id: '1', activity: 'Test', value: 33, color: '#ff0000' }],
+        size: 'medium',
+        activities: [createMockActivity({ name: 'Test', value: 33 })],
       };
       const customNegative: EnergyChart = {
+        id: 'negative',
         type: 'negative',
-        activities: [{ id: '2', activity: 'Test', value: 67, color: '#00ff00' }],
+        size: 'medium',
+        activities: [createMockActivity({ name: 'Test', value: 67 })],
       };
 
       const balance = getEnergyBalance(customPositive, customNegative);
@@ -339,12 +337,16 @@ describe('calculations utilities', () => {
 
     it('handles decimal values', () => {
       const decimalPositive: EnergyChart = {
+        id: 'positive',
         type: 'positive',
-        activities: [{ id: '1', activity: 'Test', value: 33.7, color: '#ff0000' }],
+        size: 'medium',
+        activities: [createMockActivity({ name: 'Test', value: 33.7 })],
       };
       const decimalNegative: EnergyChart = {
+        id: 'negative',
         type: 'negative',
-        activities: [{ id: '2', activity: 'Test', value: 66.3, color: '#00ff00' }],
+        size: 'medium',
+        activities: [createMockActivity({ name: 'Test', value: 66.3 })],
       };
 
       const balance = getEnergyBalance(decimalPositive, decimalNegative);

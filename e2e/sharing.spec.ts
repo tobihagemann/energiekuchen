@@ -52,8 +52,7 @@ async function closeModal(page: Page) {
 
     // Wait for modal to close
     await page.waitForTimeout(500);
-  } catch (error) {
-    console.log('Modal close error:', error);
+  } catch {
     // As a last resort, try Escape key
     await page.keyboard.press('Escape');
     await page.waitForTimeout(500);
