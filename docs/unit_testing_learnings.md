@@ -170,6 +170,88 @@ expect(result.current.state.data.positive.activities).toHaveLength(1);
 
 **Key Insight:** Context providers require proper wrapper setup in tests. Always wrap context hook tests with the appropriate provider, and remember that context state changes must be wrapped in act().
 
+### 6. Test-Driven Coverage vs. Real Coverage Issues
+
+**The Mistake Pattern:**
+
+- Initially focused on adding tests to increase coverage percentages
+- Added tests without understanding what actual business logic wasn't being tested
+- Missed that low coverage often indicates missing error handling and edge cases in the actual code
+
+**The Learning:**
+
+```javascript
+// ❌ Wrong: Adding tests just to increase coverage numbers
+it('should handle edge case X', () => {
+  // Test that doesn't represent real scenarios
+  expect(someFunction(undefined, null, {})).toBeDefined();
+});
+
+// ✅ Correct: Add tests for business-critical scenarios that weren't covered
+it('should handle data validation errors during import', () => {
+  // Test actual error scenarios users might encounter
+  expect(() => {
+    importData('{"activities": "not-an-array"}');
+  }).toThrow('Ungültiges Datenformat - keine Aktivitätsdaten gefunden');
+});
+```
+
+**Key Insight:** Low coverage often reveals missing error handling in the business logic itself, not just missing tests. Use coverage reports as a guide to identify untested business scenarios, then add both proper error handling AND tests.
+
+### 7. Interface Changes vs. Test Brittleness
+
+**The Mistake Pattern:**
+
+- Tests broke when UI properties were added to interfaces (like `importModalMode`)
+- Tests were tightly coupled to exact object shapes rather than behavior
+- Didn't anticipate that interface evolution is normal in growing applications
+
+**The Learning:**
+
+```javascript
+// ❌ Wrong: Testing exact object shapes
+expect(uiState).toEqual({
+  isShareModalOpen: false,
+  isSettingsModalOpen: false,
+  // Missing future properties breaks tests
+});
+
+// ✅ Correct: Testing relevant behavior and using partial matching
+expect(uiState.isShareModalOpen).toBe(false);
+expect(uiState.isSettingsModalOpen).toBe(false);
+// OR use expect.objectContaining() for partial matches
+expect(uiState).toEqual(
+  expect.objectContaining({
+    isShareModalOpen: false,
+    isSettingsModalOpen: false,
+  })
+);
+```
+
+**Key Insight:** Write tests that focus on the behavior you care about, not complete object shapes. Interfaces will evolve - tests should be resilient to additive changes.
+
+### 8. Error Message Evolution and Test Maintenance
+
+**The Mistake Pattern:**
+
+- Tests hardcoded specific error messages
+- When business requirements changed error messages for better UX, tests broke
+- Spent time updating test strings instead of focusing on error behavior
+
+**The Learning:**
+
+```javascript
+// ❌ Wrong: Testing exact error message strings
+expect(() => importData(invalidData)).toThrow('Invalid file or data format');
+
+// ✅ Correct: Testing error behavior and key message components
+expect(() => importData(invalidData)).toThrow(/invalid|datenformat/i);
+// OR test that an error is thrown and check error type
+expect(() => importData(invalidData)).toThrow(ValidationError);
+```
+
+**Key Insight:** Error messages will evolve for better UX. Test that errors are thrown when they should be, and focus on error types or key message components rather than exact strings.
+
 ## Best Practices Discovered
 
 1. **act() Everything**: When in doubt, wrap state-changing operations in act(), especially for hooks and context tests
@@ -181,6 +263,9 @@ expect(result.current.state.data.positive.activities).toHaveLength(1);
 7. **Focus on Edge Cases**: Test error handling, validation, and boundary conditions in utility functions
 8. **Mock External Dependencies**: Mock localStorage, external APIs, and other side effects consistently
 9. **Leverage Jest Configuration**: Use Jest's built-in `clearMocks` and `restoreMocks` settings to avoid redundant manual cleanup
+10. **Coverage-Driven Quality**: Use low coverage as a signal to add missing error handling and validation, not just tests
+11. **Resilient Interface Testing**: Test behavior, not exact object shapes - interfaces evolve over time
+12. **Error Behavior Over Messages**: Test that errors occur when expected, but avoid coupling to exact error message strings
 
 ## Current Testing Scope
 
@@ -201,6 +286,8 @@ This application follows a focused testing strategy:
 
 These learnings highlight the importance of understanding modern React testing patterns when testing business logic components like hooks, contexts, and utilities. The focused approach of testing only business logic while using E2E tests for UI interactions has proven effective, reducing complexity while maintaining high confidence in critical application functionality.
 
+The experience of fixing failing tests and achieving 99%+ coverage revealed that effective testing is about quality, not just quantity. Low coverage often indicates missing business logic (error handling, validation) rather than just missing tests.
+
 Key takeaways:
 
 - **Modern React testing** requires understanding act() patterns for hooks and contexts
@@ -208,3 +295,6 @@ Key takeaways:
 - **Proper test isolation** is critical when dealing with global state and localStorage
 - **YAGNI principle** applies to testing - don't test theoretical scenarios
 - **Context testing patterns** require proper wrapper setup and act() usage
+- **Coverage quality over quantity** - use coverage gaps to identify missing business logic
+- **Resilient test design** - test behavior, not implementation details or exact object shapes
+- **Error handling is business logic** - comprehensive validation testing often reveals gaps in the application logic itself

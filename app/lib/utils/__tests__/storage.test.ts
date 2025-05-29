@@ -17,7 +17,15 @@ describe('StorageManager', () => {
     const mockData = createMockEnergyKuchen();
     const exported = exportData(mockData);
     const imported = importData(exported);
-    expect(imported).toEqual(mockData);
+
+    // importData normalizes chart IDs to 'positive' and 'negative'
+    const expectedData = {
+      ...mockData,
+      positive: { ...mockData.positive, id: 'positive' },
+      negative: { ...mockData.negative, id: 'negative' },
+    };
+
+    expect(imported).toEqual(expectedData);
   });
 
   test('should throw error for invalid import data', () => {
@@ -70,7 +78,7 @@ describe('StorageManager', () => {
     console.error = jest.fn();
 
     const invalidData = JSON.stringify({ version: '1.0' }); // Missing required fields
-    expect(() => importData(invalidData)).toThrow('Ungültige Datei oder Datenformat');
+    expect(() => importData(invalidData)).toThrow('Ungültiges Datenformat - keine Aktivitätsdaten gefunden');
 
     console.error = originalError;
   });
@@ -146,7 +154,7 @@ describe('StorageManager', () => {
     console.error = jest.fn();
 
     const invalidData = JSON.stringify({ version: null, positive: null, negative: null });
-    expect(() => importData(invalidData)).toThrow('Ungültige Datei oder Datenformat');
+    expect(() => importData(invalidData)).toThrow('Ungültiges Datenformat - keine Aktivitätsdaten gefunden');
 
     console.error = originalError;
   });
@@ -156,7 +164,15 @@ describe('StorageManager', () => {
     const exported = JSON.stringify(mockData, null, 2);
 
     const imported = StorageManager.import(exported);
-    expect(imported).toEqual(mockData);
+
+    // StorageManager.import normalizes chart IDs to 'positive' and 'negative'
+    const expectedData = {
+      ...mockData,
+      positive: { ...mockData.positive, id: 'positive' },
+      negative: { ...mockData.negative, id: 'negative' },
+    };
+
+    expect(imported).toEqual(expectedData);
   });
 
   test('should handle StorageManager.import with invalid data', () => {
@@ -167,5 +183,259 @@ describe('StorageManager', () => {
     expect(() => StorageManager.import('invalid json')).toThrow('Ungültige Datei oder Datenformat');
 
     console.error = originalError;
+  });
+
+  test('should validate activity name during import', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const dataWithInvalidActivity = {
+      version: '1.0',
+      lastModified: new Date().toISOString(),
+      positive: {
+        id: 'positive',
+        type: 'positive',
+        activities: [
+          {
+            id: '1',
+            name: '', // Invalid: empty name
+            value: 50,
+            color: '#10B981',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+        size: 'medium',
+      },
+      negative: {
+        id: 'negative',
+        type: 'negative',
+        activities: [],
+        size: 'medium',
+      },
+      settings: {
+        chartSize: 'medium',
+        colorScheme: 'default',
+        showTooltips: true,
+        showLegends: true,
+        language: 'de',
+      },
+    };
+
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Namen haben');
+
+    console.error = originalError;
+  });
+
+  test('should validate activity value during import', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const dataWithInvalidActivity = {
+      version: '1.0',
+      lastModified: new Date().toISOString(),
+      positive: {
+        id: 'positive',
+        type: 'positive',
+        activities: [
+          {
+            id: '1',
+            name: 'Test Activity',
+            // value missing - this should trigger the validation error
+            color: '#10B981',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+        size: 'medium',
+      },
+      negative: {
+        id: 'negative',
+        type: 'negative',
+        activities: [],
+        size: 'medium',
+      },
+      settings: {
+        chartSize: 'medium',
+        colorScheme: 'default',
+        showTooltips: true,
+        showLegends: true,
+        language: 'de',
+      },
+    };
+
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Energiewert haben');
+
+    console.error = originalError;
+  });
+
+  test('should validate activity name type during import', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const dataWithInvalidActivity = {
+      version: '1.0',
+      lastModified: new Date().toISOString(),
+      positive: {
+        id: 'positive',
+        type: 'positive',
+        activities: [
+          {
+            id: '1',
+            name: 123, // Invalid: name should be string
+            value: 50,
+            color: '#10B981',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+        size: 'medium',
+      },
+      negative: {
+        id: 'negative',
+        type: 'negative',
+        activities: [],
+        size: 'medium',
+      },
+      settings: {
+        chartSize: 'medium',
+        colorScheme: 'default',
+        showTooltips: true,
+        showLegends: true,
+        language: 'de',
+      },
+    };
+
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Namen haben');
+
+    console.error = originalError;
+  });
+
+  test('should validate activity value type during import', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const dataWithInvalidActivity = {
+      version: '1.0',
+      lastModified: new Date().toISOString(),
+      positive: {
+        id: 'positive',
+        type: 'positive',
+        activities: [
+          {
+            id: '1',
+            name: 'Test Activity',
+            value: 'invalid', // Invalid: value should be number
+            color: '#10B981',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+        size: 'medium',
+      },
+      negative: {
+        id: 'negative',
+        type: 'negative',
+        activities: [],
+        size: 'medium',
+      },
+      settings: {
+        chartSize: 'medium',
+        colorScheme: 'default',
+        showTooltips: true,
+        showLegends: true,
+        language: 'de',
+      },
+    };
+
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Energiewert haben');
+
+    console.error = originalError;
+  });
+
+  test('should handle activities that are not arrays', () => {
+    const invalidData = {
+      version: '1.0',
+      positive: {
+        activities: 'not an array', // Not an array
+      },
+    };
+
+    const result = StorageManager.import(JSON.stringify(invalidData));
+    expect(result.positive.activities).toEqual([]);
+  });
+
+  test('should handle missing size field with default', () => {
+    const dataWithoutSize = {
+      version: '1.0',
+      positive: {
+        activities: [],
+        // missing size field
+      },
+    };
+
+    const result = StorageManager.import(JSON.stringify(dataWithoutSize));
+    expect(result.positive.size).toBe('medium');
+    expect(result.negative.size).toBe('medium');
+  });
+
+  test('should handle missing settings fields with defaults', () => {
+    const dataWithoutSettings = {
+      version: '1.0',
+      positive: { activities: [] },
+      negative: { activities: [] },
+      // missing settings field
+    };
+
+    const result = StorageManager.import(JSON.stringify(dataWithoutSettings));
+    expect(result.settings).toEqual({
+      chartSize: 'medium',
+      colorScheme: 'default',
+      showTooltips: true,
+      showLegends: true,
+      language: 'de',
+    });
+  });
+
+  test('should handle partial settings with defaults for missing fields', () => {
+    const dataWithPartialSettings = {
+      version: '1.0',
+      positive: { activities: [] },
+      negative: { activities: [] },
+      settings: {
+        chartSize: 'large',
+        showTooltips: false,
+        // missing other settings fields
+      },
+    };
+
+    const result = StorageManager.import(JSON.stringify(dataWithPartialSettings));
+    expect(result.settings).toEqual({
+      chartSize: 'large',
+      colorScheme: 'default', // default
+      showTooltips: false,
+      showLegends: true, // default
+      language: 'de', // default
+    });
+  });
+
+  test('should handle false values for boolean settings correctly', () => {
+    const dataWithFalseSettings = {
+      version: '1.0',
+      positive: { activities: [] },
+      negative: { activities: [] },
+      settings: {
+        showTooltips: false,
+        showLegends: false,
+      },
+    };
+
+    const result = StorageManager.import(JSON.stringify(dataWithFalseSettings));
+    expect(result.settings.showTooltips).toBe(false);
+    expect(result.settings.showLegends).toBe(false);
   });
 });

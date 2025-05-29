@@ -384,4 +384,413 @@ describe('EnergyContext', () => {
     // Check that StorageManager.save was called
     expect(StorageManager.save).toHaveBeenCalled();
   });
+
+  test('should handle data loading errors gracefully', () => {
+    // Mock StorageManager.load to throw an error
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.mocked(StorageManager.load).mockImplementation(() => {
+      throw new Error('Storage error');
+    });
+
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Should not crash and should be in default state
+    expect(result.current.state.data.positive.activities).toHaveLength(0);
+    expect(result.current.state.data.negative.activities).toHaveLength(0);
+
+    consoleSpy.mockRestore();
+  });
+
+  test('should load saved data on mount', () => {
+    const mockData = {
+      version: '1.0',
+      lastModified: new Date().toISOString(),
+      positive: {
+        id: 'positive',
+        type: 'positive' as const,
+        activities: [createMockActivity({ name: 'Loaded Activity' })],
+        size: 'medium' as const,
+      },
+      negative: {
+        id: 'negative',
+        type: 'negative' as const,
+        activities: [],
+        size: 'medium' as const,
+      },
+      settings: {
+        chartSize: 'medium' as const,
+        colorScheme: 'default' as const,
+        showTooltips: true,
+        showLegends: true,
+        language: 'de' as const,
+      },
+    };
+
+    jest.mocked(StorageManager.load).mockReturnValue(mockData);
+
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    expect(result.current.state.data.positive.activities).toHaveLength(1);
+    expect(result.current.state.data.positive.activities[0].name).toBe('Loaded Activity');
+  });
+
+  test('should handle loadData method', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    const mockData = {
+      version: '1.0',
+      lastModified: new Date().toISOString(),
+      positive: {
+        id: 'positive',
+        type: 'positive' as const,
+        activities: [createMockActivity({ name: 'Manual Load' })],
+        size: 'medium' as const,
+      },
+      negative: {
+        id: 'negative',
+        type: 'negative' as const,
+        activities: [],
+        size: 'medium' as const,
+      },
+      settings: {
+        chartSize: 'medium' as const,
+        colorScheme: 'default' as const,
+        showTooltips: true,
+        showLegends: true,
+        language: 'de' as const,
+      },
+    };
+
+    jest.mocked(StorageManager.load).mockReturnValue(mockData);
+
+    act(() => {
+      result.current.loadData();
+    });
+
+    expect(result.current.state.data.positive.activities).toHaveLength(1);
+    expect(result.current.state.data.positive.activities[0].name).toBe('Manual Load');
+  });
+
+  test('should handle exportData method', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    const exportedData = result.current.exportData();
+    expect(typeof exportedData).toBe('string');
+    expect(StorageManager.export).toHaveBeenCalled();
+  });
+
+  test('should handle importData errors gracefully', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    jest.mocked(StorageManager.import).mockImplementation(() => {
+      throw new Error('Import error');
+    });
+
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Should not crash when import fails
+    act(() => {
+      try {
+        result.current.importData('invalid data');
+      } catch {
+        // Expected to throw
+      }
+    });
+
+    consoleSpy.mockRestore();
+  });
+
+  test('should handle merge mode in importData', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add initial activity
+    act(() => {
+      result.current.addActivity('positive', {
+        name: 'Existing Activity',
+        value: 30,
+        color: '#10B981',
+      });
+    });
+
+    // Mock import data
+    const importData = {
+      version: '1.0',
+      lastModified: new Date().toISOString(),
+      positive: {
+        id: 'positive',
+        type: 'positive' as const,
+        activities: [createMockActivity({ name: 'Imported Activity' })],
+        size: 'large' as const,
+      },
+      negative: {
+        id: 'negative',
+        type: 'negative' as const,
+        activities: [],
+        size: 'small' as const,
+      },
+      settings: {
+        chartSize: 'large' as const,
+        colorScheme: 'dark' as const,
+        showTooltips: false,
+        showLegends: false,
+        language: 'en' as const,
+      },
+    };
+
+    jest.mocked(StorageManager.import).mockReturnValue(importData);
+
+    // Import data - the basic importData method replaces all data
+    act(() => {
+      result.current.importData(JSON.stringify(importData));
+    });
+
+    // importData method replaces all data, so only imported activity should be present
+    expect(result.current.state.data.positive.activities).toHaveLength(1);
+    expect(result.current.state.data.positive.activities[0].name).toBe('Imported Activity');
+    expect(result.current.state.data.settings.chartSize).toBe('large');
+  });
+
+  test('should handle clearAllData action', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add some activities
+    act(() => {
+      result.current.addActivity('positive', {
+        name: 'Activity 1',
+        value: 30,
+        color: '#10B981',
+      });
+      result.current.addActivity('negative', {
+        name: 'Activity 2',
+        value: 20,
+        color: '#EF4444',
+      });
+    });
+
+    expect(result.current.state.data.positive.activities).toHaveLength(1);
+    expect(result.current.state.data.negative.activities).toHaveLength(1);
+
+    // Clear all data using the internal action (we'll access it via importing empty data)
+    act(() => {
+      result.current.resetData();
+    });
+
+    expect(result.current.state.data.positive.activities).toHaveLength(0);
+    expect(result.current.state.data.negative.activities).toHaveLength(0);
+  });
+
+  test('should handle resetSettings functionality', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Update settings first
+    act(() => {
+      result.current.updateSettings({
+        chartSize: 'large',
+        colorScheme: 'dark',
+        showTooltips: false,
+        showLegends: false,
+        language: 'en',
+      });
+    });
+
+    expect(result.current.state.data.settings.chartSize).toBe('large');
+    expect(result.current.state.data.settings.colorScheme).toBe('dark');
+
+    // Test reset settings by importing data with default settings
+    const defaultData = {
+      version: '1.0',
+      lastModified: new Date().toISOString(),
+      positive: {
+        id: 'positive',
+        type: 'positive' as const,
+        activities: [],
+        size: 'medium' as const,
+      },
+      negative: {
+        id: 'negative',
+        type: 'negative' as const,
+        activities: [],
+        size: 'medium' as const,
+      },
+      settings: {
+        chartSize: 'medium' as const,
+        colorScheme: 'default' as const,
+        showTooltips: true,
+        showLegends: true,
+        language: 'de' as const,
+      },
+    };
+
+    jest.mocked(StorageManager.import).mockReturnValue(defaultData);
+
+    act(() => {
+      result.current.importData(JSON.stringify(defaultData));
+    });
+
+    expect(result.current.state.data.settings.chartSize).toBe('medium');
+    expect(result.current.state.data.settings.colorScheme).toBe('default');
+    expect(result.current.state.data.settings.showTooltips).toBe(true);
+  });
+
+  test('should handle importData with merge mode (replaceExisting: false)', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add some initial activities
+    act(() => {
+      result.current.addActivity('positive', { name: 'Existing Positive', value: 30, color: '#10B981' });
+      result.current.addActivity('negative', { name: 'Existing Negative', value: 40, color: '#EF4444' });
+    });
+
+    const importData = {
+      version: '1.0',
+      lastModified: '2023-01-01T00:00:00.000Z',
+      positive: {
+        id: 'positive',
+        type: 'positive' as const,
+        activities: [
+          { id: '1', name: 'Imported Positive', value: 50, color: '#10B981', createdAt: '2023-01-01T00:00:00.000Z', updatedAt: '2023-01-01T00:00:00.000Z' },
+        ],
+        size: 'medium' as const,
+      },
+      negative: {
+        id: 'negative',
+        type: 'negative' as const,
+        activities: [
+          { id: '2', name: 'Imported Negative', value: 60, color: '#EF4444', createdAt: '2023-01-01T00:00:00.000Z', updatedAt: '2023-01-01T00:00:00.000Z' },
+        ],
+        size: 'medium' as const,
+      },
+      settings: {
+        chartSize: 'large' as const,
+        colorScheme: 'dark' as const,
+        showTooltips: false,
+        showLegends: false,
+        language: 'en' as const,
+      },
+    };
+
+    // Directly dispatch import action with merge mode
+    act(() => {
+      result.current.dispatch({
+        type: 'IMPORT_DATA',
+        payload: { data: importData, replaceExisting: false },
+      });
+    });
+
+    // Should have merged activities (existing + imported)
+    expect(result.current.state.data.positive.activities).toHaveLength(2);
+    expect(result.current.state.data.negative.activities).toHaveLength(2);
+    expect(result.current.state.data.positive.activities[0].name).toBe('Existing Positive');
+    expect(result.current.state.data.positive.activities[1].name).toBe('Imported Positive');
+  });
+
+  test('should handle importData with replace mode (replaceExisting: true)', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add some initial activities
+    act(() => {
+      result.current.addActivity('positive', { name: 'Existing Positive', value: 30, color: '#10B981' });
+    });
+
+    const importData = {
+      version: '1.0',
+      lastModified: '2023-01-01T00:00:00.000Z',
+      positive: {
+        id: 'positive',
+        type: 'positive' as const,
+        activities: [
+          { id: '1', name: 'Imported Positive', value: 50, color: '#10B981', createdAt: '2023-01-01T00:00:00.000Z', updatedAt: '2023-01-01T00:00:00.000Z' },
+        ],
+        size: 'medium' as const,
+      },
+      negative: {
+        id: 'negative',
+        type: 'negative' as const,
+        activities: [],
+        size: 'medium' as const,
+      },
+      settings: {
+        chartSize: 'large' as const,
+        colorScheme: 'dark' as const,
+        showTooltips: false,
+        showLegends: false,
+        language: 'en' as const,
+      },
+    };
+
+    // Directly dispatch import action with replace mode
+    act(() => {
+      result.current.dispatch({
+        type: 'IMPORT_DATA',
+        payload: { data: importData, replaceExisting: true },
+      });
+    });
+
+    // Should have replaced activities (only imported)
+    expect(result.current.state.data.positive.activities).toHaveLength(1);
+    expect(result.current.state.data.positive.activities[0].name).toBe('Imported Positive');
+  });
+
+  test('should handle CLEAR_ALL_DATA action', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add some activities first
+    act(() => {
+      result.current.addActivity('positive', { name: 'Test Activity', value: 50, color: '#10B981' });
+    });
+
+    expect(result.current.state.data.positive.activities).toHaveLength(1);
+
+    // Clear all data
+    act(() => {
+      result.current.dispatch({ type: 'CLEAR_ALL_DATA' });
+    });
+
+    expect(result.current.state.data.positive.activities).toHaveLength(0);
+    expect(result.current.state.data.negative.activities).toHaveLength(0);
+    expect(result.current.state.lastSaved).toBeTruthy();
+  });
+
+  test('should handle RESET_SETTINGS action', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Change settings first
+    act(() => {
+      result.current.updateSettings({
+        chartSize: 'large',
+        colorScheme: 'dark',
+        showTooltips: false,
+        language: 'en',
+      });
+    });
+
+    expect(result.current.state.data.settings.chartSize).toBe('large');
+    expect(result.current.state.data.settings.colorScheme).toBe('dark');
+
+    // Reset settings
+    act(() => {
+      result.current.dispatch({ type: 'RESET_SETTINGS' });
+    });
+
+    expect(result.current.state.data.settings.chartSize).toBe('medium');
+    expect(result.current.state.data.settings.colorScheme).toBe('default');
+    expect(result.current.state.data.settings.showTooltips).toBe(true);
+    expect(result.current.state.data.settings.showLegends).toBe(true);
+    expect(result.current.state.data.settings.language).toBe('de');
+  });
+
+  test('should handle unknown action types gracefully', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    const initialState = result.current.state;
+
+    // Dispatch an unknown action
+    act(() => {
+      // @ts-expect-error - Testing unknown action type
+      result.current.dispatch({ type: 'UNKNOWN_ACTION' });
+    });
+
+    // State should remain unchanged
+    expect(result.current.state).toEqual(initialState);
+  });
 });

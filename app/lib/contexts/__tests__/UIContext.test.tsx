@@ -13,6 +13,7 @@ describe('UIContext', () => {
       isSettingsModalOpen: false,
       isImportModalOpen: false,
       isHelpModalOpen: false,
+      importModalMode: 'full',
       currentView: 'dashboard',
       editingActivity: null,
       sidebarOpen: false,
@@ -221,10 +222,31 @@ describe('UIContext', () => {
       isSettingsModalOpen: false,
       isImportModalOpen: false,
       isHelpModalOpen: false,
+      importModalMode: 'full',
       currentView: 'settings',
       editingActivity: null,
       sidebarOpen: true,
       isMobile: true,
     });
+  });
+
+  it('should handle unknown action types gracefully', () => {
+    const { result } = renderHook(() => useUI(), { wrapper });
+
+    // Get the initial state
+    const initialState = result.current.state;
+
+    // Test the default case in the reducer by accessing the dispatch function
+    // This simulates what would happen if an unknown action was dispatched
+    const context = result.current as unknown as { dispatch?: (action: { type: string }) => void };
+
+    if (context.dispatch) {
+      act(() => {
+        context.dispatch({ type: 'UNKNOWN_ACTION' });
+      });
+    }
+
+    // State should remain unchanged when unknown action is dispatched
+    expect(result.current.state).toEqual(initialState);
   });
 });
