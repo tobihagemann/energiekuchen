@@ -31,12 +31,5 @@ export function createMockEnergyKuchen(options?: { activitiesCount?: number }): 
       activities: Array.from({ length: activitiesCount }, (_, i) => createMockActivity({ name: `Negative Activity ${i + 1}`, color: '#EF4444' })),
       size: 'medium',
     },
-    settings: {
-      chartSize: 'medium',
-      colorScheme: 'default',
-      showTooltips: true,
-      showLegends: true,
-      language: 'de',
-    },
   };
 }

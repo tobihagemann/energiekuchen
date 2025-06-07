@@ -15,7 +15,6 @@ test.describe('Responsive Design', () => {
     // Header should show all navigation items horizontally
     await expect(page.getByTestId('import-button')).toBeVisible();
     await expect(page.getByTestId('share-button')).toBeVisible();
-    await expect(page.getByTestId('settings-button')).toBeVisible();
     await expect(page.getByTestId('help-button')).toBeVisible();
 
     // Check layout is wide enough for desktop

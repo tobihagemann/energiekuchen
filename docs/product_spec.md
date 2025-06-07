@@ -134,7 +134,6 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
   - Aktivitätenliste unter jedem Diagramm
 - **Sidebar/Panel:**
   - Aktivität hinzufügen
-  - Einstellungen
   - Export/Import
 
 #### 4.2 Responsive Design
@@ -213,9 +212,8 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 2. **ActivityList:** Liste der Aktivitäten mit Edit/Delete
 3. **ActivityForm:** Formular zum Hinzufügen/Bearbeiten
 4. **ShareModal:** Modal für Sharing-Optionen
-5. **SettingsPanel:** Einstellungen und Anpassungen
-6. **Header:** Navigation und Aktionen
-7. **Sidebar:** Schnellzugriff auf Funktionen
+5. **Header:** Navigation und Aktionen
+6. **Sidebar:** Schnellzugriff auf Funktionen
 
 ### Seiten-Struktur
 

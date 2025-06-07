@@ -29,7 +29,6 @@ export class SharingManager {
           })),
           size: data.negative.size,
         },
-        settings: data.settings,
       };
 
       const jsonString = JSON.stringify(shareableData);

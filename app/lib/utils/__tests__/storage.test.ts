@@ -220,13 +220,6 @@ describe('StorageManager', () => {
         activities: [],
         size: 'medium',
       },
-      settings: {
-        chartSize: 'medium',
-        colorScheme: 'default',
-        showTooltips: true,
-        showLegends: true,
-        language: 'de',
-      },
     };
 
     expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Namen haben');
@@ -262,13 +255,6 @@ describe('StorageManager', () => {
         type: 'negative',
         activities: [],
         size: 'medium',
-      },
-      settings: {
-        chartSize: 'medium',
-        colorScheme: 'default',
-        showTooltips: true,
-        showLegends: true,
-        language: 'de',
       },
     };
 
@@ -306,13 +292,6 @@ describe('StorageManager', () => {
         activities: [],
         size: 'medium',
       },
-      settings: {
-        chartSize: 'medium',
-        colorScheme: 'default',
-        showTooltips: true,
-        showLegends: true,
-        language: 'de',
-      },
     };
 
     expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Namen haben');
@@ -349,13 +328,6 @@ describe('StorageManager', () => {
         activities: [],
         size: 'medium',
       },
-      settings: {
-        chartSize: 'medium',
-        colorScheme: 'default',
-        showTooltips: true,
-        showLegends: true,
-        language: 'de',
-      },
     };
 
     expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Energiewert haben');
@@ -387,61 +359,5 @@ describe('StorageManager', () => {
     const result = StorageManager.import(JSON.stringify(dataWithoutSize));
     expect(result.positive.size).toBe('medium');
     expect(result.negative.size).toBe('medium');
-  });
-
-  test('should handle missing settings fields with defaults', () => {
-    const dataWithoutSettings = {
-      version: '1.0',
-      positive: { activities: [] },
-      negative: { activities: [] },
-      // missing settings field
-    };
-
-    const result = StorageManager.import(JSON.stringify(dataWithoutSettings));
-    expect(result.settings).toEqual({
-      chartSize: 'medium',
-      colorScheme: 'default',
-      showTooltips: true,
-      showLegends: true,
-      language: 'de',
-    });
-  });
-
-  test('should handle partial settings with defaults for missing fields', () => {
-    const dataWithPartialSettings = {
-      version: '1.0',
-      positive: { activities: [] },
-      negative: { activities: [] },
-      settings: {
-        chartSize: 'large',
-        showTooltips: false,
-        // missing other settings fields
-      },
-    };
-
-    const result = StorageManager.import(JSON.stringify(dataWithPartialSettings));
-    expect(result.settings).toEqual({
-      chartSize: 'large',
-      colorScheme: 'default', // default
-      showTooltips: false,
-      showLegends: true, // default
-      language: 'de', // default
-    });
-  });
-
-  test('should handle false values for boolean settings correctly', () => {
-    const dataWithFalseSettings = {
-      version: '1.0',
-      positive: { activities: [] },
-      negative: { activities: [] },
-      settings: {
-        showTooltips: false,
-        showLegends: false,
-      },
-    };
-
-    const result = StorageManager.import(JSON.stringify(dataWithFalseSettings));
-    expect(result.settings.showTooltips).toBe(false);
-    expect(result.settings.showLegends).toBe(false);
   });
 });

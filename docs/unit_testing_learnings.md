@@ -212,18 +212,15 @@ it('should handle data validation errors during import', () => {
 // ❌ Wrong: Testing exact object shapes
 expect(uiState).toEqual({
   isShareModalOpen: false,
-  isSettingsModalOpen: false,
   // Missing future properties breaks tests
 });
 
 // ✅ Correct: Testing relevant behavior and using partial matching
 expect(uiState.isShareModalOpen).toBe(false);
-expect(uiState.isSettingsModalOpen).toBe(false);
 // OR use expect.objectContaining() for partial matches
 expect(uiState).toEqual(
   expect.objectContaining({
     isShareModalOpen: false,
-    isSettingsModalOpen: false,
   })
 );
 ```
@@ -262,7 +259,7 @@ expect(() => importData(invalidData)).toThrow(ValidationError);
 6. **Context Wrapper Pattern**: Always provide proper context wrappers when testing hooks that depend on context
 7. **Focus on Edge Cases**: Test error handling, validation, and boundary conditions in utility functions
 8. **Mock External Dependencies**: Mock localStorage, external APIs, and other side effects consistently
-9. **Leverage Jest Configuration**: Use Jest's built-in `clearMocks` and `restoreMocks` settings to avoid redundant manual cleanup
+9. **Leverage Jest Configuration**: Use Jest's built-in `clearMocks` and `restoreMocks` to avoid redundant manual cleanup
 10. **Coverage-Driven Quality**: Use low coverage as a signal to add missing error handling and validation, not just tests
 11. **Resilient Interface Testing**: Test behavior, not exact object shapes - interfaces evolve over time
 12. **Error Behavior Over Messages**: Test that errors occur when expected, but avoid coupling to exact error message strings

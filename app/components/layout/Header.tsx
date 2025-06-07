@@ -2,10 +2,10 @@
 
 import { Button } from '@/app/components/ui/Button';
 import { useUI } from '@/app/lib/contexts/UIContext';
-import { ArrowUpTrayIcon, Cog6ToothIcon, QuestionMarkCircleIcon, ShareIcon } from '@heroicons/react/24/outline';
+import { ArrowUpTrayIcon, QuestionMarkCircleIcon, ShareIcon } from '@heroicons/react/24/outline';
 
 export function Header() {
-  const { openShareModal, openSettingsModal, openHelpModal, openImportModal } = useUI();
+  const { openShareModal, openHelpModal, openImportModal } = useUI();
 
   return (
     <header className="border-b border-gray-200 bg-white shadow-sm" data-testid="header">
@@ -27,11 +27,6 @@ export function Header() {
             <Button variant="ghost" size="sm" onClick={openShareModal} data-testid="share-button">
               <ShareIcon className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Teilen</span>
-            </Button>
-
-            <Button variant="ghost" size="sm" onClick={openSettingsModal} data-testid="settings-button">
-              <Cog6ToothIcon className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Einstellungen</span>
             </Button>
 
             <Button

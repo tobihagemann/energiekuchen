@@ -100,8 +100,7 @@ test.describe('Help Functionality', () => {
       // Use keyboard to navigate to help button
       await page.keyboard.press('Tab');
       await page.keyboard.press('Tab');
-      await page.keyboard.press('Tab');
-      await page.keyboard.press('Tab'); // Navigate to help button
+      await page.keyboard.press('Tab'); // Navigate to help button (one less tab since settings button is removed)
 
       // Open help with Enter
       await page.keyboard.press('Enter');

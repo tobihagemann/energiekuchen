@@ -26,6 +26,7 @@ npm run prod          # Build and start production server
 ## High-Level Architecture
 
 ### Tech Stack
+
 - **Next.js 15** with App Router for static site generation
 - **React 19** with TypeScript for component development
 - **Chart.js** for interactive pie chart visualizations
@@ -53,6 +54,7 @@ npm run prod          # Build and start production server
 The app uses two main contexts:
 
 1. **EnergyContext**: Manages chart data and persistence
+
    - Handles all activity CRUD operations
    - Auto-syncs with localStorage on state changes
    - Manages data validation and constraints
@@ -65,6 +67,7 @@ The app uses two main contexts:
 ### Testing Philosophy
 
 **Dual-Layer Testing Approach:**
+
 - **Unit Tests (Jest)**: Business logic only - utils, hooks, contexts (90%+ coverage required)
 - **E2E Tests (Playwright)**: All UI interactions and user journeys
 - UI components are deliberately NOT unit tested
@@ -72,24 +75,27 @@ The app uses two main contexts:
 ## Key Development Constraints
 
 ### Data Structure
+
 ```typescript
 interface Activity {
   id: string;
-  name: string;      // 1-50 chars, German characters
-  value: number;     // 1-100 integer
-  color: string;     // Hex color
+  name: string; // 1-50 chars, German characters
+  value: number; // 1-100 integer
+  color: string; // Hex color
 }
 ```
 
 ### Validation Rules
+
 - Maximum 20 activities per chart (positive/negative)
 - Activity values must be integers 1-100
 - URL sharing limited to 2048 characters
 - All user-facing text must be in German
 
 ### Responsive Breakpoints
+
 - Mobile: 320px-767px (single column)
-- Tablet: 768px-1023px (two columns)  
+- Tablet: 768px-1023px (two columns)
 - Desktop: 1024px+ (side-by-side charts)
 
 ## Important Development Notes
@@ -107,17 +113,20 @@ interface Activity {
 ## Common Tasks
 
 When modifying charts:
+
 - Edit `app/lib/hooks/useChartData.ts` for chart configuration
 - Update `app/components/charts/EnergyChart.tsx` for rendering
 - Test responsive behavior across all breakpoints
 
 When adding features:
+
 - Create feature component in `app/components/features/`
 - Add state to appropriate context if needed
 - Write E2E tests covering all user interactions
 - Ensure German translations for all text
 
 When fixing bugs:
+
 - Check if it's a business logic issue (add unit test)
 - Check if it's a UI issue (add E2E test)
 - Run `npm run test:all` before committing

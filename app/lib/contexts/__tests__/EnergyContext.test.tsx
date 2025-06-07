@@ -134,16 +134,6 @@ describe('EnergyContext', () => {
     expect(result.current.state.data.positive.size).toBe('large');
   });
 
-  test('should update settings', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    act(() => {
-      result.current.updateSettings({ showTooltips: false });
-    });
-
-    expect(result.current.state.data.settings.showTooltips).toBe(false);
-  });
-
   test('should reset data correctly', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
@@ -183,13 +173,6 @@ describe('EnergyContext', () => {
         activities: [],
         size: 'medium',
       },
-      settings: {
-        chartSize: 'medium',
-        colorScheme: 'default',
-        showTooltips: true,
-        showLegends: true,
-        language: 'de',
-      },
     });
 
     const mockData = JSON.parse(importData);
@@ -222,17 +205,6 @@ describe('EnergyContext', () => {
     });
 
     expect(result.current.state.data.positive.size).toBe('large');
-  });
-
-  test('should update global settings correctly', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    act(() => {
-      result.current.updateSettings({ chartSize: 'large', showTooltips: false });
-    });
-
-    expect(result.current.state.data.settings.chartSize).toBe('large');
-    expect(result.current.state.data.settings.showTooltips).toBe(false);
   });
 
   test('should reset all data correctly', () => {
@@ -417,13 +389,6 @@ describe('EnergyContext', () => {
         activities: [],
         size: 'medium' as const,
       },
-      settings: {
-        chartSize: 'medium' as const,
-        colorScheme: 'default' as const,
-        showTooltips: true,
-        showLegends: true,
-        language: 'de' as const,
-      },
     };
 
     jest.mocked(StorageManager.load).mockReturnValue(mockData);
@@ -451,13 +416,6 @@ describe('EnergyContext', () => {
         type: 'negative' as const,
         activities: [],
         size: 'medium' as const,
-      },
-      settings: {
-        chartSize: 'medium' as const,
-        colorScheme: 'default' as const,
-        showTooltips: true,
-        showLegends: true,
-        language: 'de' as const,
       },
     };
 
@@ -528,13 +486,6 @@ describe('EnergyContext', () => {
         activities: [],
         size: 'small' as const,
       },
-      settings: {
-        chartSize: 'large' as const,
-        colorScheme: 'high-contrast' as const,
-        showTooltips: false,
-        showLegends: false,
-        language: 'de' as const,
-      },
     };
 
     jest.mocked(StorageManager.import).mockReturnValue(importData);
@@ -547,7 +498,6 @@ describe('EnergyContext', () => {
     // importData method replaces all data, so only imported activity should be present
     expect(result.current.state.data.positive.activities).toHaveLength(1);
     expect(result.current.state.data.positive.activities[0].name).toBe('Imported Activity');
-    expect(result.current.state.data.settings.chartSize).toBe('large');
   });
 
   test('should handle clearAllData action', () => {
@@ -579,59 +529,6 @@ describe('EnergyContext', () => {
     expect(result.current.state.data.negative.activities).toHaveLength(0);
   });
 
-  test('should handle resetSettings functionality', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Update settings first
-    act(() => {
-      result.current.updateSettings({
-        chartSize: 'large',
-        colorScheme: 'high-contrast',
-        showTooltips: false,
-        showLegends: false,
-        language: 'de',
-      });
-    });
-
-    expect(result.current.state.data.settings.chartSize).toBe('large');
-    expect(result.current.state.data.settings.colorScheme).toBe('high-contrast');
-
-    // Test reset settings by importing data with default settings
-    const defaultData = {
-      version: '1.0',
-      lastModified: new Date().toISOString(),
-      positive: {
-        id: 'positive',
-        type: 'positive' as const,
-        activities: [],
-        size: 'medium' as const,
-      },
-      negative: {
-        id: 'negative',
-        type: 'negative' as const,
-        activities: [],
-        size: 'medium' as const,
-      },
-      settings: {
-        chartSize: 'medium' as const,
-        colorScheme: 'default' as const,
-        showTooltips: true,
-        showLegends: true,
-        language: 'de' as const,
-      },
-    };
-
-    jest.mocked(StorageManager.import).mockReturnValue(defaultData);
-
-    act(() => {
-      result.current.importData(JSON.stringify(defaultData));
-    });
-
-    expect(result.current.state.data.settings.chartSize).toBe('medium');
-    expect(result.current.state.data.settings.colorScheme).toBe('default');
-    expect(result.current.state.data.settings.showTooltips).toBe(true);
-  });
-
   test('should handle importData with merge mode (replaceExisting: false)', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
@@ -659,13 +556,6 @@ describe('EnergyContext', () => {
           { id: '2', name: 'Imported Negative', value: 60, color: '#EF4444', createdAt: '2023-01-01T00:00:00.000Z', updatedAt: '2023-01-01T00:00:00.000Z' },
         ],
         size: 'medium' as const,
-      },
-      settings: {
-        chartSize: 'large' as const,
-        colorScheme: 'high-contrast' as const,
-        showTooltips: false,
-        showLegends: false,
-        language: 'de' as const,
       },
     };
 
@@ -709,13 +599,6 @@ describe('EnergyContext', () => {
         activities: [],
         size: 'medium' as const,
       },
-      settings: {
-        chartSize: 'large' as const,
-        colorScheme: 'high-contrast' as const,
-        showTooltips: false,
-        showLegends: false,
-        language: 'de' as const,
-      },
     };
 
     // Directly dispatch import action with replace mode
@@ -749,34 +632,6 @@ describe('EnergyContext', () => {
     expect(result.current.state.data.positive.activities).toHaveLength(0);
     expect(result.current.state.data.negative.activities).toHaveLength(0);
     expect(result.current.state.lastSaved).toBeTruthy();
-  });
-
-  test('should handle RESET_SETTINGS action', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Change settings first
-    act(() => {
-      result.current.updateSettings({
-        chartSize: 'large',
-        colorScheme: 'high-contrast',
-        showTooltips: false,
-        language: 'de',
-      });
-    });
-
-    expect(result.current.state.data.settings.chartSize).toBe('large');
-    expect(result.current.state.data.settings.colorScheme).toBe('high-contrast');
-
-    // Reset settings
-    act(() => {
-      result.current.dispatch({ type: 'RESET_SETTINGS' });
-    });
-
-    expect(result.current.state.data.settings.chartSize).toBe('medium');
-    expect(result.current.state.data.settings.colorScheme).toBe('default');
-    expect(result.current.state.data.settings.showTooltips).toBe(true);
-    expect(result.current.state.data.settings.showLegends).toBe(true);
-    expect(result.current.state.data.settings.language).toBe('de');
   });
 
   test('should handle unknown action types gracefully', () => {

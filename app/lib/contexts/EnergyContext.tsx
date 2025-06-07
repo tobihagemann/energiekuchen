@@ -2,7 +2,7 @@
 
 import { generateUniqueId } from '@/app/lib/utils/calculations';
 import { StorageManager } from '@/app/lib/utils/storage';
-import { Activity, AppSettings, ChartSize, EnergyKuchen } from '@/app/types';
+import { Activity, ChartSize, EnergyKuchen } from '@/app/types';
 import React, { createContext, ReactNode, useContext, useEffect, useReducer, useRef } from 'react';
 
 // Energy Reducer Actions
@@ -13,11 +13,9 @@ type EnergyAction =
   | { type: 'DELETE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } }
   | { type: 'REORDER_ACTIVITIES'; payload: { chartType: 'positive' | 'negative'; fromIndex: number; toIndex: number } }
   | { type: 'UPDATE_CHART_SIZE'; payload: { chartType: 'positive' | 'negative'; size: ChartSize } }
-  | { type: 'UPDATE_SETTINGS'; payload: Partial<AppSettings> }
   | { type: 'RESET_DATA' }
   | { type: 'IMPORT_DATA'; payload: { data: EnergyKuchen; replaceExisting: boolean } }
   | { type: 'CLEAR_ALL_DATA' }
-  | { type: 'RESET_SETTINGS' }
   | { type: 'SET_LOADING'; payload: boolean };
 
 interface EnergyState {
@@ -43,13 +41,6 @@ function createDefaultData(): EnergyKuchen {
       type: 'negative',
       activities: [],
       size: 'medium',
-    },
-    settings: {
-      chartSize: 'medium',
-      colorScheme: 'default',
-      showTooltips: true,
-      showLegends: true,
-      language: 'de',
     },
   };
 }
@@ -181,24 +172,6 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       };
     }
 
-    case 'UPDATE_SETTINGS': {
-      const now = new Date().toISOString();
-      const updatedData = {
-        ...state.data,
-        lastModified: now,
-        settings: {
-          ...state.data.settings,
-          ...action.payload,
-        },
-      };
-
-      return {
-        ...state,
-        data: updatedData,
-        lastSaved: now,
-      };
-    }
-
     case 'RESET_DATA': {
       return {
         ...state,
@@ -218,11 +191,6 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
         resultData = {
           ...importedData,
           lastModified: now,
-          // Keep existing settings but allow imported settings to override
-          settings: {
-            ...state.data.settings,
-            ...importedData.settings,
-          },
         };
       } else {
         // Merge imported activities with existing activities
@@ -236,11 +204,6 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
           negative: {
             ...importedData.negative,
             activities: [...state.data.negative.activities, ...importedData.negative.activities],
-          },
-          // Keep existing settings but allow imported settings to override
-          settings: {
-            ...state.data.settings,
-            ...importedData.settings,
           },
         };
       }
@@ -260,27 +223,6 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       };
     }
 
-    case 'RESET_SETTINGS': {
-      const now = new Date().toISOString();
-      const updatedData = {
-        ...state.data,
-        lastModified: now,
-        settings: {
-          chartSize: 'medium' as ChartSize,
-          colorScheme: 'default' as const,
-          showTooltips: true,
-          showLegends: true,
-          language: 'de' as const,
-        },
-      };
-
-      return {
-        ...state,
-        data: updatedData,
-        lastSaved: now,
-      };
-    }
-
     default:
       return state;
   }
@@ -295,7 +237,6 @@ interface EnergyContextType {
   deleteActivity: (chartType: 'positive' | 'negative', activityId: string) => void;
   reorderActivities: (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => void;
   updateChartSize: (chartType: 'positive' | 'negative', size: ChartSize) => void;
-  updateSettings: (settings: Partial<AppSettings>) => void;
   resetData: () => void;
   saveData: () => void;
   loadData: () => void;
@@ -365,10 +306,6 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'UPDATE_CHART_SIZE', payload: { chartType, size } });
   };
 
-  const updateSettings = (settings: Partial<AppSettings>) => {
-    dispatch({ type: 'UPDATE_SETTINGS', payload: settings });
-  };
-
   const resetData = () => {
     dispatch({ type: 'RESET_DATA' });
   };
@@ -401,7 +338,6 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     deleteActivity,
     reorderActivities,
     updateChartSize,
-    updateSettings,
     resetData,
     saveData,
     loadData,

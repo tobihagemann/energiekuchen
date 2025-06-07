@@ -10,7 +10,6 @@ describe('UIContext', () => {
 
     expect(result.current.state).toEqual({
       isShareModalOpen: false,
-      isSettingsModalOpen: false,
       isImportModalOpen: false,
       isHelpModalOpen: false,
       importModalMode: 'full',
@@ -35,22 +34,6 @@ describe('UIContext', () => {
     });
 
     expect(result.current.state.isShareModalOpen).toBe(false);
-  });
-
-  it('should open and close settings modal', () => {
-    const { result } = renderHook(() => useUI(), { wrapper });
-
-    act(() => {
-      result.current.openSettingsModal();
-    });
-
-    expect(result.current.state.isSettingsModalOpen).toBe(true);
-
-    act(() => {
-      result.current.closeSettingsModal();
-    });
-
-    expect(result.current.state.isSettingsModalOpen).toBe(false);
   });
 
   it('should open and close import modal', () => {
@@ -87,12 +70,6 @@ describe('UIContext', () => {
 
   it('should set current view', () => {
     const { result } = renderHook(() => useUI(), { wrapper });
-
-    act(() => {
-      result.current.setCurrentView('settings');
-    });
-
-    expect(result.current.state.currentView).toBe('settings');
 
     act(() => {
       result.current.setCurrentView('help');
@@ -181,13 +158,11 @@ describe('UIContext', () => {
     // Open all modals
     act(() => {
       result.current.openShareModal();
-      result.current.openSettingsModal();
       result.current.openImportModal();
       result.current.openHelpModal();
     });
 
     expect(result.current.state.isShareModalOpen).toBe(true);
-    expect(result.current.state.isSettingsModalOpen).toBe(true);
     expect(result.current.state.isImportModalOpen).toBe(true);
     expect(result.current.state.isHelpModalOpen).toBe(true);
 
@@ -196,7 +171,6 @@ describe('UIContext', () => {
     });
 
     expect(result.current.state.isShareModalOpen).toBe(false);
-    expect(result.current.state.isSettingsModalOpen).toBe(false);
     expect(result.current.state.isImportModalOpen).toBe(false);
     expect(result.current.state.isHelpModalOpen).toBe(false);
   });
@@ -212,18 +186,17 @@ describe('UIContext', () => {
 
     act(() => {
       result.current.openShareModal();
-      result.current.setCurrentView('settings');
+      result.current.setCurrentView('help');
       result.current.setIsMobile(true);
       result.current.setSidebarOpen(true);
     });
 
     expect(result.current.state).toEqual({
       isShareModalOpen: true,
-      isSettingsModalOpen: false,
       isImportModalOpen: false,
       isHelpModalOpen: false,
       importModalMode: 'full',
-      currentView: 'settings',
+      currentView: 'help',
       editingActivity: null,
       sidebarOpen: true,
       isMobile: true,

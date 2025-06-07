@@ -141,7 +141,6 @@ flowchart TD
 │   └── features/         # Feature-specific components
 │       ├── ActivityList.tsx
 │       ├── ShareModal.tsx
-│       ├── SettingsModal.tsx
 │       ├── ImportExportModal.tsx
 │       └── HelpModal.tsx
 ├── lib/
@@ -186,9 +185,8 @@ graph TD
     F --> K[ChartLegend]
 
     A --> L[ShareModal]
-    A --> M[SettingsModal]
-    A --> N[ImportExportModal]
-    A --> O[HelpModal]
+    A --> M[ImportExportModal]
+    A --> N[HelpModal]
 
     I --> P[Input Components]
     I --> Q[ColorPicker]
@@ -216,7 +214,6 @@ The application uses a hierarchical data model that supports the dual-chart visu
 erDiagram
     EnergyKuchen ||--|| PositiveChart : contains
     EnergyKuchen ||--|| NegativeChart : contains
-    EnergyKuchen ||--|| AppSettings : contains
     PositiveChart ||--o{ Activity : has
     NegativeChart ||--o{ Activity : has
 
@@ -225,7 +222,6 @@ erDiagram
         string lastModified
         PositiveChart positive
         NegativeChart negative
-        AppSettings settings
     }
 
     PositiveChart {
@@ -253,13 +249,6 @@ erDiagram
         string updatedAt
     }
 
-    AppSettings {
-        ChartSize chartSize
-        ColorScheme colorScheme
-        boolean showTooltips
-        boolean showLegends
-        string language
-    }
 ```
 
 ### 3.2 TypeScript Interfaces
@@ -288,15 +277,6 @@ export interface EnergyKuchen {
   lastModified: string;
   positive: EnergyChart;
   negative: EnergyChart;
-  settings: AppSettings;
-}
-
-export interface AppSettings {
-  chartSize: ChartSize;
-  colorScheme: ColorScheme;
-  showTooltips: boolean;
-  showLegends: boolean;
-  language: 'de';
 }
 
 export type ChartSize = 'small' | 'medium' | 'large';
@@ -379,7 +359,6 @@ type EnergyAction =
   | { type: 'ADD_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'> } }
   | { type: 'UPDATE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string; updates: Partial<Activity> } }
   | { type: 'DELETE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } }
-  | { type: 'UPDATE_SETTINGS'; payload: Partial<AppSettings> }
   | { type: 'RESET_DATA' };
 ```
 
@@ -412,7 +391,6 @@ export interface ISharingManager {
 export interface IValidationService {
   validateActivity(activity: Partial<Activity>): ValidationResult;
   validateChart(chart: Partial<EnergyChart>): ValidationResult;
-  validateSettings(settings: Partial<AppSettings>): ValidationResult;
   sanitizeInput(input: string): string;
 }
 ```
@@ -465,7 +443,6 @@ export interface EnergyContextType {
     updateActivity: (chartType: 'positive' | 'negative', activityId: string, updates: Partial<Activity>) => Promise<void>;
     deleteActivity: (chartType: 'positive' | 'negative', activityId: string) => Promise<void>;
     reorderActivities: (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => Promise<void>;
-    updateSettings: (settings: Partial<AppSettings>) => Promise<void>;
     resetData: () => Promise<void>;
     importData: (data: EnergyKuchen) => Promise<void>;
     exportData: () => Promise<string>;
@@ -689,8 +666,7 @@ graph TB
     subgraph "Feature Components"
         E[Dashboard]
         F[ShareModal]
-        G[SettingsModal]
-        H[ActivityForm]
+        G[ActivityForm]
     end
 
     A --> B
@@ -719,7 +695,6 @@ graph TB
 interface GlobalState {
   energyData: EnergyKuchen; // Core application data
   uiState: UIState; // Modal states, current view
-  userPreferences: UserSettings; // Settings and preferences
 }
 
 // Component State (useState/useReducer)
@@ -822,11 +797,9 @@ const ActivityList = ({ activities, onEdit, onDelete }) => {
 // Route-based code splitting
 const SharePage = lazy(() => import('@/app/share/[data]/page'));
 const HelpPage = lazy(() => import('@/app/hilfe/page'));
-const SettingsModal = lazy(() => import('@/components/features/SettingsModal'));
 
 // Feature-based code splitting
 const ChartExport = lazy(() => import('@/components/features/ChartExport'));
-const AdvancedSettings = lazy(() => import('@/components/features/AdvancedSettings'));
 
 // Component with suspense
 export function Dashboard() {
@@ -835,9 +808,6 @@ export function Dashboard() {
       <EnergyChart chartType="positive" />
       <EnergyChart chartType="negative" />
 
-      <Suspense fallback={<LoadingSpinner />}>
-        <SettingsModal />
-      </Suspense>
     </div>
   );
 }

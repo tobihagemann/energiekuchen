@@ -1,16 +1,6 @@
 'use client';
 
-import {
-  ChartPieIcon,
-  CogIcon,
-  DocumentArrowUpIcon,
-  PencilIcon,
-  PlusIcon,
-  QuestionMarkCircleIcon,
-  ShareIcon,
-  SwatchIcon,
-  TrashIcon,
-} from '@heroicons/react/24/outline';
+import { ChartPieIcon, DocumentArrowUpIcon, PencilIcon, PlusIcon, QuestionMarkCircleIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { useUI } from '../../lib/contexts/UIContext';
 import { Modal } from '../ui/Modal';
@@ -39,11 +29,6 @@ export function HelpModal() {
       id: 'sharing',
       title: 'Teilen & Exportieren',
       icon: <ShareIcon className="h-5 w-5" />,
-    },
-    {
-      id: 'settings',
-      title: 'Einstellungen',
-      icon: <CogIcon className="h-5 w-5" />,
     },
   ];
 
@@ -240,58 +225,6 @@ export function HelpModal() {
             <div className="rounded-lg bg-yellow-50 p-4">
               <h4 className="mb-1 font-semibold text-yellow-800">⚠️ Datenschutz:</h4>
               <p className="text-sm text-yellow-700">Geteilte Links enthalten Ihre Aktivitätsdaten. Teilen Sie sie nur mit vertrauenswürdigen Personen.</p>
-            </div>
-          </div>
-        );
-
-      case 'settings':
-        return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Einstellungen anpassen</h3>
-
-            <div className="space-y-4">
-              <div className="rounded-lg border p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <ChartPieIcon className="h-5 w-5 text-purple-600" />
-                  <h4 className="font-semibold">Diagrammgröße</h4>
-                </div>
-                <p className="text-sm text-gray-600">Wählen Sie zwischen klein, mittel und groß, je nach Bildschirmgröße und Präferenz.</p>
-              </div>
-
-              <div className="rounded-lg border p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <SwatchIcon className="h-5 w-5 text-pink-600" />
-                  <h4 className="font-semibold">Farbschema</h4>
-                </div>
-                <div className="space-y-1 text-sm text-gray-600">
-                  <p>
-                    • <strong>Standard:</strong> Bunte, lebendige Farben
-                  </p>
-                  <p>
-                    • <strong>Hoher Kontrast:</strong> Bessere Lesbarkeit
-                  </p>
-                  <p>
-                    • <strong>Farbenblind-freundlich:</strong> Optimiert für Farbblindheit
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-lg border p-4">
-                <h4 className="mb-2 font-semibold">Anzeige-Optionen</h4>
-                <div className="space-y-1 text-sm text-gray-600">
-                  <p>
-                    • <strong>Tooltips:</strong> Detaillierte Informationen beim Hover
-                  </p>
-                  <p>
-                    • <strong>Legenden:</strong> Aktivitätenliste neben den Diagrammen
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-lg bg-green-50 p-4">
-              <h4 className="mb-1 font-semibold text-green-800">✨ Pro-Tipp:</h4>
-              <p className="text-sm text-green-700">Experimentieren Sie mit verschiedenen Einstellungen, um die für Sie optimale Darstellung zu finden!</p>
             </div>
           </div>
         );

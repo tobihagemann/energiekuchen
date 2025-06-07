@@ -93,7 +93,6 @@ describe('SharingManager', () => {
     expect(decoded.version).toBe(mockData.version);
     expect(decoded.positive.size).toBe(mockData.positive.size);
     expect(decoded.negative.size).toBe(mockData.negative.size);
-    expect(decoded.settings).toEqual(mockData.settings);
   });
 
   test('should add timestamps when decoding', () => {
@@ -118,7 +117,6 @@ describe('SharingManager', () => {
         })),
         size: mockData.negative.size,
       },
-      settings: mockData.settings,
     });
 
     const encoded = btoa(encodeURIComponent(jsonString));

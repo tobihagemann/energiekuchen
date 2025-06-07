@@ -92,16 +92,9 @@ async function closeModal(page: Page) {
   await page.waitForTimeout(500);
 }
 async function openImportModal(page: Page) {
-  // Try the header import button first (desktop)
+  // Click the header import button
   const headerImportButton = page.locator('[data-testid="import-button"]');
-
-  if (await headerImportButton.isVisible()) {
-    await headerImportButton.click();
-  } else {
-    // If header button is not visible (mobile), use settings modal
-    await page.locator('[data-testid="settings-button"]').click();
-    await page.locator('button:has-text("Daten importieren")').click();
-  }
+  await headerImportButton.click();
 
   // Verify import modal opens (wait a bit longer for modal transitions)
   await expect(page.locator('[data-testid="import-modal"]')).toBeVisible({ timeout: 10000 });
@@ -151,16 +144,6 @@ test.describe('Import/Export Functionality', () => {
         expect(data.negative.activities).toHaveLength(1);
         expect(data.positive.activities[0].name).toBe('Morning Jog');
         expect(data.negative.activities[0].name).toBe('Email Overload');
-      }
-    } else {
-      // If no export button visible, try through settings or other menus
-      await page.locator('[data-testid="settings-button"]').click();
-      const settingsExport = page.locator('[data-testid="export-data"], button:has-text("Exportieren")').first();
-
-      if (await settingsExport.isVisible()) {
-        await settingsExport.click();
-        const download = await downloadPromise;
-        expect(download.suggestedFilename()).toMatch(/energiekuchen.*\.json$/);
       }
     }
   });

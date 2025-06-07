@@ -1,6 +1,6 @@
 'use client';
 
-import { Activity, AppSettings, ChartSize, EnergyKuchen } from '@/app/types';
+import { Activity, ChartSize, EnergyKuchen } from '@/app/types';
 import React, { createContext, ReactNode, useContext, useReducer } from 'react';
 
 // Simplified Energy Reducer Actions for shared pages
@@ -29,13 +29,6 @@ function createDefaultData(): EnergyKuchen {
       type: 'negative',
       activities: [],
       size: 'medium',
-    },
-    settings: {
-      chartSize: 'medium',
-      colorScheme: 'default',
-      showTooltips: true,
-      showLegends: true,
-      language: 'de',
     },
   };
 }
@@ -71,7 +64,6 @@ interface EnergyContextType {
   deleteActivity: (chartType: 'positive' | 'negative', activityId: string) => void;
   reorderActivities: (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => void;
   updateChartSize: (chartType: 'positive' | 'negative', size: ChartSize) => void;
-  updateSettings: (settings: Partial<AppSettings>) => void;
   resetData: () => void;
   saveData: () => void;
   loadData: () => void;
@@ -110,10 +102,6 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     // Not implemented for shared pages
   };
 
-  const updateSettings = () => {
-    // Not implemented for shared pages
-  };
-
   const resetData = () => {
     // Not implemented for shared pages
   };
@@ -142,7 +130,6 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     deleteActivity,
     reorderActivities,
     updateChartSize,
-    updateSettings,
     resetData,
     saveData,
     loadData,

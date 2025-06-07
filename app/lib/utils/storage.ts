@@ -100,13 +100,6 @@ export function importData(jsonString: string): EnergyKuchen {
         activities: negativeActivities,
         size: data.negative?.size || 'medium',
       },
-      settings: {
-        chartSize: data.settings?.chartSize || 'medium',
-        colorScheme: data.settings?.colorScheme || 'default',
-        showTooltips: data.settings?.showTooltips !== undefined ? data.settings.showTooltips : true,
-        showLegends: data.settings?.showLegends !== undefined ? data.settings.showLegends : true,
-        language: data.settings?.language || 'de',
-      },
     };
 
     return result;
