@@ -6,8 +6,7 @@ import { createContext, ReactNode, useContext, useReducer } from 'react';
 interface UIState {
   // Modal states
   isShareModalOpen: boolean;
-  isImportModalOpen: boolean;
-  importModalMode: 'full' | 'import-only';
+  isImportExportModalOpen: boolean;
 
   // Current view
   currentView: 'dashboard';
@@ -23,8 +22,8 @@ interface UIState {
 type UIAction =
   | { type: 'OPEN_SHARE_MODAL' }
   | { type: 'CLOSE_SHARE_MODAL' }
-  | { type: 'OPEN_IMPORT_MODAL'; payload?: 'full' | 'import-only' }
-  | { type: 'CLOSE_IMPORT_MODAL' }
+  | { type: 'OPEN_IMPORT_EXPORT_MODAL' }
+  | { type: 'CLOSE_IMPORT_EXPORT_MODAL' }
   | { type: 'SET_CURRENT_VIEW'; payload: 'dashboard' }
   | { type: 'SET_EDITING_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } | null }
   | { type: 'TOGGLE_SIDEBAR' }
@@ -40,11 +39,11 @@ function uiReducer(state: UIState, action: UIAction): UIState {
     case 'CLOSE_SHARE_MODAL':
       return { ...state, isShareModalOpen: false };
 
-    case 'OPEN_IMPORT_MODAL':
-      return { ...state, isImportModalOpen: true, importModalMode: action.payload || 'full' };
+    case 'OPEN_IMPORT_EXPORT_MODAL':
+      return { ...state, isImportExportModalOpen: true };
 
-    case 'CLOSE_IMPORT_MODAL':
-      return { ...state, isImportModalOpen: false };
+    case 'CLOSE_IMPORT_EXPORT_MODAL':
+      return { ...state, isImportExportModalOpen: false };
 
     case 'SET_CURRENT_VIEW':
       return { ...state, currentView: action.payload };
@@ -65,7 +64,7 @@ function uiReducer(state: UIState, action: UIAction): UIState {
       return {
         ...state,
         isShareModalOpen: false,
-        isImportModalOpen: false,
+        isImportExportModalOpen: false,
       };
 
     default:
@@ -77,8 +76,8 @@ interface UIContextType {
   state: UIState;
   openShareModal: () => void;
   closeShareModal: () => void;
-  openImportModal: (mode?: 'full' | 'import-only') => void;
-  closeImportModal: () => void;
+  openImportExportModal: () => void;
+  closeImportExportModal: () => void;
   setCurrentView: (view: 'dashboard') => void;
   setEditingActivity: (activity: { chartType: 'positive' | 'negative'; activityId: string } | null) => void;
   toggleSidebar: () => void;
@@ -92,8 +91,7 @@ const UIContext = createContext<UIContextType | undefined>(undefined);
 export function UIProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(uiReducer, {
     isShareModalOpen: false,
-    isImportModalOpen: false,
-    importModalMode: 'full',
+    isImportExportModalOpen: false,
     currentView: 'dashboard',
     editingActivity: null,
     sidebarOpen: false,
@@ -102,8 +100,8 @@ export function UIProvider({ children }: { children: ReactNode }) {
 
   const openShareModal = () => dispatch({ type: 'OPEN_SHARE_MODAL' });
   const closeShareModal = () => dispatch({ type: 'CLOSE_SHARE_MODAL' });
-  const openImportModal = (mode: 'full' | 'import-only' = 'full') => dispatch({ type: 'OPEN_IMPORT_MODAL', payload: mode });
-  const closeImportModal = () => dispatch({ type: 'CLOSE_IMPORT_MODAL' });
+  const openImportExportModal = () => dispatch({ type: 'OPEN_IMPORT_EXPORT_MODAL' });
+  const closeImportExportModal = () => dispatch({ type: 'CLOSE_IMPORT_EXPORT_MODAL' });
   const setCurrentView = (view: 'dashboard') => dispatch({ type: 'SET_CURRENT_VIEW', payload: view });
   const setEditingActivity = (activity: { chartType: 'positive' | 'negative'; activityId: string } | null) =>
     dispatch({ type: 'SET_EDITING_ACTIVITY', payload: activity });
@@ -116,8 +114,8 @@ export function UIProvider({ children }: { children: ReactNode }) {
     state,
     openShareModal,
     closeShareModal,
-    openImportModal,
-    closeImportModal,
+    openImportExportModal,
+    closeImportExportModal,
     setCurrentView,
     setEditingActivity,
     toggleSidebar,

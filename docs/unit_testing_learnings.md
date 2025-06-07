@@ -202,7 +202,7 @@ it('should handle data validation errors during import', () => {
 
 **The Mistake Pattern:**
 
-- Tests broke when UI properties were added to interfaces (like `importModalMode`)
+- Tests broke when UI properties were added to interfaces
 - Tests were tightly coupled to exact object shapes rather than behavior
 - Didn't anticipate that interface evolution is normal in growing applications
 

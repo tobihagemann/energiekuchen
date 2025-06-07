@@ -5,7 +5,7 @@ import { useUI } from '@/app/lib/contexts/UIContext';
 import { ArrowUpTrayIcon, ShareIcon } from '@heroicons/react/24/outline';
 
 export function Header() {
-  const { openShareModal, openImportModal } = useUI();
+  const { openShareModal, openImportExportModal } = useUI();
 
   return (
     <header className="border-b border-gray-200 bg-white shadow-sm" data-testid="header">
@@ -19,7 +19,7 @@ export function Header() {
 
           {/* Navigation */}
           <nav className="flex items-center space-x-1 sm:space-x-2" data-testid="navigation">
-            <Button variant="ghost" size="sm" onClick={() => openImportModal('full')} data-testid="import-button">
+            <Button variant="ghost" size="sm" onClick={openImportExportModal} data-testid="import-button">
               <ArrowUpTrayIcon className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Import/Export</span>
             </Button>

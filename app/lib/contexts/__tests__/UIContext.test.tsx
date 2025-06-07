@@ -10,8 +10,7 @@ describe('UIContext', () => {
 
     expect(result.current.state).toEqual({
       isShareModalOpen: false,
-      isImportModalOpen: false,
-      importModalMode: 'full',
+      isImportExportModalOpen: false,
       currentView: 'dashboard',
       editingActivity: null,
       sidebarOpen: false,
@@ -35,20 +34,20 @@ describe('UIContext', () => {
     expect(result.current.state.isShareModalOpen).toBe(false);
   });
 
-  it('should open and close import modal', () => {
+  it('should open and close import export modal', () => {
     const { result } = renderHook(() => useUI(), { wrapper });
 
     act(() => {
-      result.current.openImportModal();
+      result.current.openImportExportModal();
     });
 
-    expect(result.current.state.isImportModalOpen).toBe(true);
+    expect(result.current.state.isImportExportModalOpen).toBe(true);
 
     act(() => {
-      result.current.closeImportModal();
+      result.current.closeImportExportModal();
     });
 
-    expect(result.current.state.isImportModalOpen).toBe(false);
+    expect(result.current.state.isImportExportModalOpen).toBe(false);
   });
 
   it('should set current view', () => {
@@ -135,18 +134,18 @@ describe('UIContext', () => {
     // Open all modals
     act(() => {
       result.current.openShareModal();
-      result.current.openImportModal();
+      result.current.openImportExportModal();
     });
 
     expect(result.current.state.isShareModalOpen).toBe(true);
-    expect(result.current.state.isImportModalOpen).toBe(true);
+    expect(result.current.state.isImportExportModalOpen).toBe(true);
 
     act(() => {
       result.current.closeAllModals();
     });
 
     expect(result.current.state.isShareModalOpen).toBe(false);
-    expect(result.current.state.isImportModalOpen).toBe(false);
+    expect(result.current.state.isImportExportModalOpen).toBe(false);
   });
 
   it('should throw error when used outside provider', () => {
@@ -167,8 +166,7 @@ describe('UIContext', () => {
 
     expect(result.current.state).toEqual({
       isShareModalOpen: true,
-      isImportModalOpen: false,
-      importModalMode: 'full',
+      isImportExportModalOpen: false,
       currentView: 'dashboard',
       editingActivity: null,
       sidebarOpen: true,
