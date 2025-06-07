@@ -117,8 +117,6 @@ flowchart TD
 ├── share/
 │   └── [data]/
 │       └── page.tsx       # Shared chart viewer
-├── hilfe/
-│   └── page.tsx          # Help page
 ├── datenschutz/
 │   └── page.tsx          # Privacy policy
 ├── impressum/

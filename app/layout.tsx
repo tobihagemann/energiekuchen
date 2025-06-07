@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Footer } from './components/layout/Footer';
 import { Toast } from './components/ui/Toast';
 import './globals.css';
 import { EnergyProvider } from './lib/contexts/EnergyContext';
@@ -23,10 +24,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de">
-      <body className="min-h-screen bg-gray-50 antialiased">
+      <body className="flex min-h-screen flex-col bg-gray-50 antialiased">
         <EnergyProvider>
           <UIProvider>
-            {children}
+            <div className="flex flex-1 flex-col">{children}</div>
+            <Footer />
             <Toast />
           </UIProvider>
         </EnergyProvider>
