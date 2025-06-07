@@ -127,7 +127,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 - **Header:**
   - Logo/Titel "Energiekuchen"
-  - Navigation (Neu, Laden, Teilen, Hilfe)
+  - Navigation (Neu, Laden, Teilen)
 - **Hauptbereich:**
   - Side-by-side Anordnung der beiden Kreisdiagramme (Desktop)
   - Gestapelte Anordnung (Mobile)
@@ -202,7 +202,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 7. **Als Nutzer möchte ich verschiedene Farbschemata wählen können.**
 8. **Als Nutzer möchte ich meine Daten exportieren und importieren können.**
 9. **Als Nutzer möchte ich eine mobile-optimierte Ansicht haben.**
-10. **Als Nutzer möchte ich Tooltips und Hilfen zur Bedienung erhalten.**
+10. **Als Nutzer möchte ich Tooltips zur Bedienung erhalten.**
 
 ## Wireframes & UI-Komponenten
 
@@ -219,7 +219,6 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 - **/** - Hauptanwendung
 - **/share/[data]** - Geteilte Energiekuchen
-- **/hilfe** - Hilfe und Anleitung
 - **/datenschutz** - Datenschutzerklärung
 - **/impressum** - Impressum
 

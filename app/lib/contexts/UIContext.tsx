@@ -7,11 +7,10 @@ interface UIState {
   // Modal states
   isShareModalOpen: boolean;
   isImportModalOpen: boolean;
-  isHelpModalOpen: boolean;
   importModalMode: 'full' | 'import-only';
 
   // Current view
-  currentView: 'dashboard' | 'help';
+  currentView: 'dashboard';
 
   // Form states
   editingActivity: { chartType: 'positive' | 'negative'; activityId: string } | null;
@@ -26,9 +25,7 @@ type UIAction =
   | { type: 'CLOSE_SHARE_MODAL' }
   | { type: 'OPEN_IMPORT_MODAL'; payload?: 'full' | 'import-only' }
   | { type: 'CLOSE_IMPORT_MODAL' }
-  | { type: 'OPEN_HELP_MODAL' }
-  | { type: 'CLOSE_HELP_MODAL' }
-  | { type: 'SET_CURRENT_VIEW'; payload: 'dashboard' | 'help' }
+  | { type: 'SET_CURRENT_VIEW'; payload: 'dashboard' }
   | { type: 'SET_EDITING_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } | null }
   | { type: 'TOGGLE_SIDEBAR' }
   | { type: 'SET_SIDEBAR_OPEN'; payload: boolean }
@@ -48,12 +45,6 @@ function uiReducer(state: UIState, action: UIAction): UIState {
 
     case 'CLOSE_IMPORT_MODAL':
       return { ...state, isImportModalOpen: false };
-
-    case 'OPEN_HELP_MODAL':
-      return { ...state, isHelpModalOpen: true };
-
-    case 'CLOSE_HELP_MODAL':
-      return { ...state, isHelpModalOpen: false };
 
     case 'SET_CURRENT_VIEW':
       return { ...state, currentView: action.payload };
@@ -75,7 +66,6 @@ function uiReducer(state: UIState, action: UIAction): UIState {
         ...state,
         isShareModalOpen: false,
         isImportModalOpen: false,
-        isHelpModalOpen: false,
       };
 
     default:
@@ -89,9 +79,7 @@ interface UIContextType {
   closeShareModal: () => void;
   openImportModal: (mode?: 'full' | 'import-only') => void;
   closeImportModal: () => void;
-  openHelpModal: () => void;
-  closeHelpModal: () => void;
-  setCurrentView: (view: 'dashboard' | 'help') => void;
+  setCurrentView: (view: 'dashboard') => void;
   setEditingActivity: (activity: { chartType: 'positive' | 'negative'; activityId: string } | null) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -105,7 +93,6 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(uiReducer, {
     isShareModalOpen: false,
     isImportModalOpen: false,
-    isHelpModalOpen: false,
     importModalMode: 'full',
     currentView: 'dashboard',
     editingActivity: null,
@@ -117,9 +104,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const closeShareModal = () => dispatch({ type: 'CLOSE_SHARE_MODAL' });
   const openImportModal = (mode: 'full' | 'import-only' = 'full') => dispatch({ type: 'OPEN_IMPORT_MODAL', payload: mode });
   const closeImportModal = () => dispatch({ type: 'CLOSE_IMPORT_MODAL' });
-  const openHelpModal = () => dispatch({ type: 'OPEN_HELP_MODAL' });
-  const closeHelpModal = () => dispatch({ type: 'CLOSE_HELP_MODAL' });
-  const setCurrentView = (view: 'dashboard' | 'help') => dispatch({ type: 'SET_CURRENT_VIEW', payload: view });
+  const setCurrentView = (view: 'dashboard') => dispatch({ type: 'SET_CURRENT_VIEW', payload: view });
   const setEditingActivity = (activity: { chartType: 'positive' | 'negative'; activityId: string } | null) =>
     dispatch({ type: 'SET_EDITING_ACTIVITY', payload: activity });
   const toggleSidebar = () => dispatch({ type: 'TOGGLE_SIDEBAR' });
@@ -133,8 +118,6 @@ export function UIProvider({ children }: { children: ReactNode }) {
     closeShareModal,
     openImportModal,
     closeImportModal,
-    openHelpModal,
-    closeHelpModal,
     setCurrentView,
     setEditingActivity,
     toggleSidebar,

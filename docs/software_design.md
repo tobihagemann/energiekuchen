@@ -141,8 +141,7 @@ flowchart TD
 │   └── features/         # Feature-specific components
 │       ├── ActivityList.tsx
 │       ├── ShareModal.tsx
-│       ├── ImportExportModal.tsx
-│       └── HelpModal.tsx
+│       └── ImportExportModal.tsx
 ├── lib/
 │   ├── contexts/         # React Context providers
 │   │   ├── EnergyContext.tsx
@@ -186,7 +185,6 @@ graph TD
 
     A --> L[ShareModal]
     A --> M[ImportExportModal]
-    A --> N[HelpModal]
 
     I --> P[Input Components]
     I --> Q[ColorPicker]
@@ -796,7 +794,6 @@ const ActivityList = ({ activities, onEdit, onDelete }) => {
 ```typescript
 // Route-based code splitting
 const SharePage = lazy(() => import('@/app/share/[data]/page'));
-const HelpPage = lazy(() => import('@/app/hilfe/page'));
 
 // Feature-based code splitting
 const ChartExport = lazy(() => import('@/components/features/ChartExport'));

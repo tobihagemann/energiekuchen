@@ -15,7 +15,6 @@ test.describe('Responsive Design', () => {
     // Header should show all navigation items horizontally
     await expect(page.getByTestId('import-button')).toBeVisible();
     await expect(page.getByTestId('share-button')).toBeVisible();
-    await expect(page.getByTestId('help-button')).toBeVisible();
 
     // Check layout is wide enough for desktop
     const main = page.locator('main');
@@ -157,8 +156,8 @@ test.describe('Responsive Design', () => {
   test('navigation is accessible on touch devices', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
 
-    // On mobile, import button is hidden but other buttons should be accessible
-    await expect(page.getByTestId('import-button')).toBeHidden();
+    // Import button is now visible on mobile
+    await expect(page.getByTestId('import-button')).toBeVisible();
 
     // Test touch interactions with visible header buttons
     await expect(page.getByTestId('share-button')).toBeVisible();
@@ -169,10 +168,6 @@ test.describe('Responsive Design', () => {
 
     // Close modal by pressing escape
     await page.keyboard.press('Escape');
-
-    // Test other navigation elements
-    await page.getByTestId('help-button').click();
-    await expect(page.locator('[role="dialog"]')).toBeVisible();
   });
 
   test('charts are responsive', async ({ page }) => {
@@ -216,7 +211,6 @@ test.describe('Responsive Design', () => {
 
       // Navigation should remain functional
       await expect(page.getByTestId('logo')).toBeVisible();
-      await expect(page.getByTestId('help-button')).toBeVisible();
     }
 
     // Reset zoom

@@ -11,7 +11,6 @@ describe('UIContext', () => {
     expect(result.current.state).toEqual({
       isShareModalOpen: false,
       isImportModalOpen: false,
-      isHelpModalOpen: false,
       importModalMode: 'full',
       currentView: 'dashboard',
       editingActivity: null,
@@ -52,30 +51,8 @@ describe('UIContext', () => {
     expect(result.current.state.isImportModalOpen).toBe(false);
   });
 
-  it('should open and close help modal', () => {
-    const { result } = renderHook(() => useUI(), { wrapper });
-
-    act(() => {
-      result.current.openHelpModal();
-    });
-
-    expect(result.current.state.isHelpModalOpen).toBe(true);
-
-    act(() => {
-      result.current.closeHelpModal();
-    });
-
-    expect(result.current.state.isHelpModalOpen).toBe(false);
-  });
-
   it('should set current view', () => {
     const { result } = renderHook(() => useUI(), { wrapper });
-
-    act(() => {
-      result.current.setCurrentView('help');
-    });
-
-    expect(result.current.state.currentView).toBe('help');
 
     act(() => {
       result.current.setCurrentView('dashboard');
@@ -159,12 +136,10 @@ describe('UIContext', () => {
     act(() => {
       result.current.openShareModal();
       result.current.openImportModal();
-      result.current.openHelpModal();
     });
 
     expect(result.current.state.isShareModalOpen).toBe(true);
     expect(result.current.state.isImportModalOpen).toBe(true);
-    expect(result.current.state.isHelpModalOpen).toBe(true);
 
     act(() => {
       result.current.closeAllModals();
@@ -172,7 +147,6 @@ describe('UIContext', () => {
 
     expect(result.current.state.isShareModalOpen).toBe(false);
     expect(result.current.state.isImportModalOpen).toBe(false);
-    expect(result.current.state.isHelpModalOpen).toBe(false);
   });
 
   it('should throw error when used outside provider', () => {
@@ -186,7 +160,7 @@ describe('UIContext', () => {
 
     act(() => {
       result.current.openShareModal();
-      result.current.setCurrentView('help');
+      result.current.setCurrentView('dashboard');
       result.current.setIsMobile(true);
       result.current.setSidebarOpen(true);
     });
@@ -194,9 +168,8 @@ describe('UIContext', () => {
     expect(result.current.state).toEqual({
       isShareModalOpen: true,
       isImportModalOpen: false,
-      isHelpModalOpen: false,
       importModalMode: 'full',
-      currentView: 'help',
+      currentView: 'dashboard',
       editingActivity: null,
       sidebarOpen: true,
       isMobile: true,

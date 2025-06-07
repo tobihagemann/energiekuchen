@@ -118,34 +118,37 @@ test.describe('Import/Export Functionality', () => {
     await setSliderValue(page, 'activity-value-slider', 20);
     await page.locator('[data-testid="submit-activity-button"]').click();
 
+    // Open import/export modal
+    await openImportModal(page);
+
     // Set up download handling
     const downloadPromise = page.waitForEvent('download');
 
-    // Try export functionality (could be in settings or main interface)
+    // Click export button in the modal
     const exportButton = page.locator('[data-testid="export-button"], button:has-text("Exportieren")').first();
+    await exportButton.click();
 
-    if (await exportButton.isVisible()) {
-      await exportButton.click();
+    // Wait for download
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/energiekuchen.*\.json$/);
 
-      // Wait for download
-      const download = await downloadPromise;
-      expect(download.suggestedFilename()).toMatch(/energiekuchen.*\.json$/);
+    // Save the file and verify its contents
+    const path = await download.path();
+    if (path) {
+      const fs = await import('fs');
+      const content = fs.readFileSync(path, 'utf8');
+      const data = JSON.parse(content);
 
-      // Save the file and verify its contents
-      const path = await download.path();
-      if (path) {
-        const fs = await import('fs');
-        const content = fs.readFileSync(path, 'utf8');
-        const data = JSON.parse(content);
-
-        expect(data).toHaveProperty('positive');
-        expect(data).toHaveProperty('negative');
-        expect(data.positive.activities).toHaveLength(1);
-        expect(data.negative.activities).toHaveLength(1);
-        expect(data.positive.activities[0].name).toBe('Morning Jog');
-        expect(data.negative.activities[0].name).toBe('Email Overload');
-      }
+      expect(data).toHaveProperty('positive');
+      expect(data).toHaveProperty('negative');
+      expect(data.positive.activities).toHaveLength(1);
+      expect(data.negative.activities).toHaveLength(1);
+      expect(data.positive.activities[0].name).toBe('Morning Jog');
+      expect(data.negative.activities[0].name).toBe('Email Overload');
     }
+
+    // Close modal
+    await closeModal(page);
   });
 
   test('should open import modal', async ({ page }) => {
