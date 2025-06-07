@@ -84,7 +84,7 @@ async function setSliderValue(page: Page, testId: string, value: number) {
 **The Challenge:**
 
 - Tests intermittently failed because they asserted before React state updates completed
-- Energy balance calculations didn't immediately reflect after activity creation
+- Activity list updates didn't immediately reflect after activity creation
 - Form submissions required waiting for state updates to propagate
 
 **The Learning:**
@@ -92,17 +92,17 @@ async function setSliderValue(page: Page, testId: string, value: number) {
 ```typescript
 // ❌ Wrong: Immediate assertion after action
 await page.locator('[data-testid="submit-activity-button"]').click();
-await expect(page.locator('[data-testid="positive-energy-total"]')).toContainText('20');
+await expect(page.locator('[data-testid="activity-list-positive"] .activity-item')).toHaveCount(1);
 // Fails due to React state update timing
 
 // ✅ Correct: Wait for specific UI updates after actions
 await page.locator('[data-testid="submit-activity-button"]').click();
 
-// First wait for the activity to appear in the list
+// Wait for the activity to appear in the list with proper content
 await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Morning Yoga');
 
-// Then wait for energy total to update
-await expect(page.locator('[data-testid="positive-energy-total"] div:first-child')).toContainText('20');
+// Verify the activity was added successfully
+await expect(page.locator('[data-testid="activity-list-positive"] .activity-item')).toHaveCount(1);
 ```
 
 **Key Insight:** React state updates are asynchronous. Wait for intermediate UI changes before asserting final calculated values. Chain your expectations to follow the natural flow of state updates.

@@ -1,7 +1,6 @@
 'use client';
 
 import { ChartLegend } from '@/app/components/charts/ChartLegend';
-import { getEnergyBalance } from '@/app/lib/utils/calculations';
 import { SharingManager } from '@/app/lib/utils/sharing';
 import { EnergyKuchen } from '@/app/types';
 import Link from 'next/link';
@@ -54,8 +53,6 @@ export default function SharedEnergyChart() {
     return null; // This shouldn't be reached due to redirect in catch block
   }
 
-  const { positiveTotal, negativeTotal, balance } = getEnergyBalance(data.positive, data.negative);
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -76,37 +73,6 @@ export default function SharedEnergyChart() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Energy Balance Summary */}
-        <div className="mb-8 rounded-lg bg-white p-6 shadow-sm" data-testid="energy-balance-summary">
-          <h2 className="mb-4 text-lg font-medium text-gray-900">Energiebilanz</h2>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-lg bg-green-50 p-4 text-center" data-testid="positive-energy-total">
-              <div className="text-2xl font-bold text-green-600">{positiveTotal}</div>
-              <div className="text-sm text-green-700">Energiequellen</div>
-            </div>
-
-            <div className="rounded-lg bg-red-50 p-4 text-center" data-testid="negative-energy-total">
-              <div className="text-2xl font-bold text-red-600">{negativeTotal}</div>
-              <div className="text-sm text-red-700">Energieverbraucher</div>
-            </div>
-
-            <div className={`rounded-lg p-4 text-center ${balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`} data-testid="energy-balance-total">
-              <div className={`text-2xl font-bold ${balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
-                {balance >= 0 ? '+' : ''}
-                {balance}
-              </div>
-              <div className={`text-sm ${balance >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>Energiebilanz</div>
-            </div>
-          </div>
-
-          <div className="mt-4 text-center text-sm text-gray-600">
-            {balance > 0 && <p className="text-green-600">✅ Energieüberschuss von {balance} Punkten</p>}
-            {balance === 0 && <p className="text-blue-600">⚖️ Perfekt ausbalancierte Energie</p>}
-            {balance < 0 && <p className="text-orange-600">⚠️ Energiedefizit von {Math.abs(balance)} Punkten</p>}
-          </div>
-        </div>
-
         {/* Charts Section */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Positive Energy Chart */}

@@ -79,7 +79,7 @@ test.describe('Activity Management', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     // Wait for the app to load
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
   });
 
   test('should display welcome message when no activities exist', async ({ page }) => {
@@ -90,9 +90,6 @@ test.describe('Activity Management', () => {
     // Should show empty state messages
     await expect(page.locator('[data-testid="empty-activities-positive"]')).toBeVisible();
     await expect(page.locator('[data-testid="empty-activities-negative"]')).toBeVisible();
-
-    // Energy balance should show empty state
-    await expect(page.locator('[data-testid="energy-balance-empty"]')).toContainText('Fügen Sie Aktivitäten hinzu');
   });
 
   test('should create a positive energy activity', async ({ page }) => {
@@ -154,11 +151,8 @@ test.describe('Activity Management', () => {
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Morning Exercise');
     await expect(page.locator('[data-testid="activities-list-negative"]')).toContainText('Late Night Work');
 
-    // Energy balance should no longer show empty state
-    await expect(page.locator('[data-testid="energy-balance-empty"]')).not.toBeVisible();
-
-    // Energy balance summary should be visible and show values
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    // Getting started help should no longer be visible
+    await expect(page.locator('[data-testid="getting-started-help"]')).not.toBeVisible();
   });
 
   test('should cancel activity creation', async ({ page }) => {
@@ -181,7 +175,7 @@ test.describe('Activity Management', () => {
 
       // Should return to empty state (no activities created)
       await expect(page.locator('[data-testid="empty-activities-positive"]')).toBeVisible();
-      await expect(page.locator('[data-testid="energy-balance-empty"]')).toContainText('Fügen Sie Aktivitäten hinzu');
+      await expect(page.locator('[data-testid="getting-started-help"]')).toBeVisible();
     }
   });
 });

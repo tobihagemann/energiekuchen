@@ -71,11 +71,10 @@ export default function PrivacyPage() {
             <h2 className="mb-4 text-xl font-semibold text-gray-900">3. Datenverarbeitung</h2>
             <div className="space-y-4 text-gray-600">
               <p>
-                <strong>Zweck:</strong> Ihre Daten werden ausschließlich zur Darstellung und Verwaltung Ihrer persönlichen Energiebilanz verwendet.
+                <strong>Zweck:</strong> Ihre Daten werden ausschließlich zur Darstellung und Verwaltung Ihrer persönlichen Energiekuchen verwendet.
               </p>
               <p>
-                <strong>Automatische Berechnungen:</strong> Die App berechnet automatisch Ihre Energiebilanz basierend auf den eingegebenen Aktivitäten und
-                deren Bewertungen.
+                <strong>Automatische Berechnungen:</strong> Die App visualisiert Ihre Aktivitäten basierend auf den eingegebenen Daten und deren Bewertungen.
               </p>
               <p>
                 <strong>Keine Analyse oder Profiling:</strong> Es findet keine automatische Analyse Ihrer Gewohnheiten oder Erstellung von Nutzerprofilen statt.

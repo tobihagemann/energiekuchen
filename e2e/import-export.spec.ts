@@ -103,7 +103,7 @@ async function openImportModal(page: Page) {
 test.describe('Import/Export Functionality', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
   });
 
   test('should export energy data as JSON', async ({ page }) => {
@@ -212,10 +212,7 @@ test.describe('Import/Export Functionality', () => {
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Imported Reading');
     await expect(page.locator('[data-testid="activities-list-negative"]')).toContainText('Imported Stress');
 
-    // Verify energy calculations
-    await expect(page.locator('[data-testid="positive-energy-total"]')).toContainText('45'); // 30 + 15
-    await expect(page.locator('[data-testid="negative-energy-total"]')).toContainText('25');
-    await expect(page.locator('[data-testid="energy-balance-total"]')).toContainText('+20'); // 45 - 25
+    // Energy calculations removed - focusing on import functionality only
   });
 
   test('should handle invalid JSON gracefully', async ({ page }) => {
@@ -380,19 +377,7 @@ test.describe('Import/Export Functionality', () => {
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Activity B');
     await expect(page.locator('[data-testid="activity-list-negative"]')).toContainText('Negative Activity');
 
-    // Verify that energy balance shows some positive total
-    const positiveTotal = await page.locator('[data-testid="positive-energy-total"]').textContent();
-    const positiveValue = parseInt(positiveTotal?.match(/\d+/)?.[0] || '0');
-    expect(positiveValue).toBeGreaterThan(0);
-
-    // Verify that energy balance shows some negative total
-    const negativeTotal = await page.locator('[data-testid="negative-energy-total"]').textContent();
-    const negativeValue = parseInt(negativeTotal?.match(/\d+/)?.[0] || '0');
-    expect(negativeValue).toBeGreaterThan(0);
-
-    // Verify that the balance is calculated correctly (positive - negative)
-    const balanceTotal = await page.locator('[data-testid="energy-balance-total"]').textContent();
-    const balanceValue = parseInt(balanceTotal?.match(/[+-]?\d+/)?.[0] || '0');
-    expect(balanceValue).toBe(positiveValue - negativeValue);
+    // Focus on verifying data preservation during export/import
+    // Energy balance calculations removed
   });
 });

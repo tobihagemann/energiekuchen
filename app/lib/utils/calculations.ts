@@ -1,4 +1,4 @@
-import { Activity, ChartSize, EnergyChart } from '@/app/types';
+import { Activity, ChartSize } from '@/app/types';
 
 export function calculateTotalEnergy(activities: Activity[]): number {
   return activities.reduce((total, activity) => total + activity.value, 0);
@@ -26,27 +26,4 @@ export function getChartPixelSize(size: ChartSize, isMobile: boolean = false): n
 
 export function sortActivitiesByValue(activities: Activity[], descending: boolean = true): Activity[] {
   return [...activities].sort((a, b) => (descending ? b.value - a.value : a.value - b.value));
-}
-
-export function getEnergyBalance(
-  positive: EnergyChart,
-  negative: EnergyChart
-): {
-  positiveTotal: number;
-  negativeTotal: number;
-  balance: number;
-  balancePercentage: number;
-} {
-  const positiveTotal = calculateTotalEnergy(positive.activities);
-  const negativeTotal = calculateTotalEnergy(negative.activities);
-  const balance = positiveTotal - negativeTotal;
-  const total = positiveTotal + negativeTotal;
-  const balancePercentage = total > 0 ? Math.round((balance / total) * 100) : 0;
-
-  return {
-    positiveTotal,
-    negativeTotal,
-    balance,
-    balancePercentage,
-  };
 }

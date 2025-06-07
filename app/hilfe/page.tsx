@@ -39,7 +39,7 @@ export default function HelpPage() {
               <li>Fügen Sie Ihre ersten Aktivitäten mit dem + Button hinzu</li>
               <li>Ordnen Sie sie den passenden Kategorien zu</li>
               <li>Bewerten Sie ihre Stärke auf einer Skala von 1-100</li>
-              <li>Betrachten Sie Ihre persönliche Energiebilanz</li>
+              <li>Betrachten Sie Ihre Energiekuchen-Diagramme</li>
             </ol>
           </div>
         </div>
@@ -115,35 +115,29 @@ export default function HelpPage() {
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-semibold">Energiebilanz</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                  <span>
-                    <strong>Positiv:</strong> Mehr Energiequellen
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full bg-gray-400"></div>
-                  <span>
-                    <strong>Ausgeglichen:</strong> Balance
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full bg-red-500"></div>
-                  <span>
-                    <strong>Negativ:</strong> Mehr Energieverbraucher
-                  </span>
-                </div>
-              </div>
+              <h4 className="font-semibold">Legende</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li>
+                  • <strong>Aktivitätsliste:</strong> Unter jedem Diagramm
+                </li>
+                <li>
+                  • <strong>Prozentangaben:</strong> Relative Anteile
+                </li>
+                <li>
+                  • <strong>Sortierung:</strong> Nach Intensität
+                </li>
+                <li>
+                  • <strong>Bearbeitung:</strong> Klick auf Eintrag
+                </li>
+              </ul>
             </div>
           </div>
 
           <div className="rounded-lg bg-purple-50 p-4">
             <h4 className="mb-2 font-semibold text-purple-800">🎯 Ziel</h4>
             <p className="text-sm text-purple-700">
-              Streben Sie eine positive oder ausgeglichene Energiebilanz an. Wenn Ihre Bilanz stark negativ ist, überlegen Sie, wie Sie mehr Energiequellen in
-              Ihren Alltag integrieren oder Energieverbraucher reduzieren können.
+              Identifizieren Sie Ihre wichtigsten Energiequellen und -verbraucher. Überlegen Sie, wie Sie mehr positive Aktivitäten in Ihren Alltag integrieren
+              oder negative Einflüsse reduzieren können.
             </p>
           </div>
         </div>

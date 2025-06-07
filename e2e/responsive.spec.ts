@@ -8,8 +8,7 @@ test.describe('Responsive Design', () => {
   test('displays correctly on desktop (1920x1080)', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
 
-    // Check that all main components are visible
-    await expect(page.getByTestId('energy-balance-summary')).toBeVisible();
+    // Wait for charts section to be visible
     await expect(page.getByTestId('charts-section')).toBeVisible();
 
     // Header should show all navigation items horizontally
@@ -25,8 +24,7 @@ test.describe('Responsive Design', () => {
   test('displays correctly on tablet (768x1024)', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
 
-    // All main components should still be visible
-    await expect(page.getByTestId('energy-balance-summary')).toBeVisible();
+    // Wait for charts section to be visible
     await expect(page.getByTestId('charts-section')).toBeVisible();
 
     // Header navigation should adapt to smaller screen
@@ -42,8 +40,7 @@ test.describe('Responsive Design', () => {
   test('displays correctly on mobile (375x667)', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
 
-    // Main components should be visible but stacked vertically
-    await expect(page.getByTestId('energy-balance-summary')).toBeVisible();
+    // Wait for charts section to be visible
     await expect(page.getByTestId('charts-section')).toBeVisible();
 
     // Navigation should be compact or collapsed
@@ -58,11 +55,10 @@ test.describe('Responsive Design', () => {
   test('handles orientation change on mobile', async ({ page }) => {
     // Start in portrait
     await page.setViewportSize({ width: 375, height: 667 });
-    await expect(page.getByTestId('energy-balance-summary')).toBeVisible();
+    await expect(page.getByTestId('charts-section')).toBeVisible();
 
     // Switch to landscape
     await page.setViewportSize({ width: 667, height: 375 });
-    await expect(page.getByTestId('energy-balance-summary')).toBeVisible();
     await expect(page.getByTestId('charts-section')).toBeVisible();
 
     // Content should still be accessible
@@ -206,8 +202,8 @@ test.describe('Responsive Design', () => {
         document.body.style.zoom = zoomLevel.toString();
       }, zoom);
 
-      // Key text elements should remain visible and readable
-      await expect(page.getByTestId('energy-balance-summary')).toBeVisible();
+      // Charts section should remain visible and readable
+      await expect(page.getByTestId('charts-section')).toBeVisible();
 
       // Navigation should remain functional
       await expect(page.getByTestId('logo')).toBeVisible();

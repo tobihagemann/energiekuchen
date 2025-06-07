@@ -148,7 +148,7 @@ async function setSliderValue(page: Page, testId: string, value: number, min = 1
 test.describe('Sharing Functionality', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
   });
 
   test('should open share modal with activities', async ({ page }) => {
@@ -257,24 +257,12 @@ test.describe('Sharing Functionality', () => {
     // Navigate to share URL if we got one
     if (shareUrl && shareUrl.includes('/share/')) {
       await page.goto(shareUrl);
-      await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+      // On share pages, we need to wait for a different element
+      await expect(page.locator('[data-testid="activity-list-positive"], [data-testid="getting-started-help"]').first()).toBeVisible();
 
       // Verify shared data is loaded
       await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Swimming');
       await expect(page.locator('[data-testid="activity-list-negative"]')).toContainText('Long Meetings');
-
-      // Use the actual values that were set (accounting for Mobile Chrome slider limitations)
-      await expect(page.locator('[data-testid="positive-energy-total"]')).toContainText(positiveValue.toString());
-      await expect(page.locator('[data-testid="negative-energy-total"]')).toContainText(negativeValue.toString());
-
-      const expectedBalance = positiveValue - negativeValue;
-      if (expectedBalance > 0) {
-        await expect(page.locator('[data-testid="energy-balance-total"]')).toContainText(`+${expectedBalance}`);
-      } else if (expectedBalance === 0) {
-        await expect(page.locator('[data-testid="energy-balance-total"]')).toContainText('0');
-      } else {
-        await expect(page.locator('[data-testid="energy-balance-total"]')).toContainText(expectedBalance.toString());
-      }
     }
   });
 
@@ -317,8 +305,8 @@ test.describe('Sharing Functionality', () => {
     await expect(page.locator('[data-testid="share-modal"]')).toContainText('Teilen');
   });
 
-  test('should show shared energy balance in URL preview', async ({ page, browserName }) => {
-    // Create a specific energy balance scenario
+  test('should show shared data in URL preview', async ({ page, browserName }) => {
+    // Create activities for sharing
     await page.locator('[data-testid="add-activity-button-positive"]').click();
     await page.locator('[data-testid="activity-name-input"]').fill('Meditation');
 
@@ -333,16 +321,6 @@ test.describe('Sharing Functionality', () => {
     const negativeValue = browserName === 'chromium' && (await page.evaluate(() => window.innerWidth < 768)) ? 10 : 30;
     await setSliderValue(page, 'activity-value-slider', negativeValue);
     await page.locator('[data-testid="submit-activity-button"]').click();
-
-    // Verify current balance
-    const expectedBalance = positiveValue - negativeValue;
-    if (expectedBalance > 0) {
-      await expect(page.locator('[data-testid="energy-balance-total"] div:first-child')).toContainText(`+${expectedBalance}`);
-    } else if (expectedBalance === 0) {
-      await expect(page.locator('[data-testid="energy-balance-total"] div:first-child')).toContainText('0');
-    } else {
-      await expect(page.locator('[data-testid="energy-balance-total"] div:first-child')).toContainText(expectedBalance.toString());
-    }
 
     // Open share modal
     await page.locator('[data-testid="share-button"]').click();
@@ -362,7 +340,8 @@ test.describe('Sharing Functionality', () => {
     await page.goto('/share/invalid-data-here');
 
     // Should redirect to main page or show error message
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    // Wait for either the charts section (if redirected) or activity lists (if on share page)
+    await expect(page.locator('[data-testid="charts-section"], [data-testid="getting-started-help"]').first()).toBeVisible();
 
     // Should show empty state since invalid data
     await expect(page.locator('[data-testid="getting-started-help"]')).toBeVisible();
@@ -387,14 +366,15 @@ test.describe('Sharing Functionality', () => {
     );
 
     await page.goto(`/share/${mockShareData}`);
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    // On share pages, wait for activity list to be visible
+    await expect(page.locator('[data-testid="activity-list-positive"]')).toBeVisible();
 
     // Should show shared data
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Shared Activity');
 
     // Navigate back to main page
     await page.goto('/');
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
 
     // Original personal data should still be there
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('My Personal Activity');

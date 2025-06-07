@@ -114,7 +114,7 @@ async function setSliderValue(page: Page, testId: string, value: number, min = 1
 test.describe('Data Persistence', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
   });
 
   test('should persist activities in localStorage', async ({ page, browserName }) => {
@@ -122,8 +122,6 @@ test.describe('Data Persistence', () => {
     const isMobile = await page.evaluate(() => window.innerWidth < 768);
     const positiveValue = browserName === 'chromium' && isMobile ? 10 : 20;
     const negativeValue = browserName === 'chromium' && isMobile ? 10 : 15;
-    const expectedBalance = positiveValue - negativeValue;
-    const balanceSign = expectedBalance > 0 ? '+' : expectedBalance < 0 ? '' : '';
 
     // Add some activities
     await page.locator('[data-testid="add-activity-button-positive"]').click();
@@ -131,48 +129,24 @@ test.describe('Data Persistence', () => {
     await setSliderValue(page, 'activity-value-slider', positiveValue);
     await page.locator('[data-testid="submit-activity-button"]').click();
 
-    // Wait for first activity to be added and energy total to update
+    // Wait for first activity to be added
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Morning Yoga');
-    await expect(page.locator('[data-testid="positive-energy-total"] div:first-child')).toContainText(positiveValue.toString());
 
     await page.locator('[data-testid="add-activity-button-negative"]').click();
     await page.locator('[data-testid="activity-name-input"]').fill('Late Night Work');
     await setSliderValue(page, 'activity-value-slider', negativeValue);
     await page.locator('[data-testid="submit-activity-button"]').click();
 
-    // Wait for second activity to be added and energy totals to update
+    // Wait for second activity to be added
     await expect(page.locator('[data-testid="activity-list-negative"]')).toContainText('Late Night Work');
-    await expect(page.locator('[data-testid="negative-energy-total"] div:first-child')).toContainText(negativeValue.toString());
-
-    // Verify final energy balance calculation
-    await expect(page.locator('[data-testid="positive-energy-total"] div:first-child')).toContainText(positiveValue.toString());
-    await expect(page.locator('[data-testid="negative-energy-total"] div:first-child')).toContainText(negativeValue.toString());
-
-    // Handle balance display for zero case
-    if (expectedBalance === 0) {
-      await expect(page.locator('[data-testid="energy-balance-total"] div:first-child')).toContainText('0');
-    } else {
-      await expect(page.locator('[data-testid="energy-balance-total"] div:first-child')).toContainText(`${balanceSign}${Math.abs(expectedBalance)}`);
-    }
 
     // Reload the page
     await page.reload();
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
 
     // Verify activities persist after reload
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Morning Yoga');
     await expect(page.locator('[data-testid="activity-list-negative"]')).toContainText('Late Night Work');
-
-    // Verify energy balance is still correct
-    await expect(page.locator('[data-testid="positive-energy-total"] div:first-child')).toContainText(positiveValue.toString());
-    await expect(page.locator('[data-testid="negative-energy-total"] div:first-child')).toContainText(negativeValue.toString());
-
-    // Handle balance display for zero case after reload
-    if (expectedBalance === 0) {
-      await expect(page.locator('[data-testid="energy-balance-total"] div:first-child')).toContainText('0');
-    } else {
-      await expect(page.locator('[data-testid="energy-balance-total"] div:first-child')).toContainText(`${balanceSign}${Math.abs(expectedBalance)}`);
-    }
   });
 
   test('should persist activity edits', async ({ page }) => {
@@ -198,11 +172,10 @@ test.describe('Data Persistence', () => {
 
     // Reload page
     await page.reload();
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
 
     // Verify the edit persisted
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Intensive Workout');
-    await expect(page.locator('[data-testid="positive-energy-total"] div:first-child')).toContainText('45');
   });
 
   test('should persist activity deletions', async ({ page }) => {
@@ -248,7 +221,7 @@ test.describe('Data Persistence', () => {
 
     // Reload page
     await page.reload();
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
 
     // Wait for data to load and UI to stabilize
     await page.waitForTimeout(1000);
@@ -290,7 +263,7 @@ test.describe('Data Persistence', () => {
 
     // Reload page
     await page.reload();
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
 
     // Should show clean state (welcome message)
     await expect(page.locator('[data-testid="getting-started-help"]')).toBeVisible();
@@ -309,7 +282,7 @@ test.describe('Data Persistence', () => {
 
     // Navigate back
     await page.goto('/');
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
 
     // Verify data persisted
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Walking');
@@ -336,16 +309,12 @@ test.describe('Data Persistence', () => {
     // Get the activity element to check its color
     const activityItem = page.locator('[data-testid^="activity-item-"]').first();
 
-    // Verify the value is displayed correctly
-    await expect(page.locator('[data-testid="positive-energy-total"] div:first-child')).toContainText(targetValue.toString());
-
     // Reload page
     await page.reload();
-    await expect(page.locator('[data-testid="energy-balance-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
 
-    // Verify color and value persisted
+    // Verify activity persisted
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Swimming');
-    await expect(page.locator('[data-testid="positive-energy-total"]')).toContainText(targetValue.toString());
 
     // The color should still be applied (though exact verification depends on implementation)
     await expect(activityItem).toBeVisible();
