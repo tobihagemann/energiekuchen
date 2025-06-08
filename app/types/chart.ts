@@ -1,7 +1,7 @@
 import { ChartOptions } from 'chart.js';
 
 export interface ChartConfiguration {
-  type: 'doughnut';
+  type: 'pie';
   data: ChartData;
   options: ChartOptions;
 }

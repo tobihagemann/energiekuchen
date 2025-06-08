@@ -430,6 +430,8 @@ test('should increase energy when adding positive activity', async ({ page }) =>
 
 **The Learning:**
 
+_Note: The help modal was removed from the application, but this example remains as a teaching illustration of accessibility testing patterns._
+
 ```typescript
 // ❌ Wrong: Desktop-only accessibility patterns
 test('should navigate help modal with keyboard', async ({ page }) => {

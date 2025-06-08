@@ -43,8 +43,7 @@ export default function PrivacyPage() {
                   Identifikationsdaten erfasst.
                 </p>
                 <p>
-                  <strong>Gespeicherte Daten:</strong> Nur die von Ihnen eingegebenen Aktivitäten, deren Bewertungen, Farben und Ihre App-Einstellungen werden
-                  gespeichert.
+                  <strong>Gespeicherte Daten:</strong> Nur die von Ihnen eingegebenen Aktivitäten, deren Bewertungen und Farben werden gespeichert.
                 </p>
               </div>
             </section>
@@ -128,7 +127,7 @@ export default function PrivacyPage() {
                   <strong>Volle Kontrolle:</strong> Sie haben jederzeit volle Kontrolle über Ihre Daten.
                 </p>
                 <p>
-                  <strong>Löschen:</strong> Sie können alle Daten jederzeit über die App-Einstellungen löschen oder Ihre Browserdaten manuell löschen.
+                  <strong>Löschen:</strong> Sie können alle Daten jederzeit über Ihre Browserdaten manuell löschen.
                 </p>
                 <p>
                   <strong>Export:</strong> Sie können alle Ihre Daten jederzeit exportieren.
