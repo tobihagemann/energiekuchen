@@ -107,16 +107,12 @@ test.describe('Import/Export Functionality', () => {
   });
 
   test('should export energy data as JSON', async ({ page }) => {
-    // Add some activities to export
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Morning Jog');
-    await setSliderValue(page, 'activity-value-slider', 35);
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    // Add some activities to export using the new inline form
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Morning Jog');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
-    await page.locator('[data-testid="add-activity-button-negative"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Email Overload');
-    await setSliderValue(page, 'activity-value-slider', 20);
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    await page.locator('[data-testid="quick-add-input-negative"]').fill('Email Overload');
+    await page.locator('[data-testid="quick-add-button-negative"]').click();
 
     // Open import/export modal
     await openImportModal(page);
@@ -257,10 +253,9 @@ test.describe('Import/Export Functionality', () => {
   });
 
   test('should merge with existing data when importing', async ({ page }) => {
-    // Add existing data
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Existing Activity');
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    // Add existing data using the new inline form
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Existing Activity');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
     // Verify existing data
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Existing Activity');
@@ -296,10 +291,9 @@ test.describe('Import/Export Functionality', () => {
   });
 
   test('should replace existing data when importing with replace option', async ({ page }) => {
-    // Add existing data
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Old Activity');
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    // Add existing data using the new inline form
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Old Activity');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
     // Import data with replace option
     const importData = {
@@ -356,21 +350,15 @@ test.describe('Import/Export Functionality', () => {
   });
 
   test('should preserve data format during export/import cycle', async ({ page }) => {
-    // Create activities with different values
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Activity A');
-    await setSliderValue(page, 'activity-value-slider', 40);
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    // Create activities using the new inline form (with default values)
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Activity A');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Activity B');
-    await setSliderValue(page, 'activity-value-slider', 30);
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Activity B');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
-    await page.locator('[data-testid="add-activity-button-negative"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Negative Activity');
-    await setSliderValue(page, 'activity-value-slider', 20);
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    await page.locator('[data-testid="quick-add-input-negative"]').fill('Negative Activity');
+    await page.locator('[data-testid="quick-add-button-negative"]').click();
 
     // Verify that activities were created and energy totals are displayed
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Activity A');

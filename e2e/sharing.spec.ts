@@ -152,16 +152,12 @@ test.describe('Sharing Functionality', () => {
   });
 
   test('should open share modal with activities', async ({ page }) => {
-    // Add some activities first
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Yoga');
-    await setSliderValue(page, 'activity-value-slider', 25);
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    // Add some activities first using the new inline form
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Yoga');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
-    await page.locator('[data-testid="add-activity-button-negative"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Stress');
-    await setSliderValue(page, 'activity-value-slider', 15);
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    await page.locator('[data-testid="quick-add-input-negative"]').fill('Stress');
+    await page.locator('[data-testid="quick-add-button-negative"]').click();
 
     // Click share button in header
     await page.locator('[data-testid="share-button"]').click();
@@ -174,11 +170,9 @@ test.describe('Sharing Functionality', () => {
   });
 
   test('should generate shareable URL with data', async ({ page }) => {
-    // Add activities
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Morning Run');
-    await setSliderValue(page, 'activity-value-slider', 30);
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    // Add activities using the new inline form
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Morning Run');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
     // Open share modal
     await page.locator('[data-testid="share-button"]').click();
@@ -194,10 +188,9 @@ test.describe('Sharing Functionality', () => {
   });
 
   test('should copy share URL to clipboard', async ({ page }) => {
-    // Add an activity
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Reading');
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    // Add an activity using the new inline form
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Reading');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
     // Open share modal
     await page.locator('[data-testid="share-button"]').click();
@@ -216,22 +209,13 @@ test.describe('Sharing Functionality', () => {
     }
   });
 
-  test('should load shared data from URL', async ({ page, browserName }) => {
-    // First create some data
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Swimming');
+  test('should load shared data from URL', async ({ page }) => {
+    // First create some data using the new inline form
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Swimming');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
-    // For Mobile Chrome, use achievable values due to slider precision issues
-    const positiveValue = browserName === 'chromium' && (await page.evaluate(() => window.innerWidth < 768)) ? 10 : 40;
-    await setSliderValue(page, 'activity-value-slider', positiveValue);
-    await page.locator('[data-testid="submit-activity-button"]').click();
-
-    await page.locator('[data-testid="add-activity-button-negative"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Long Meetings');
-
-    const negativeValue = browserName === 'chromium' && (await page.evaluate(() => window.innerWidth < 768)) ? 10 : 20;
-    await setSliderValue(page, 'activity-value-slider', negativeValue);
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    await page.locator('[data-testid="quick-add-input-negative"]').fill('Long Meetings');
+    await page.locator('[data-testid="quick-add-button-negative"]').click();
 
     // Get share URL
     await page.locator('[data-testid="share-button"]').click();
@@ -267,10 +251,9 @@ test.describe('Sharing Functionality', () => {
   });
 
   test('should close share modal', async ({ page }) => {
-    // Add an activity
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Test Activity');
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    // Add an activity using the new inline form
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Test Activity');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
     // Open share modal
     await page.locator('[data-testid="share-button"]').click();
@@ -282,10 +265,9 @@ test.describe('Sharing Functionality', () => {
   });
 
   test('should close share modal with escape key', async ({ page }) => {
-    // Add an activity
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Test Activity');
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    // Add an activity using the new inline form
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Test Activity');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
     // Open share modal
     await page.locator('[data-testid="share-button"]').click();
@@ -305,22 +287,13 @@ test.describe('Sharing Functionality', () => {
     await expect(page.locator('[data-testid="share-modal"]')).toContainText('Teilen');
   });
 
-  test('should show shared data in URL preview', async ({ page, browserName }) => {
-    // Create activities for sharing
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Meditation');
+  test('should show shared data in URL preview', async ({ page }) => {
+    // Create activities for sharing using the new inline form
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Meditation');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
-    // For Mobile Chrome, use achievable values due to slider precision issues
-    const positiveValue = browserName === 'chromium' && (await page.evaluate(() => window.innerWidth < 768)) ? 10 : 50;
-    await setSliderValue(page, 'activity-value-slider', positiveValue);
-    await page.locator('[data-testid="submit-activity-button"]').click();
-
-    await page.locator('[data-testid="add-activity-button-negative"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Work Stress');
-
-    const negativeValue = browserName === 'chromium' && (await page.evaluate(() => window.innerWidth < 768)) ? 10 : 30;
-    await setSliderValue(page, 'activity-value-slider', negativeValue);
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    await page.locator('[data-testid="quick-add-input-negative"]').fill('Work Stress');
+    await page.locator('[data-testid="quick-add-button-negative"]').click();
 
     // Open share modal
     await page.locator('[data-testid="share-button"]').click();
@@ -348,10 +321,9 @@ test.describe('Sharing Functionality', () => {
   });
 
   test('should preserve original data when viewing shared link', async ({ page }) => {
-    // Add personal data
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('My Personal Activity');
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    // Add personal data using the new inline form
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('My Personal Activity');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
     // Verify personal data exists
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('My Personal Activity');

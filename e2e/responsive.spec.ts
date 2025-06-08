@@ -68,10 +68,9 @@ test.describe('Responsive Design', () => {
   });
 
   test('activity list adapts to different screen sizes', async ({ page }) => {
-    // Add some test activities first
-    await page.getByTestId('add-activity-button-negative').click();
-    await page.getByTestId('activity-name-input').fill('Test Activity');
-    await page.getByTestId('submit-activity-button').click();
+    // Add some test activities first using the new inline form
+    await page.getByTestId('quick-add-input-negative').fill('Test Activity');
+    await page.getByTestId('quick-add-button-negative').click();
 
     // Test on desktop
     await page.setViewportSize({ width: 1920, height: 1080 });
@@ -90,8 +89,8 @@ test.describe('Responsive Design', () => {
     await expect(page.locator('[data-testid^="delete-activity-button-"]').first()).toBeVisible();
   });
 
-  test('forms adapt to different screen sizes', async ({ page }) => {
-    // Test activity form on different sizes
+  test('inline forms adapt to different screen sizes', async ({ page }) => {
+    // Test inline quick add form on different sizes
     const screenSizes = [
       { width: 1920, height: 1080 }, // Desktop
       { width: 768, height: 1024 }, // Tablet
@@ -101,23 +100,13 @@ test.describe('Responsive Design', () => {
     for (const size of screenSizes) {
       await page.setViewportSize(size);
 
-      // Open activity form
-      await page.getByTestId('add-activity-button-negative').click();
+      // Inline form elements should be visible and properly sized
+      await expect(page.getByTestId('quick-add-input-positive')).toBeVisible();
+      await expect(page.getByTestId('quick-add-button-positive')).toBeVisible();
 
-      // Form should be visible and properly sized
-      await expect(page.getByTestId('activity-name-input')).toBeVisible();
-      await expect(page.getByTestId('activity-value-slider')).toBeVisible();
-      // Color picker should be visible
-      await expect(page.locator('[data-testid="color-picker-button"], [data-testid="activity-color-picker"]').first()).toBeVisible();
-
-      // Form container should not exceed viewport and be properly accessible
-      const formContainer = page.getByTestId('add-activity-form-negative');
-      await expect(formContainer).toBeVisible();
-      const formBox = await formContainer.boundingBox();
-      expect(formBox?.width).toBeLessThanOrEqual(size.width);
-
-      // Close form
-      await page.getByTestId('cancel-activity-button').click();
+      // Input and button should not exceed viewport
+      const inputBox = await page.getByTestId('quick-add-input-positive').boundingBox();
+      expect(inputBox?.width).toBeLessThanOrEqual(size.width);
     }
   });
 
@@ -167,10 +156,9 @@ test.describe('Responsive Design', () => {
   });
 
   test('charts are responsive', async ({ page }) => {
-    // Add some test data first
-    await page.getByTestId('add-activity-button-negative').click();
-    await page.getByTestId('activity-name-input').fill('Test Activity');
-    await page.getByTestId('submit-activity-button').click();
+    // Add some test data first using the new inline form
+    await page.getByTestId('quick-add-input-negative').fill('Test Activity');
+    await page.getByTestId('quick-add-button-negative').click();
 
     const screenSizes = [
       { width: 1920, height: 1080 },
@@ -227,8 +215,7 @@ test.describe('Responsive Design', () => {
     const bodyBox = await body.boundingBox();
     expect(bodyBox?.width).toBeLessThanOrEqual(280);
 
-    // Navigation should remain functional even if compact
-    await page.getByTestId('add-activity-button-negative').click();
-    await expect(page.getByTestId('activity-name-input')).toBeVisible();
+    // Inline form should remain functional even if compact
+    await expect(page.getByTestId('quick-add-input-negative')).toBeVisible();
   });
 });

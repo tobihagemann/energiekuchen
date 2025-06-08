@@ -1,12 +1,12 @@
 'use client';
 
 import { ActivityForm } from '@/app/components/forms/ActivityForm';
+import { AddActivity } from '@/app/components/features/AddActivity';
 import { Button } from '@/app/components/ui/Button';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
 import { Activity } from '@/app/types';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
 import toast from 'react-hot-toast';
 
 interface ActivityListProps {
@@ -18,7 +18,6 @@ interface ActivityListProps {
 export function ActivityList({ chartType, activities, className }: ActivityListProps) {
   const { deleteActivity } = useEnergy();
   const { state: uiState, setEditingActivity } = useUI();
-  const [showAddForm, setShowAddForm] = useState(false);
 
   const isEditing = uiState.editingActivity?.chartType === chartType;
   const editingActivityId = isEditing ? uiState.editingActivity?.activityId : null;
@@ -27,10 +26,10 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
     setEditingActivity({ chartType, activityId });
   };
 
-  const handleDelete = async (activityId: string) => {
+  const handleDelete = (activityId: string) => {
     if (window.confirm('Möchten Sie diese Aktivität wirklich löschen?')) {
       try {
-        await deleteActivity(chartType, activityId);
+        deleteActivity(chartType, activityId);
         toast.success('Aktivität gelöscht');
       } catch {
         toast.error('Fehler beim Löschen der Aktivität');
@@ -46,32 +45,12 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
     setEditingActivity(null);
   };
 
-  const handleAddSuccess = () => {
-    setShowAddForm(false);
-  };
-
-  const handleAddCancel = () => {
-    setShowAddForm(false);
-  };
-
-  const title = chartType === 'positive' ? 'Energiequellen' : 'Energieverbraucher';
-
   return (
     <div className={className} data-testid={`activity-list-${chartType}`}>
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-        <Button size="sm" onClick={() => setShowAddForm(true)} disabled={showAddForm || isEditing} data-testid={`add-activity-button-${chartType}`}>
-          Hinzufügen
-        </Button>
+      <div className="mb-4">
+        <h3 className="mb-3 text-lg font-medium text-gray-900">Aktivitäten</h3>
+        <AddActivity chartType={chartType} />
       </div>
-
-      {/* Add form */}
-      {showAddForm && (
-        <div className="mb-6 rounded-lg bg-gray-50 p-4" data-testid={`add-activity-form-${chartType}`}>
-          <h4 className="mb-3 text-sm font-medium text-gray-700">Neue Aktivität hinzufügen</h4>
-          <ActivityForm chartType={chartType} onSuccess={handleAddSuccess} onCancel={handleAddCancel} />
-        </div>
-      )}
 
       {/* Activities list */}
       {activities.length > 0 ? (
@@ -110,7 +89,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
                     variant="ghost"
                     size="sm"
                     onClick={() => handleEdit(activity.id)}
-                    disabled={showAddForm || isEditing}
+                    disabled={isEditing}
                     className="activity-edit-button h-8 w-8 p-0"
                     data-testid={`edit-activity-button-${activity.id}`}>
                     <PencilIcon className="h-4 w-4" />
@@ -120,7 +99,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDelete(activity.id)}
-                    disabled={showAddForm || isEditing}
+                    disabled={isEditing}
                     className="activity-delete-button h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
                     data-testid={`delete-activity-button-${activity.id}`}>
                     <TrashIcon className="h-4 w-4" />

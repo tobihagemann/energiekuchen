@@ -93,20 +93,11 @@ test.describe('Activity Management', () => {
   });
 
   test('should create a positive energy activity', async ({ page }) => {
-    // Click the add button for positive activities
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
+    // Type activity name in the quick add input
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Yoga');
 
-    // Wait for the form to appear
-    await expect(page.locator('[data-testid="add-activity-form-positive"]')).toBeVisible();
-
-    // Fill in the activity form
-    await page.locator('[data-testid="activity-name-input"]').fill('Yoga');
-
-    // Set slider value using the helper function
-    await setSliderValue(page, 'activity-value-slider', 25);
-
-    // Submit the form
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    // Click the quick add button
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
     // Verify the activity was created
     await expect(page.locator('[data-testid="activity-list-positive"]')).toBeVisible();
@@ -114,20 +105,11 @@ test.describe('Activity Management', () => {
   });
 
   test('should create a negative energy activity', async ({ page }) => {
-    // Click the add button for negative activities
-    await page.locator('[data-testid="add-activity-button-negative"]').click();
+    // Type activity name in the quick add input
+    await page.locator('[data-testid="quick-add-input-negative"]').fill('Work Stress');
 
-    // Wait for the form to appear
-    await expect(page.locator('[data-testid="add-activity-form-negative"]')).toBeVisible();
-
-    // Fill in the activity form
-    await page.locator('[data-testid="activity-name-input"]').fill('Work Stress');
-
-    // Set slider value using the helper function
-    await setSliderValue(page, 'activity-value-slider', 15);
-
-    // Submit the form
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    // Click the quick add button
+    await page.locator('[data-testid="quick-add-button-negative"]').click();
 
     // Verify the activity was created
     await expect(page.locator('[data-testid="activities-list-negative"]')).toBeVisible();
@@ -136,16 +118,12 @@ test.describe('Activity Management', () => {
 
   test('should create multiple activities and update energy balance', async ({ page }) => {
     // Add a positive activity
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Morning Exercise');
-    await setSliderValue(page, 'activity-value-slider', 30);
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Morning Exercise');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
 
     // Add a negative activity
-    await page.locator('[data-testid="add-activity-button-negative"]').click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Late Night Work');
-    await setSliderValue(page, 'activity-value-slider', 20);
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    await page.locator('[data-testid="quick-add-input-negative"]').fill('Late Night Work');
+    await page.locator('[data-testid="quick-add-button-negative"]').click();
 
     // Verify both activities are visible
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Morning Exercise');
@@ -155,27 +133,18 @@ test.describe('Activity Management', () => {
     await expect(page.locator('[data-testid="getting-started-help"]')).not.toBeVisible();
   });
 
-  test('should cancel activity creation', async ({ page }) => {
-    // Click the add button
-    await page.locator('[data-testid="add-activity-button-positive"]').click();
+  test('should not allow submitting empty activity name', async ({ page }) => {
+    // The button should be disabled when input is empty
+    await expect(page.locator('[data-testid="quick-add-button-positive"]')).toBeDisabled();
 
-    // Wait for the form to appear
-    await expect(page.locator('[data-testid="add-activity-form-positive"]')).toBeVisible();
+    // Type a space (which should be trimmed)
+    await page.locator('[data-testid="quick-add-input-positive"]').fill(' ');
 
-    // Fill in some data
-    await page.locator('[data-testid="activity-name-input"]').fill('Test Activity');
+    // Button should still be disabled
+    await expect(page.locator('[data-testid="quick-add-button-positive"]')).toBeDisabled();
 
-    // Cancel the form (look for cancel button)
-    const cancelButton = page.locator('[data-testid="cancel-activity-button"]');
-    if ((await cancelButton.count()) > 0) {
-      await cancelButton.click();
-
-      // Form should disappear
-      await expect(page.locator('[data-testid="add-activity-form-positive"]')).not.toBeVisible();
-
-      // Should return to empty state (no activities created)
-      await expect(page.locator('[data-testid="empty-activities-positive"]')).toBeVisible();
-      await expect(page.locator('[data-testid="getting-started-help"]')).toBeVisible();
-    }
+    // Should still show empty state
+    await expect(page.locator('[data-testid="empty-activities-positive"]')).toBeVisible();
+    await expect(page.locator('[data-testid="getting-started-help"]')).toBeVisible();
   });
 });
