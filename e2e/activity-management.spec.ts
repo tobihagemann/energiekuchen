@@ -82,11 +82,7 @@ test.describe('Activity Management', () => {
     await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
   });
 
-  test('should display welcome message when no activities exist', async ({ page }) => {
-    // Should show getting started help
-    await expect(page.locator('[data-testid="getting-started-help"]')).toBeVisible();
-    await expect(page.locator('[data-testid="getting-started-help"]')).toContainText('Willkommen bei Energiekuchen!');
-
+  test('should display empty state when no activities exist', async ({ page }) => {
     // Should show empty state messages
     await expect(page.locator('[data-testid="empty-activities-positive"]')).toBeVisible();
     await expect(page.locator('[data-testid="empty-activities-negative"]')).toBeVisible();
@@ -129,8 +125,9 @@ test.describe('Activity Management', () => {
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Morning Exercise');
     await expect(page.locator('[data-testid="activities-list-negative"]')).toContainText('Late Night Work');
 
-    // Getting started help should no longer be visible
-    await expect(page.locator('[data-testid="getting-started-help"]')).not.toBeVisible();
+    // Empty state should no longer be visible for lists with activities
+    await expect(page.locator('[data-testid="empty-activities-positive"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="empty-activities-negative"]')).not.toBeVisible();
   });
 
   test('should not allow submitting empty activity name', async ({ page }) => {
@@ -145,6 +142,6 @@ test.describe('Activity Management', () => {
 
     // Should still show empty state
     await expect(page.locator('[data-testid="empty-activities-positive"]')).toBeVisible();
-    await expect(page.locator('[data-testid="getting-started-help"]')).toBeVisible();
+    await expect(page.locator('[data-testid="empty-activities-negative"]')).toBeVisible();
   });
 });

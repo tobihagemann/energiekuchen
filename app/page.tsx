@@ -49,33 +49,6 @@ export default function Dashboard() {
             <ActivityList chartType="negative" activities={state.data.negative.activities} />
           </div>
         </div>
-
-        {/* Getting Started Help */}
-        {state.data.positive.activities.length === 0 && state.data.negative.activities.length === 0 && (
-          <div className="mt-8 rounded-lg border border-yellow-200 bg-yellow-50 p-6" data-testid="getting-started-help">
-            <div className="text-center">
-              <div className="mb-4 text-4xl">🥧</div>
-              <h3 className="mb-2 text-lg font-medium text-yellow-800">Willkommen bei Energiekuchen!</h3>
-              <p className="mb-4 text-yellow-700">Beginnen Sie damit, Ihre ersten Aktivitäten hinzuzufügen:</p>
-              <div className="grid grid-cols-1 gap-4 text-sm text-yellow-700 md:grid-cols-2">
-                <div>
-                  <strong>⚡ Energiequellen:</strong>
-                  <br />
-                  Aktivitäten, die dir Energie geben
-                  <br />
-                  <em>z.B. Sport, Entspannung, Zeit mit Freunden</em>
-                </div>
-                <div>
-                  <strong>🔋 Energieverbraucher:</strong>
-                  <br />
-                  Aktivitäten, die dir Energie nehmen
-                  <br />
-                  <em>z.B. Überstunden, Stress, schwierige Gespräche</em>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
 
       <ShareModal />

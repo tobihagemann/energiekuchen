@@ -241,8 +241,8 @@ test.describe('Sharing Functionality', () => {
     // Navigate to share URL if we got one
     if (shareUrl && shareUrl.includes('/share/')) {
       await page.goto(shareUrl);
-      // On share pages, we need to wait for a different element
-      await expect(page.locator('[data-testid="activity-list-positive"], [data-testid="getting-started-help"]').first()).toBeVisible();
+      // On share pages, we need to wait for the activity list
+      await expect(page.locator('[data-testid="activity-list-positive"]')).toBeVisible();
 
       // Verify shared data is loaded
       await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Swimming');
@@ -313,11 +313,12 @@ test.describe('Sharing Functionality', () => {
     await page.goto('/share/invalid-data-here');
 
     // Should redirect to main page or show error message
-    // Wait for either the charts section (if redirected) or activity lists (if on share page)
-    await expect(page.locator('[data-testid="charts-section"], [data-testid="getting-started-help"]').first()).toBeVisible();
+    // Wait for the charts section to be visible
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
 
     // Should show empty state since invalid data
-    await expect(page.locator('[data-testid="getting-started-help"]')).toBeVisible();
+    await expect(page.locator('[data-testid="empty-activities-positive"]')).toBeVisible();
+    await expect(page.locator('[data-testid="empty-activities-negative"]')).toBeVisible();
   });
 
   test('should preserve original data when viewing shared link', async ({ page }) => {

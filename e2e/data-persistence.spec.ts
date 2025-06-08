@@ -253,8 +253,7 @@ test.describe('Data Persistence', () => {
     await page.reload();
     await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
 
-    // Should show clean state (welcome message)
-    await expect(page.locator('[data-testid="getting-started-help"]')).toBeVisible();
+    // Should show clean state (empty activities)
     await expect(page.locator('[data-testid="empty-activities-positive"]')).toBeVisible();
     await expect(page.locator('[data-testid="empty-activities-negative"]')).toBeVisible();
   });

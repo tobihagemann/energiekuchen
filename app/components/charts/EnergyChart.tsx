@@ -56,6 +56,7 @@ export function EnergyChart({ chartType, className, onActivityClick }: EnergyCha
   };
 
   const title = chartType === 'positive' ? 'Energiequellen' : 'Energieverbraucher';
+  const subtitle = chartType === 'positive' ? 'Aktivitäten, die dir Energie geben' : 'Aktivitäten, die dir Energie nehmen';
   const icon = chartType === 'positive' ? '⚡' : '🔋';
 
   return (
@@ -65,6 +66,7 @@ export function EnergyChart({ chartType, className, onActivityClick }: EnergyCha
           <span className="text-2xl">{icon}</span>
           {title}
         </h2>
+        <p className="mt-1 text-sm text-gray-600">{subtitle}</p>
       </div>
 
       <div className="relative" style={{ width: chartSize, height: chartSize }}>
