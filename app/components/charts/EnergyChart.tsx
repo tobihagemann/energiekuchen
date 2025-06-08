@@ -6,7 +6,7 @@ import { getChartPixelSize } from '@/app/lib/utils/calculations';
 import { cn } from '@/app/lib/utils/cn';
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
 import { useRef } from 'react';
-import { Doughnut } from 'react-chartjs-2';
+import { Pie } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -19,7 +19,7 @@ interface EnergyChartProps {
 export function EnergyChart({ chartType, className, onActivityClick }: EnergyChartProps) {
   const { chartData, activities, size } = useChartData(chartType);
   const { isMobile } = useResponsive();
-  const chartRef = useRef<ChartJS<'doughnut'>>(null);
+  const chartRef = useRef<ChartJS<'pie'>>(null);
 
   const chartSize = getChartPixelSize(size, isMobile);
 
@@ -50,13 +50,11 @@ export function EnergyChart({ chartType, className, onActivityClick }: EnergyCha
         }
       }
     },
-    cutout: '60%',
     animation: {
       duration: 300,
     },
   };
 
-  const isEmpty = activities.length === 0;
   const title = chartType === 'positive' ? 'Energiequellen' : 'Energieverbraucher';
   const icon = chartType === 'positive' ? '⚡' : '🔋';
 
@@ -70,24 +68,7 @@ export function EnergyChart({ chartType, className, onActivityClick }: EnergyCha
       </div>
 
       <div className="relative" style={{ width: chartSize, height: chartSize }}>
-        <Doughnut ref={chartRef} data={chartData} options={options} />
-
-        {/* Center content */}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            {isEmpty ? (
-              <div className="text-gray-400">
-                <div className="mb-1 text-2xl">➕</div>
-                <div className="text-xs">Aktivität hinzufügen</div>
-              </div>
-            ) : (
-              <div className="text-gray-700">
-                <div className="text-lg font-semibold">{activities.reduce((sum, a) => sum + a.value, 0)}</div>
-                <div className="text-xs">Gesamt</div>
-              </div>
-            )}
-          </div>
-        </div>
+        <Pie ref={chartRef} data={chartData} options={options} />
       </div>
     </div>
   );
