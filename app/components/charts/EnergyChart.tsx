@@ -67,11 +67,6 @@ export function EnergyChart({ chartType, className, onActivityClick }: EnergyCha
           <span className="text-2xl">{icon}</span>
           {title}
         </h2>
-        {!isEmpty && (
-          <p className="mt-1 text-sm text-gray-500">
-            {activities.length} Aktivität{activities.length !== 1 ? 'en' : ''}
-          </p>
-        )}
       </div>
 
       <div className="relative" style={{ width: chartSize, height: chartSize }}>

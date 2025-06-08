@@ -48,7 +48,10 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
   return (
     <div className={className} data-testid={`activity-list-${chartType}`}>
       <div className="mb-4">
-        <h3 className="mb-3 text-lg font-medium text-gray-900">Aktivitäten</h3>
+        <h3 className="mb-3 text-lg font-medium text-gray-900">
+          Aktivitäten
+          {activities.length > 0 && <span className="ml-2 text-sm font-normal text-gray-500">({activities.length})</span>}
+        </h3>
         <AddActivity chartType={chartType} />
       </div>
 
