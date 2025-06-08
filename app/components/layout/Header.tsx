@@ -4,6 +4,7 @@ import { Button } from '@/app/components/ui/Button';
 import { useUI } from '@/app/lib/contexts/UIContext';
 import { ArrowUpTrayIcon, ShareIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export function Header() {
   const { openShareModal, openImportExportModal } = useUI();
@@ -13,10 +14,10 @@ export function Header() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo/Title */}
-          <div className="flex items-center space-x-3" data-testid="logo">
+          <Link href="/" className="flex items-center space-x-3" data-testid="logo">
             <Image src="/logo-32@2x.png" alt="Energiekuchen Logo" width={32} height={32} className="h-8 w-8" />
             <h1 className="text-xl font-bold text-gray-900">Energiekuchen</h1>
-          </div>
+          </Link>
 
           {/* Navigation */}
           <nav className="flex items-center space-x-1 sm:space-x-2" data-testid="navigation">
