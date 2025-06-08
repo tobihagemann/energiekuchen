@@ -3,6 +3,7 @@
 import { ChartLegend } from '@/app/components/charts/ChartLegend';
 import { SharingManager } from '@/app/lib/utils/sharing';
 import { EnergyKuchen } from '@/app/types';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -60,7 +61,7 @@ export default function SharedEnergyChart() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="text-2xl">🥧</div>
+              <Image src="/logo-32@2x.png" alt="Energiekuchen Logo" width={32} height={32} className="h-8 w-8" />
               <h1 className="text-xl font-bold text-gray-900">Geteilter Energiekuchen</h1>
             </div>
             <Link
@@ -130,7 +131,9 @@ export default function SharedEnergyChart() {
           {/* Call to Action */}
           <div className="mt-8 rounded-lg border border-yellow-200 bg-yellow-50 p-6">
             <div className="text-center">
-              <div className="mb-4 text-4xl">🥧</div>
+              <div className="mb-4 flex justify-center">
+                <Image src="/logo-32@2x.png" alt="Energiekuchen Logo" width={32} height={32} />
+              </div>
               <h3 className="mb-2 text-lg font-medium text-yellow-800">Gefällt dir dieser Energiekuchen?</h3>
               <p className="mb-4 text-yellow-700">Erstelle deinen eigenen Energiekuchen und teile ihn mit anderen!</p>
               <Link
