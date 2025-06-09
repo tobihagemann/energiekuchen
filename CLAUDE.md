@@ -80,15 +80,15 @@ The app uses two main contexts:
 interface Activity {
   id: string;
   name: string; // 1-50 chars, German characters
-  value: number; // 1-100 integer
-  color: string; // Hex color
+  value: number; // 1-9 energy level
+  color: string; // oklch color
 }
 ```
 
 ### Validation Rules
 
 - Maximum 20 activities per chart (positive/negative)
-- Activity values must be integers 1-100
+- Activity values must be integers 1-9 (energy levels)
 - URL sharing limited to 2048 characters
 - All user-facing text must be in German
 
@@ -130,3 +130,6 @@ When fixing bugs:
 - Check if it's a business logic issue (add unit test)
 - Check if it's a UI issue (add E2E test)
 - Run `npm run test:all` before committing
+
+## Development Warnings
+- Do not run `npm run dev`, use tests to verify results
