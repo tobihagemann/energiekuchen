@@ -1,3 +1,6 @@
+# Tailwind CSS 4 - Default Color Palette Reference
+
+```css
 @theme {
   --color-red-50: oklch(0.971 0.013 17.38);
   --color-red-100: oklch(0.936 0.032 17.717);
@@ -244,3 +247,4 @@
   --color-black: #000;
   --color-white: #fff;
 }
+```
