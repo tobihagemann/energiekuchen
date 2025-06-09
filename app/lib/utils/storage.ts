@@ -1,5 +1,6 @@
 import { EnergyKuchen } from '@/app/types';
 import { STORAGE_KEY } from './constants';
+import { validateActivityValue } from './validation';
 
 export class StorageManager {
   static save(data: EnergyKuchen): void {
@@ -101,6 +102,13 @@ export function importData(jsonString: string): EnergyKuchen {
           if (activity.value === undefined || typeof activity.value !== 'number') {
             throw new Error('Aktivität muss ein Energieniveau haben');
           }
+
+          // Validate that value is within the allowed range
+          const valueValidation = validateActivityValue(activity.value);
+          if (!valueValidation.isValid) {
+            throw new Error(valueValidation.errors[0]);
+          }
+
           return true;
         });
     };
@@ -131,7 +139,7 @@ export function importData(jsonString: string): EnergyKuchen {
     return result;
   } catch (error) {
     console.error('Failed to import data:', error);
-    if (error instanceof Error && error.message.includes('Aktivität')) {
+    if (error instanceof Error && (error.message.includes('Aktivität') || error.message.includes('Energieniveau'))) {
       throw error; // Re-throw validation errors with specific messages
     }
     throw new Error('Ungültige Datei oder Datenformat');

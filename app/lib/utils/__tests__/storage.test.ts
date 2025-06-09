@@ -356,4 +356,121 @@ describe('StorageManager', () => {
     expect(result.positive.size).toBe('medium');
     expect(result.negative.size).toBe('medium');
   });
+
+  test('should reject activity with value too low (0)', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const dataWithInvalidValue = {
+      version: '1.0',
+      positive: {
+        activities: [
+          {
+            id: '1',
+            name: 'Test Activity',
+            value: 0, // Invalid: below minimum
+          },
+        ],
+      },
+    };
+
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidValue))).toThrow('Energieniveau muss zwischen 1 und 9 liegen');
+
+    console.error = originalError;
+  });
+
+  test('should reject activity with value too high (10)', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const dataWithInvalidValue = {
+      version: '1.0',
+      negative: {
+        activities: [
+          {
+            id: '1',
+            name: 'Test Activity',
+            value: 10, // Invalid: above maximum
+          },
+        ],
+      },
+    };
+
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidValue))).toThrow('Energieniveau muss zwischen 1 und 9 liegen');
+
+    console.error = originalError;
+  });
+
+  test('should reject activity with negative value', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const dataWithNegativeValue = {
+      version: '1.0',
+      positive: {
+        activities: [
+          {
+            id: '1',
+            name: 'Test Activity',
+            value: -5, // Invalid: negative value
+          },
+        ],
+      },
+    };
+
+    expect(() => StorageManager.import(JSON.stringify(dataWithNegativeValue))).toThrow('Energieniveau muss zwischen 1 und 9 liegen');
+
+    console.error = originalError;
+  });
+
+  test('should reject activity with non-integer value', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const dataWithFloatValue = {
+      version: '1.0',
+      positive: {
+        activities: [
+          {
+            id: '1',
+            name: 'Test Activity',
+            value: 5.5, // Invalid: not an integer
+          },
+        ],
+      },
+    };
+
+    expect(() => StorageManager.import(JSON.stringify(dataWithFloatValue))).toThrow('Energieniveau muss eine ganze Zahl sein');
+
+    console.error = originalError;
+  });
+
+  test('should accept valid activities with values 1-9', () => {
+    const validData = {
+      version: '1.0',
+      positive: {
+        activities: [
+          { id: '1', name: 'Activity 1', value: 1 },
+          { id: '2', name: 'Activity 2', value: 5 },
+          { id: '3', name: 'Activity 3', value: 9 },
+        ],
+      },
+      negative: {
+        activities: [
+          { id: '4', name: 'Activity 4', value: 3 },
+          { id: '5', name: 'Activity 5', value: 7 },
+        ],
+      },
+    };
+
+    const result = StorageManager.import(JSON.stringify(validData));
+    expect(result.positive.activities).toHaveLength(3);
+    expect(result.negative.activities).toHaveLength(2);
+    expect(result.positive.activities[0].value).toBe(1);
+    expect(result.positive.activities[2].value).toBe(9);
+  });
 });

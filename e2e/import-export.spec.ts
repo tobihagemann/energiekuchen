@@ -290,6 +290,34 @@ test.describe('Import/Export Functionality', () => {
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Imported Activity');
   });
 
+  test('should reject import data with invalid energy values', async ({ page }) => {
+    // Open import modal
+    await openImportModal(page);
+
+    // Try to import JSON with invalid energy values
+    const invalidData = {
+      positive: {
+        activities: [
+          { id: '1', name: 'Too Low', value: 0 }, // Invalid: below minimum
+          { id: '2', name: 'Too High', value: 10 }, // Invalid: above maximum
+          { id: '3', name: 'Negative', value: -5 }, // Invalid: negative value
+          { id: '4', name: 'Decimal', value: 5.5 }, // Invalid: not an integer
+        ],
+      },
+    };
+
+    const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
+
+    if (await textArea.isVisible()) {
+      await textArea.fill(JSON.stringify(invalidData));
+      await page.locator('[data-testid="import-submit"]').click();
+
+      // Should show validation error about energy level
+      await expect(page.locator('[data-testid="import-error"]')).toBeVisible();
+      await expect(page.locator('[data-testid="import-error"]')).toContainText(/Energieniveau|zwischen 1 und 9|ganze Zahl/i);
+    }
+  });
+
   test('should replace existing data when importing with replace option', async ({ page }) => {
     // Add existing data using the new inline form
     await page.locator('[data-testid="quick-add-input-positive"]').fill('Old Activity');
