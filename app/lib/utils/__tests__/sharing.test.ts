@@ -36,11 +36,31 @@ describe('SharingManager', () => {
     const decoded = SharingManager.decodeShareData(shareData.encoded);
 
     // Compare essential data without timestamps (since decoding adds new timestamps)
-    expect(decoded.positive.activities.map(a => ({ ...a, createdAt: undefined, updatedAt: undefined }))).toEqual(
-      mockData.positive.activities.map(a => ({ ...a, createdAt: undefined, updatedAt: undefined }))
+    expect(
+      decoded.positive.activities.map(a => ({
+        id: a.id,
+        name: a.name,
+        value: a.value,
+      }))
+    ).toEqual(
+      mockData.positive.activities.map(a => ({
+        id: a.id,
+        name: a.name,
+        value: a.value,
+      }))
     );
-    expect(decoded.negative.activities.map(a => ({ ...a, createdAt: undefined, updatedAt: undefined }))).toEqual(
-      mockData.negative.activities.map(a => ({ ...a, createdAt: undefined, updatedAt: undefined }))
+    expect(
+      decoded.negative.activities.map(a => ({
+        id: a.id,
+        name: a.name,
+        value: a.value,
+      }))
+    ).toEqual(
+      mockData.negative.activities.map(a => ({
+        id: a.id,
+        name: a.name,
+        value: a.value,
+      }))
     );
     expect(shareData.url).toContain('http://localhost');
   });
@@ -104,7 +124,6 @@ describe('SharingManager', () => {
           id: a.id,
           name: a.name,
           value: a.value,
-          color: a.color,
         })),
         size: mockData.positive.size,
       },
@@ -113,7 +132,6 @@ describe('SharingManager', () => {
           id: a.id,
           name: a.name,
           value: a.value,
-          color: a.color,
         })),
         size: mockData.negative.size,
       },

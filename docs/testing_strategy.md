@@ -180,8 +180,7 @@ describe('Activity Validation', () => {
   test('should validate correct activity', () => {
     const result = validateActivity({
       name: 'Sport',
-      value: 50,
-      color: '#10B981',
+      value: 5,
     });
     expect(result.isValid).toBe(true);
     expect(result.errors).toHaveLength(0);
@@ -194,9 +193,9 @@ describe('Activity Validation', () => {
   });
 
   test('should reject invalid activity value', () => {
-    const result = validateActivityValue(101);
+    const result = validateActivityValue(10);
     expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Wert muss zwischen 1 und 100 liegen');
+    expect(result.errors[0]).toContain('Wert muss zwischen 1 und 9 liegen');
   });
 });
 ```
@@ -275,8 +274,7 @@ describe('ActivityForm', () => {
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledWith({
         name: 'Sport',
-        value: expect.any(Number),
-        color: expect.any(String)
+        value: expect.any(Number)
       })
     })
   })
@@ -312,8 +310,7 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('positive', {
         name: 'Sport',
-        value: 50,
-        color: '#10B981'
+        value: 5
       })
     })
 
@@ -327,8 +324,7 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('positive', {
         name: 'Sport',
-        value: 50,
-        color: '#10B981'
+        value: 5
       })
     })
 
@@ -353,8 +349,7 @@ export function createMockActivity(overrides?: Partial<Activity>): Activity {
   return {
     id: uuidv4(),
     name: 'Test Activity',
-    value: 50,
-    color: '#10B981',
+    value: 5,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...overrides,
@@ -370,13 +365,13 @@ export function createMockEnergyKuchen(options?: { activitiesCount?: number }): 
     positive: {
       id: uuidv4(),
       type: 'positive',
-      activities: Array.from({ length: activitiesCount }, (_, i) => createMockActivity({ name: `Positive Activity ${i + 1}` })),
+      activities: Array.from({ length: activitiesCount }, (_, i) => createMockActivity({ name: `Positive Activity ${i + 1}`, value: Math.floor(Math.random() * 9) + 1 })),
       size: 'medium',
     },
     negative: {
       id: uuidv4(),
       type: 'negative',
-      activities: Array.from({ length: activitiesCount }, (_, i) => createMockActivity({ name: `Negative Activity ${i + 1}`, color: '#EF4444' })),
+      activities: Array.from({ length: activitiesCount }, (_, i) => createMockActivity({ name: `Negative Activity ${i + 1}`, value: Math.floor(Math.random() * 9) + 1 })),
       size: 'medium',
     },
   };
@@ -399,7 +394,7 @@ test.describe('Activity Management', () => {
     // Add positive activity
     await page.click('[data-testid="add-positive-activity"]');
     await page.fill('[data-testid="activity-name"]', 'Sport');
-    await page.fill('[data-testid="activity-value"]', '75');
+    await page.fill('[data-testid="activity-value"]', '7');
     await page.click('[data-testid="submit-activity"]');
 
     // Verify activity appears in chart

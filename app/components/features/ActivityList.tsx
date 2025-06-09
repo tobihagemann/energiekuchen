@@ -5,6 +5,7 @@ import { AddActivity } from '@/app/components/features/AddActivity';
 import { Button } from '@/app/components/ui/Button';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
+import { getColorForLevel } from '@/app/lib/utils/constants';
 import { Activity } from '@/app/types';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
@@ -76,7 +77,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
                 className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-50"
                 data-testid={`activity-item-${activity.id}`}>
                 <div className="flex min-w-0 flex-1 items-center space-x-3" data-testid="activity-item">
-                  <div className="h-4 w-4 flex-shrink-0 rounded-full" style={{ backgroundColor: activity.color }} />
+                  <div className="h-4 w-4 flex-shrink-0 rounded-full" style={{ backgroundColor: getColorForLevel(activity.value, chartType) }} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium text-gray-900" data-testid={`activity-name-${activity.id}`}>
                       {activity.name}

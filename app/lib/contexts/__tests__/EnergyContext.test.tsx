@@ -30,8 +30,7 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('positive', {
         name: 'Sport',
-        value: 50,
-        color: '#10B981',
+        value: 5,
       });
     });
 
@@ -45,8 +44,7 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('negative', {
         name: 'Stress',
-        value: 30,
-        color: '#EF4444',
+        value: 3,
       });
     });
 
@@ -60,8 +58,7 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('positive', {
         name: 'Sport',
-        value: 50,
-        color: '#10B981',
+        value: 5,
       });
     });
 
@@ -80,8 +77,7 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('positive', {
         name: 'Sport',
-        value: 50,
-        color: '#10B981',
+        value: 5,
       });
     });
 
@@ -100,16 +96,14 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('positive', {
         name: 'Sport',
-        value: 50,
-        color: '#10B981',
+        value: 5,
       });
     });
 
     act(() => {
       result.current.addActivity('positive', {
         name: 'Lesen',
-        value: 30,
-        color: '#34D399',
+        value: 3,
       });
     });
 
@@ -140,8 +134,7 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('positive', {
         name: 'Sport',
-        value: 50,
-        color: '#10B981',
+        value: 5,
       });
     });
 
@@ -214,13 +207,11 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('positive', {
         name: 'Sport',
-        value: 50,
-        color: '#10B981',
+        value: 5,
       });
       result.current.addActivity('negative', {
         name: 'Stress',
-        value: 30,
-        color: '#EF4444',
+        value: 3,
       });
     });
 
@@ -242,8 +233,7 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('invalid' as 'positive', {
         name: 'Test',
-        value: 50,
-        color: '#10B981',
+        value: 5,
       });
     });
 
@@ -325,7 +315,7 @@ describe('EnergyContext', () => {
 
     // Add one activity
     act(() => {
-      result.current.addActivity('positive', { name: 'Test', value: 50, color: '#10B981' });
+      result.current.addActivity('positive', { name: 'Test', value: 5 });
     });
 
     // Try to reorder with invalid indices - should not crash
@@ -343,8 +333,7 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('positive', {
         name: 'Sport',
-        value: 50,
-        color: '#10B981',
+        value: 5,
       });
     });
 
@@ -465,8 +454,7 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('positive', {
         name: 'Existing Activity',
-        value: 30,
-        color: '#10B981',
+        value: 3,
       });
     });
 
@@ -507,13 +495,11 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('positive', {
         name: 'Activity 1',
-        value: 30,
-        color: '#10B981',
+        value: 3,
       });
       result.current.addActivity('negative', {
         name: 'Activity 2',
-        value: 20,
-        color: '#EF4444',
+        value: 2,
       });
     });
 
@@ -534,8 +520,8 @@ describe('EnergyContext', () => {
 
     // Add some initial activities
     act(() => {
-      result.current.addActivity('positive', { name: 'Existing Positive', value: 30, color: '#10B981' });
-      result.current.addActivity('negative', { name: 'Existing Negative', value: 40, color: '#EF4444' });
+      result.current.addActivity('positive', { name: 'Existing Positive', value: 3 });
+      result.current.addActivity('negative', { name: 'Existing Negative', value: 4 });
     });
 
     const importData = {
@@ -544,17 +530,13 @@ describe('EnergyContext', () => {
       positive: {
         id: 'positive',
         type: 'positive' as const,
-        activities: [
-          { id: '1', name: 'Imported Positive', value: 50, color: '#10B981', createdAt: '2023-01-01T00:00:00.000Z', updatedAt: '2023-01-01T00:00:00.000Z' },
-        ],
+        activities: [{ id: '1', name: 'Imported Positive', value: 5, createdAt: '2023-01-01T00:00:00.000Z', updatedAt: '2023-01-01T00:00:00.000Z' }],
         size: 'medium' as const,
       },
       negative: {
         id: 'negative',
         type: 'negative' as const,
-        activities: [
-          { id: '2', name: 'Imported Negative', value: 60, color: '#EF4444', createdAt: '2023-01-01T00:00:00.000Z', updatedAt: '2023-01-01T00:00:00.000Z' },
-        ],
+        activities: [{ id: '2', name: 'Imported Negative', value: 6, createdAt: '2023-01-01T00:00:00.000Z', updatedAt: '2023-01-01T00:00:00.000Z' }],
         size: 'medium' as const,
       },
     };
@@ -579,7 +561,7 @@ describe('EnergyContext', () => {
 
     // Add some initial activities
     act(() => {
-      result.current.addActivity('positive', { name: 'Existing Positive', value: 30, color: '#10B981' });
+      result.current.addActivity('positive', { name: 'Existing Positive', value: 3 });
     });
 
     const importData = {
@@ -588,9 +570,7 @@ describe('EnergyContext', () => {
       positive: {
         id: 'positive',
         type: 'positive' as const,
-        activities: [
-          { id: '1', name: 'Imported Positive', value: 50, color: '#10B981', createdAt: '2023-01-01T00:00:00.000Z', updatedAt: '2023-01-01T00:00:00.000Z' },
-        ],
+        activities: [{ id: '1', name: 'Imported Positive', value: 5, createdAt: '2023-01-01T00:00:00.000Z', updatedAt: '2023-01-01T00:00:00.000Z' }],
         size: 'medium' as const,
       },
       negative: {
@@ -619,7 +599,7 @@ describe('EnergyContext', () => {
 
     // Add some activities first
     act(() => {
-      result.current.addActivity('positive', { name: 'Test Activity', value: 50, color: '#10B981' });
+      result.current.addActivity('positive', { name: 'Test Activity', value: 5 });
     });
 
     expect(result.current.state.data.positive.activities).toHaveLength(1);

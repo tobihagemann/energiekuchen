@@ -37,7 +37,7 @@ Energiekuchen is a client-side web application that helps German-speaking users 
 - **Icons:** Heroicons for consistent iconography
 - **Notifications:** react-hot-toast for user feedback
 - **QR Code Generation:** qrcode library
-- **Color Management:** react-colorful for color selection
+- **Color Management:** Dynamic color assignment based on energy level and chart type
 
 ## 2. System Architecture
 
@@ -127,7 +127,6 @@ flowchart TD
 │   │   ├── Input.tsx
 │   │   ├── Modal.tsx
 │   │   ├── Slider.tsx
-│   │   ├── ColorPicker.tsx
 │   │   └── Toast.tsx
 │   ├── charts/           # Chart components
 │   │   ├── EnergyChart.tsx
@@ -185,7 +184,6 @@ graph TD
     A --> M[ImportExportModal]
 
     I --> P[Input Components]
-    I --> Q[ColorPicker]
     I --> R[Slider]
     I --> S[Button]
 
@@ -240,7 +238,6 @@ erDiagram
         string id
         string name
         number value
-        string color
         string createdAt
         string updatedAt
     }
@@ -254,8 +251,7 @@ erDiagram
 export interface Activity {
   id: string;
   name: string;
-  value: number; // 1-100
-  color: string;
+  value: number; // 1-9 (energy level)
   createdAt: string;
   updatedAt: string;
 }
@@ -291,8 +287,7 @@ The application implements comprehensive input validation to ensure data integri
 **Activity Validation Rules:**
 
 - **Name**: 1-50 characters, supporting German characters, numbers, spaces, and basic punctuation
-- **Value**: Integer between 1-100 representing energy intensity
-- **Color**: Valid hex color code (3 or 6 digits)
+- **Value**: Integer between 1-9 representing energy level
 
 **Chart Validation Rules:**
 
@@ -595,8 +590,8 @@ export interface ActivityFormProps {
 }
 
 // State Management: Local form state with validation
-// Dependencies: react-colorful, validation utilities
-// Features: Real-time validation, color picker, energy slider
+// Dependencies: validation utilities
+// Features: Real-time validation, energy level slider
 ```
 
 #### 5.2.3 ActivityList Component
@@ -621,7 +616,7 @@ export interface ActivityListProps {
 export function useChartData(activities: Activity[], chartType: 'positive' | 'negative', size: ChartSize) {
   // Returns: { data, options, isEmpty }
   // Optimization: Memoized data transformation
-  // Features: Responsive sizing, color management, accessibility labels
+  // Features: Responsive sizing, dynamic color assignment, accessibility labels
 }
 ```
 
@@ -1240,7 +1235,6 @@ The application is designed to meet specific performance targets:
     "tailwindcss": "^4.1.7",
     "@heroicons/react": "^2.2.0",
     "react-hot-toast": "^2.5.2",
-    "react-colorful": "^5.6.1",
     "qrcode": "^1.5.4",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.3.0",

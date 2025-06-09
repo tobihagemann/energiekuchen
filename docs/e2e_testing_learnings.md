@@ -170,7 +170,7 @@ const slider = page.locator('[data-testid="activity-value-slider"]');
 
 // ✅ Correct: Centralized helper functions with robust error handling
 // In shared test utilities or each file:
-async function setSliderValue(page: Page, testId: string, value: number, min = 1, max = 100) {
+async function setSliderValue(page: Page, testId: string, value: number, min = 1, max = 9) {
   const slider = page.locator(`[data-testid="${testId}"]`);
   await expect(slider).toBeVisible();
 
@@ -335,7 +335,7 @@ async function setCustomSliderValue(page: Page, testId: string, value: number) {
 
   // Custom slider uses click position to set value
   const bounds = await slider.boundingBox();
-  const percentage = value / 100; // Adjust based on component's range
+  const percentage = (value - 1) / 8; // Adjust based on component's range (1-9)
   const targetX = bounds.x + bounds.width * percentage;
   const targetY = bounds.y + bounds.height / 2;
 
@@ -382,8 +382,8 @@ test('should create activity with specific value', async ({ page }) => {
 // ✅ Correct: Platform-aware test expectations
 test('should create activity with target value', async ({ page, browserName }) => {
   const isMobile = await page.evaluate(() => window.innerWidth < 768);
-  // Mobile Chrome reliably achieves values around 10, desktop can handle higher precision
-  const targetValue = browserName === 'chromium' && isMobile ? 10 : 40;
+  // Mobile Chrome reliably achieves values around 1, desktop can handle higher precision
+  const targetValue = browserName === 'chromium' && isMobile ? 1 : 4;
 
   await setSliderValue(page, 'slider', targetValue);
   await expect(page.locator('[data-testid="value-display"]')).toContainText(targetValue.toString());
@@ -395,7 +395,7 @@ test('should create activity with target value', async ({ page, browserName }) =
 // ✅ Correct: Handle zero balance edge cases in calculations
 test('should handle balanced energy calculations', async ({ page, browserName }) => {
   const isMobile = await page.evaluate(() => window.innerWidth < 768);
-  const value = browserName === 'chromium' && isMobile ? 10 : 20;
+  const value = browserName === 'chromium' && isMobile ? 1 : 2;
 
   // Add equal positive and negative activities
   await addActivity(page, 'positive', value);
@@ -565,7 +565,7 @@ This application successfully demonstrates a complementary testing approach:
 10. **Test Order Dependencies**: Ensure tests can run independently
 11. **Blocking Test Reports**: Use `--reporter=line` during development to avoid manual intervention
 12. **Simple Browser Debugging Limitations**: Use external browsers for full debugging capabilities
-13. **Mobile Chrome Slider Precision**: Use values ≤10 for reliable Mobile Chrome slider interactions
+13. **Mobile Chrome Slider Precision**: Use lower values (1-2) for reliable Mobile Chrome slider interactions
 14. **Zero Balance Display Logic**: Handle cases where positive and negative values are equal
 15. **Mobile Accessibility Assumptions**: Don't assume keyboard navigation works on touch devices
 
@@ -575,8 +575,8 @@ This application successfully demonstrates a complementary testing approach:
 
 1. **Slider Value Mismatch**
 
-   - **Symptom**: Test expects value 20, gets value 10 on Mobile Chrome
-   - **Solution**: Use `browserName === 'chromium' && isMobile ? 10 : 20` pattern
+   - **Symptom**: Test expects value 2, gets value 1 on Mobile Chrome
+   - **Solution**: Use `browserName === 'chromium' && isMobile ? 1 : 2` pattern
    - **Root Cause**: Touch interaction precision vs mouse click precision
 
 2. **Modal Width Assertions Failing**
@@ -619,7 +619,7 @@ E2E testing for React SPAs with Playwright requires understanding asynchronous s
 
 2. **Mobile Chrome has fundamentally different interaction characteristics** - Slider precision, touch vs mouse events, and viewport scaling require platform-specific test adaptations, not just responsive design considerations.
 
-3. **Platform-aware testing is not optional** - Use the `browserName + window.innerWidth` detection pattern consistently. Mobile Chrome reliably achieves values around 10 for sliders, while desktop can handle higher precision values.
+3. **Platform-aware testing is not optional** - Use the `browserName + window.innerWidth` detection pattern consistently. Mobile Chrome reliably achieves lower values for sliders, while desktop can handle higher precision values.
 
 4. **Accessibility testing requires platform-specific approaches** - Keyboard navigation works on desktop but not reliably on mobile touch devices. Test both interaction methods based on platform capabilities.
 

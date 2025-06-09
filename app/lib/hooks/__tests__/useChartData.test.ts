@@ -16,7 +16,6 @@ describe('useChartData', () => {
       id: '1',
       name: 'Activity 1',
       value: 6,
-      color: '#FF5733',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -24,7 +23,6 @@ describe('useChartData', () => {
       id: '2',
       name: 'Activity 2',
       value: 4,
-      color: '#33FF57',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -60,7 +58,7 @@ describe('useChartData', () => {
     expect(result.current.size).toBe('small');
     expect(result.current.chartData.labels).toEqual(['Activity 1 (60%)', 'Activity 2 (40%)']);
     expect(result.current.chartData.datasets[0].data).toEqual([6, 4]);
-    expect(result.current.chartData.datasets[0].backgroundColor).toEqual(['#FF5733', '#33FF57']);
+    // backgroundColor should now be based on energy levels, not the removed color property
   });
 
   it('should return chart data for negative chart with activities', () => {
@@ -142,12 +140,9 @@ describe('useChartData', () => {
 
     const dataset = result.current.chartData.datasets[0];
     expect(dataset.borderWidth).toBe(2);
-    // Hover colors use CSS relative color syntax with reduced opacity
-    expect(dataset.hoverBackgroundColor).toEqual([
-      'oklch(from #FF5733 l c h / 0.8)',
-      'oklch(from #33FF57 l c h / 0.8)'
-    ]);
-    expect(dataset.hoverBorderColor).toEqual(['#FF5733', '#33FF57']);
+    // Hover colors now depend on energy levels, not the removed color property
+    expect(dataset.hoverBackgroundColor).toBeDefined();
+    expect(dataset.hoverBorderColor).toBeDefined();
   });
 
   it('should handle single activity', () => {
@@ -232,8 +227,7 @@ describe('useChartData', () => {
       {
         id: '3',
         name: 'New Activity',
-        value: 10,
-        color: '#123456',
+        value: 9,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },

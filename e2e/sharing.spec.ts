@@ -333,7 +333,7 @@ test.describe('Sharing Functionality', () => {
     // (In a real test, you might create this by getting it from the share modal)
     const mockShareData = btoa(
       JSON.stringify({
-        positive: { activities: [{ id: '1', name: 'Shared Activity', value: 25, color: '#10b981' }] },
+        positive: { activities: [{ id: '1', name: 'Shared Activity', value: 3, color: '#10b981' }] },
         negative: { activities: [] },
       })
     );

@@ -20,6 +20,24 @@ export class StorageManager {
       }
 
       const parsed = JSON.parse(serialized) as EnergyKuchen;
+
+      // Migration: Remove color property from activities if it exists
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const migrateActivities = (activities: any[]): any[] => {
+        return activities.map(activity => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { color, ...rest } = activity;
+          return rest;
+        });
+      };
+
+      if (parsed.positive?.activities) {
+        parsed.positive.activities = migrateActivities(parsed.positive.activities);
+      }
+      if (parsed.negative?.activities) {
+        parsed.negative.activities = migrateActivities(parsed.negative.activities);
+      }
+
       return parsed;
     } catch (error) {
       console.error('Failed to load data from localStorage:', error);
@@ -67,16 +85,24 @@ export function importData(jsonString: string): EnergyKuchen {
     const validateActivities = (activities: any[]): any[] => {
       if (!Array.isArray(activities)) return [];
 
-      return activities.filter(activity => {
-        // Check required fields
-        if (!activity.name || typeof activity.name !== 'string') {
-          throw new Error('Aktivität muss einen Namen haben');
-        }
-        if (activity.value === undefined || typeof activity.value !== 'number') {
-          throw new Error('Aktivität muss ein Energieniveau haben');
-        }
-        return true;
-      });
+      return activities
+        .map(activity => {
+          // Migration: Remove color property if it exists
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { color, ...activityWithoutColor } = activity;
+
+          return activityWithoutColor;
+        })
+        .filter(activity => {
+          // Check required fields
+          if (!activity.name || typeof activity.name !== 'string') {
+            throw new Error('Aktivität muss einen Namen haben');
+          }
+          if (activity.value === undefined || typeof activity.value !== 'number') {
+            throw new Error('Aktivität muss ein Energieniveau haben');
+          }
+          return true;
+        });
     };
 
     // Validate and process activities

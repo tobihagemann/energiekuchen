@@ -206,8 +206,7 @@ describe('StorageManager', () => {
           {
             id: '1',
             name: '', // Invalid: empty name
-            value: 50,
-            color: '#10B981',
+            value: 5,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           },
@@ -243,7 +242,6 @@ describe('StorageManager', () => {
             id: '1',
             name: 'Test Activity',
             // value missing - this should trigger the validation error
-            color: '#10B981',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           },
@@ -278,8 +276,7 @@ describe('StorageManager', () => {
           {
             id: '1',
             name: 123, // Invalid: name should be string
-            value: 50,
-            color: '#10B981',
+            value: 5,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           },
@@ -315,7 +312,6 @@ describe('StorageManager', () => {
             id: '1',
             name: 'Test Activity',
             value: 'invalid', // Invalid: value should be number
-            color: '#10B981',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           },

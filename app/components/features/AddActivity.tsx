@@ -3,7 +3,7 @@
 import { Button } from '@/app/components/ui/Button';
 import { Input } from '@/app/components/ui/Input';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
-import { CHART_DEFAULTS, getColorForLevel } from '@/app/lib/utils/constants';
+import { CHART_DEFAULTS } from '@/app/lib/utils/constants';
 import { validateActivity } from '@/app/lib/utils/validation';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
@@ -29,7 +29,6 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
     const newActivity = {
       name: name.trim(),
       value: CHART_DEFAULTS.defaultLevel,
-      color: getColorForLevel(CHART_DEFAULTS.defaultLevel, chartType),
     };
 
     const validation = validateActivity(newActivity);

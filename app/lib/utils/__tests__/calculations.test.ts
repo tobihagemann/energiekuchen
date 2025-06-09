@@ -6,13 +6,13 @@ describe('calculations utilities', () => {
   describe('calculateTotalEnergy', () => {
     it('calculates total energy for activities', () => {
       const activities: Activity[] = [
-        createMockActivity({ name: 'Running', value: 80 }),
-        createMockActivity({ name: 'Reading', value: 60 }),
-        createMockActivity({ name: 'Music', value: 70 }),
+        createMockActivity({ name: 'Running', value: 8 }),
+        createMockActivity({ name: 'Reading', value: 6 }),
+        createMockActivity({ name: 'Music', value: 7 }),
       ];
 
       const total = calculateTotalEnergy(activities);
-      expect(total).toBe(210);
+      expect(total).toBe(21);
     });
 
     it('returns 0 for empty activities array', () => {
@@ -21,24 +21,24 @@ describe('calculations utilities', () => {
     });
 
     it('handles activities with zero values', () => {
-      const activities: Activity[] = [createMockActivity({ name: 'Test', value: 0 }), createMockActivity({ name: 'Test2', value: 50 })];
+      const activities: Activity[] = [createMockActivity({ name: 'Test', value: 0 }), createMockActivity({ name: 'Test2', value: 5 })];
 
       const total = calculateTotalEnergy(activities);
-      expect(total).toBe(50);
+      expect(total).toBe(5);
     });
 
     it('handles negative values', () => {
-      const activities: Activity[] = [createMockActivity({ name: 'Test', value: -20 }), createMockActivity({ name: 'Test2', value: 50 })];
+      const activities: Activity[] = [createMockActivity({ name: 'Test', value: -2 }), createMockActivity({ name: 'Test2', value: 5 })];
 
       const total = calculateTotalEnergy(activities);
-      expect(total).toBe(30);
+      expect(total).toBe(3);
     });
 
     it('handles decimal values', () => {
-      const activities: Activity[] = [createMockActivity({ name: 'Test', value: 10.5 }), createMockActivity({ name: 'Test2', value: 20.7 })];
+      const activities: Activity[] = [createMockActivity({ name: 'Test', value: 1.5 }), createMockActivity({ name: 'Test2', value: 2.7 })];
 
       const total = calculateTotalEnergy(activities);
-      expect(total).toBe(31.2);
+      expect(total).toBe(4.2);
     });
   });
 
@@ -149,17 +149,17 @@ describe('calculations utilities', () => {
 
   describe('sortActivitiesByValue', () => {
     const activities: Activity[] = [
-      createMockActivity({ name: 'Low', value: 30 }),
-      createMockActivity({ name: 'High', value: 90 }),
-      createMockActivity({ name: 'Medium', value: 60 }),
+      createMockActivity({ name: 'Low', value: 3 }),
+      createMockActivity({ name: 'High', value: 9 }),
+      createMockActivity({ name: 'Medium', value: 6 }),
     ];
 
     it('sorts activities in descending order by default', () => {
       const sorted = sortActivitiesByValue(activities);
 
-      expect(sorted[0].value).toBe(90);
-      expect(sorted[1].value).toBe(60);
-      expect(sorted[2].value).toBe(30);
+      expect(sorted[0].value).toBe(9);
+      expect(sorted[1].value).toBe(6);
+      expect(sorted[2].value).toBe(3);
       expect(sorted[0].name).toBe('High');
       expect(sorted[1].name).toBe('Medium');
       expect(sorted[2].name).toBe('Low');
@@ -168,9 +168,9 @@ describe('calculations utilities', () => {
     it('sorts activities in ascending order when specified', () => {
       const sorted = sortActivitiesByValue(activities, false);
 
-      expect(sorted[0].value).toBe(30);
-      expect(sorted[1].value).toBe(60);
-      expect(sorted[2].value).toBe(90);
+      expect(sorted[0].value).toBe(3);
+      expect(sorted[1].value).toBe(6);
+      expect(sorted[2].value).toBe(9);
       expect(sorted[0].name).toBe('Low');
       expect(sorted[1].name).toBe('Medium');
       expect(sorted[2].name).toBe('High');
@@ -189,7 +189,7 @@ describe('calculations utilities', () => {
     });
 
     it('handles single activity', () => {
-      const singleActivity: Activity[] = [createMockActivity({ name: 'Solo', value: 50 })];
+      const singleActivity: Activity[] = [createMockActivity({ name: 'Solo', value: 5 })];
 
       const sorted = sortActivitiesByValue(singleActivity);
       expect(sorted).toEqual(singleActivity);
@@ -197,27 +197,27 @@ describe('calculations utilities', () => {
 
     it('handles activities with equal values', () => {
       const equalValues: Activity[] = [
-        createMockActivity({ name: 'A', value: 50 }),
-        createMockActivity({ name: 'B', value: 50 }),
-        createMockActivity({ name: 'C', value: 50 }),
+        createMockActivity({ name: 'A', value: 5 }),
+        createMockActivity({ name: 'B', value: 5 }),
+        createMockActivity({ name: 'C', value: 5 }),
       ];
 
       const sorted = sortActivitiesByValue(equalValues);
-      expect(sorted.every(a => a.value === 50)).toBe(true);
+      expect(sorted.every(a => a.value === 5)).toBe(true);
       expect(sorted).toHaveLength(3);
     });
 
     it('handles negative values', () => {
       const withNegative: Activity[] = [
-        createMockActivity({ name: 'Positive', value: 50 }),
-        createMockActivity({ name: 'Negative', value: -20 }),
+        createMockActivity({ name: 'Positive', value: 5 }),
+        createMockActivity({ name: 'Negative', value: -2 }),
         createMockActivity({ name: 'Zero', value: 0 }),
       ];
 
       const sorted = sortActivitiesByValue(withNegative);
-      expect(sorted[0].value).toBe(50);
+      expect(sorted[0].value).toBe(5);
       expect(sorted[1].value).toBe(0);
-      expect(sorted[2].value).toBe(-20);
+      expect(sorted[2].value).toBe(-2);
     });
   });
 });

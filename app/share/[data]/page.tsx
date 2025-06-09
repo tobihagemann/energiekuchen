@@ -93,7 +93,7 @@ export default function SharedEnergyChart() {
 
               <div data-testid="activity-list-positive">
                 {data.positive.activities.length > 0 ? (
-                  <ChartLegend activities={data.positive.activities} />
+                  <ChartLegend activities={data.positive.activities} chartType="positive" />
                 ) : (
                   <div className="py-4 text-center text-gray-500">
                     <div className="text-sm">Keine Energiequellen vorhanden</div>
@@ -118,7 +118,7 @@ export default function SharedEnergyChart() {
 
               <div data-testid="activity-list-negative">
                 {data.negative.activities.length > 0 ? (
-                  <ChartLegend activities={data.negative.activities} />
+                  <ChartLegend activities={data.negative.activities} chartType="negative" />
                 ) : (
                   <div className="py-4 text-center text-gray-500">
                     <div className="text-sm">Keine Energieverbraucher vorhanden</div>

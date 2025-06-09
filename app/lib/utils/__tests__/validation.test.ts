@@ -6,7 +6,6 @@ describe('Activity Validation', () => {
     const result = validateActivity({
       name: 'Sport',
       value: 5,
-      color: 'oklch(0.723 0.219 149.579)',
     });
     expect(result.isValid).toBe(true);
     expect(result.errors).toHaveLength(0);
@@ -49,30 +48,10 @@ describe('Activity Validation', () => {
     expect(result.errors[0]).toContain('Energieniveau muss eine ganze Zahl sein');
   });
 
-  test('should reject activity with invalid color', () => {
-    const result = validateActivity({
-      name: 'Sport',
-      value: 50,
-      color: 'invalid-color',
-    });
-    expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Ungültige Farbe');
-  });
-
-  test('should accept valid oklch colors', () => {
-    const result = validateActivity({
-      name: 'Sport',
-      value: 5,
-      color: 'oklch(0.723 0.219 149.579)',
-    });
-    expect(result.isValid).toBe(true);
-  });
-
   test('should reject activity with name too long', () => {
     const result = validateActivity({
       name: 'a'.repeat(51), // Too long name
       value: 5,
-      color: 'oklch(0.723 0.219 149.579)',
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toContain('Aktivitätsname darf maximal 50 Zeichen haben');
@@ -82,7 +61,6 @@ describe('Activity Validation', () => {
     const result = validateActivity({
       name: 'Test@#$%', // Invalid characters
       value: 5,
-      color: 'oklch(0.723 0.219 149.579)',
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toContain('Aktivitätsname enthält ungültige Zeichen');
@@ -92,7 +70,6 @@ describe('Activity Validation', () => {
     const result = validateActivity({
       name: 'Sport',
       value: 10, // Too high value
-      color: 'oklch(0.723 0.219 149.579)',
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toContain('Energieniveau muss zwischen 1 und 9 liegen');
@@ -102,7 +79,6 @@ describe('Activity Validation', () => {
     const result = validateActivity({
       name: 'Sport',
       value: 0, // Too low value
-      color: 'oklch(0.723 0.219 149.579)',
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toContain('Energieniveau muss zwischen 1 und 9 liegen');
@@ -112,33 +88,20 @@ describe('Activity Validation', () => {
     const result = validateActivity({
       name: 'Sport',
       // value is missing
-      color: 'oklch(0.723 0.219 149.579)',
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toContain('Energieniveau muss zwischen 1 und 9 liegen');
-  });
-
-  test('should reject activity with missing color', () => {
-    const result = validateActivity({
-      name: 'Sport',
-      value: 5,
-      // color is missing
-    });
-    expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Ungültige Farbe');
   });
 
   test('should reject activity with multiple validation errors', () => {
     const result = validateActivity({
       name: '', // Empty name
       value: 10, // Invalid value
-      color: 'invalid', // Invalid color
     });
     expect(result.isValid).toBe(false);
-    expect(result.errors).toHaveLength(3);
+    expect(result.errors).toHaveLength(2);
     expect(result.errors).toContain('Aktivitätsname ist erforderlich');
     expect(result.errors).toContain('Energieniveau muss zwischen 1 und 9 liegen');
-    expect(result.errors).toContain('Ungültige Farbe');
   });
 });
 

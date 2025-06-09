@@ -22,7 +22,7 @@ During the process of developing and maintaining unit tests for the Energiekuche
 // ❌ Wrong: Only wrapping state updates
 const { result } = renderHook(() => useEnergy(), { wrapper });
 act(() => {
-  result.current.addActivity('positive', { name: 'Sport', value: 50, color: '#10B981' });
+  result.current.addActivity('positive', { name: 'Sport', value: 5 });
 });
 
 // ✅ Correct: Wrapping hook renders that trigger effects
@@ -160,8 +160,7 @@ const { result } = renderHook(() => useEnergy(), { wrapper });
 act(() => {
   result.current.addActivity('positive', {
     name: 'Sport',
-    value: 50,
-    color: '#10B981'
+    value: 5
   });
 });
 

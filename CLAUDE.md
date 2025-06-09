@@ -81,7 +81,7 @@ interface Activity {
   id: string;
   name: string; // 1-50 chars, German characters
   value: number; // 1-9 energy level
-  color: string; // oklch color
+  // Note: color is computed from value and chart type, not stored
 }
 ```
 
@@ -132,4 +132,5 @@ When fixing bugs:
 - Run `npm run test:all` before committing
 
 ## Development Warnings
+
 - Do not run `npm run dev`, use tests to verify results

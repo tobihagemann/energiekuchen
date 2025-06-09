@@ -12,9 +12,6 @@ export const VALIDATION_RULES = {
       max: 9,
       type: 'integer',
     },
-    color: {
-      pattern: /^oklch\([0-9.]+\s+[0-9.]+\s+[0-9.]+\)$/,
-    },
   },
   chart: {
     maxActivities: 20,
@@ -39,10 +36,6 @@ export function validateActivity(activity: Partial<Activity>): ValidationResult 
 
   if (!activity.value || activity.value < VALIDATION_RULES.activity.level.min || activity.value > VALIDATION_RULES.activity.level.max) {
     errors.push('Energieniveau muss zwischen 1 und 9 liegen');
-  }
-
-  if (!activity.color || !VALIDATION_RULES.activity.color.pattern.test(activity.color)) {
-    errors.push('Ungültige Farbe');
   }
 
   return {

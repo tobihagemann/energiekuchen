@@ -24,7 +24,6 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
   const [formData, setFormData] = useState({
     name: activity?.name || '',
     value: activity?.value || CHART_DEFAULTS.defaultLevel,
-    color: activity?.color || getColorForLevel(CHART_DEFAULTS.defaultLevel, chartType),
   });
 
   const [errors, setErrors] = useState<string[]>([]);
@@ -36,7 +35,6 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
       setFormData({
         name: activity.name,
         value: activity.value,
-        color: activity.color,
       });
     }
   }, [activity]);
@@ -66,7 +64,6 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
       setFormData({
         name: '',
         value: CHART_DEFAULTS.defaultLevel,
-        color: getColorForLevel(CHART_DEFAULTS.defaultLevel, chartType),
       });
       setErrors([]);
       onSuccess?.();
@@ -81,18 +78,15 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
     setFormData({
       name: '',
       value: CHART_DEFAULTS.defaultLevel,
-      color: getColorForLevel(CHART_DEFAULTS.defaultLevel, chartType),
     });
     setErrors([]);
     onCancel?.();
   };
 
-  // Update color when value changes
   const handleValueChange = (value: number) => {
     setFormData(prev => ({
       ...prev,
       value,
-      color: getColorForLevel(value, chartType),
     }));
   };
 
@@ -124,7 +118,11 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
 
       <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
         <div className="flex items-center space-x-3">
-          <div className="h-10 w-10 rounded-lg border-2 border-gray-300" style={{ backgroundColor: formData.color }} aria-label="Ausgewählte Farbe" />
+          <div
+            className="h-10 w-10 rounded-lg border-2 border-gray-300"
+            style={{ backgroundColor: getColorForLevel(formData.value, chartType) }}
+            aria-label="Ausgewählte Farbe"
+          />
           <div className="text-sm text-gray-600">Die Farbe wird automatisch basierend auf dem Energieniveau zugewiesen.</div>
         </div>
       </div>

@@ -160,12 +160,12 @@ test.describe('Import/Export Functionality', () => {
     const testData = {
       positive: {
         activities: [
-          { id: '1', name: 'Imported Yoga', value: 30, color: '#10b981' },
-          { id: '2', name: 'Imported Reading', value: 15, color: '#06b6d4' },
+          { id: '1', name: 'Imported Yoga', value: 3, color: '#10b981' },
+          { id: '2', name: 'Imported Reading', value: 2, color: '#06b6d4' },
         ],
       },
       negative: {
-        activities: [{ id: '3', name: 'Imported Stress', value: 25, color: '#ef4444' }],
+        activities: [{ id: '3', name: 'Imported Stress', value: 3, color: '#ef4444' }],
       },
     };
 
@@ -263,7 +263,7 @@ test.describe('Import/Export Functionality', () => {
     // Import additional data
     const importData = {
       positive: {
-        activities: [{ id: '1', name: 'Imported Activity', value: 20, color: '#10b981' }],
+        activities: [{ id: '1', name: 'Imported Activity', value: 2, color: '#10b981' }],
       },
       negative: {
         activities: [],
@@ -298,7 +298,7 @@ test.describe('Import/Export Functionality', () => {
     // Import data with replace option
     const importData = {
       positive: {
-        activities: [{ id: '1', name: 'New Activity', value: 25, color: '#10b981' }],
+        activities: [{ id: '1', name: 'New Activity', value: 3, color: '#10b981' }],
       },
       negative: {
         activities: [],

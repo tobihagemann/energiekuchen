@@ -2,6 +2,7 @@
 
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { calculatePercentage, calculateTotalEnergy } from '@/app/lib/utils/calculations';
+import { getColorForLevel } from '@/app/lib/utils/constants';
 import { ChartData } from '@/app/types/chart';
 import { useMemo } from 'react';
 
@@ -48,15 +49,18 @@ export function useChartData(chartType: 'positive' | 'negative') {
       datasets: [
         {
           data: chart.activities.map(activity => activity.value),
-          backgroundColor: chart.activities.map(activity => activity.color),
+          backgroundColor: chart.activities.map(activity => getColorForLevel(activity.value, chartType)),
           borderColor: chart.activities.map(() => '#fff'),
           borderWidth: 2,
-          hoverBackgroundColor: chart.activities.map(activity => `oklch(from ${activity.color} l c h / 0.8)`),
-          hoverBorderColor: chart.activities.map(activity => activity.color),
+          hoverBackgroundColor: chart.activities.map(activity => {
+            const color = getColorForLevel(activity.value, chartType);
+            return `oklch(from ${color} l c h / 0.8)`;
+          }),
+          hoverBorderColor: chart.activities.map(activity => getColorForLevel(activity.value, chartType)),
         },
       ],
     };
-  }, [chart.activities]);
+  }, [chart.activities, chartType]);
 
   return { chartData, activities: chart.activities, size: chart.size };
 }

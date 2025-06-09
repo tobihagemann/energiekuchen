@@ -2,7 +2,6 @@ export interface Activity {
   id: string;
   name: string;
   value: number; // 1-9 energy level
-  color: string;
   createdAt: string;
   updatedAt: string;
 }

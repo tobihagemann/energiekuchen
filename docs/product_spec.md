@@ -47,8 +47,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 - **Hinzufügen von Aktivitäten:**
   - Eingabefeld für Aktivitätsname (max. 50 Zeichen)
-  - Slider oder Eingabefeld für Energiewert (1-100)
-  - Farbauswahl aus vordefinierter Palette
+  - Slider oder Eingabefeld für Energielevel (1-9)
   - Bestätigungsbutton
 - **Bearbeiten von Aktivitäten:**
   - Klick auf Aktivität öffnet Bearbeitungsmodus
@@ -60,7 +59,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 #### 1.3 Anpassungsoptionen
 
-- **Segment-Größe:** Benutzer können den Energiewert jeder Aktivität anpassen (1-100)
+- **Segment-Größe:** Benutzer können das Energielevel jeder Aktivität anpassen (1-9)
 - **Chart-Größe:** Globale Größeneinstellung für beide Kreisdiagramme (Klein/Mittel/Groß)
 - **Farbschema:** Vordefinierte Farbpaletten für bessere Visualisierung
 
@@ -80,8 +79,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
       {
         "id": "uuid",
         "name": "Sport",
-        "value": 25,
-        "color": "#10B981"
+        "value": 3
       }
     ],
     "size": "medium"
@@ -91,8 +89,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
       {
         "id": "uuid",
         "name": "Überstunden",
-        "value": 40,
-        "color": "#EF4444"
+        "value": 5
       }
     ],
     "size": "medium"
@@ -230,8 +227,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 interface Activity {
   id: string;
   name: string;
-  value: number; // 1-100
-  color: string;
+  value: number; // 1-9 (Energielevel)
 }
 
 interface EnergyChart {
@@ -250,7 +246,6 @@ interface EnergyKuchen {
 ### Key Libraries
 
 - **Chart.js** für Kreisdiagramme
-- **react-colorful** für Farbauswahl
 - **react-hot-toast** für Notifications
 - **qrcode** für QR-Code-Generierung
 
