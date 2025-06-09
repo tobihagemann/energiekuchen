@@ -1,6 +1,8 @@
 'use client';
 
 import { ChartLegend } from '@/app/components/charts/ChartLegend';
+import { EnergyChart } from '@/app/components/charts/EnergyChart';
+import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { SharingManager } from '@/app/lib/utils/sharing';
 import { EnergyKuchen } from '@/app/types';
 import Image from 'next/image';
@@ -11,6 +13,7 @@ import { useEffect, useState } from 'react';
 export default function SharedEnergyChart() {
   const params = useParams();
   const router = useRouter();
+  const { dispatch } = useEnergy();
   const [data, setData] = useState<EnergyKuchen | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -27,6 +30,8 @@ export default function SharedEnergyChart() {
         const decodedData = SharingManager.decodeShareData(urlDecodedData);
 
         setData(decodedData);
+        // Set the data in the context so charts can use it
+        dispatch({ type: 'SET_DATA', payload: decodedData, shouldSave: false });
       } catch (err) {
         console.error('Failed to decode shared data:', err);
         router.push('/');
@@ -37,7 +42,7 @@ export default function SharedEnergyChart() {
     };
 
     loadSharedData();
-  }, [params, router]);
+  }, [params, router, dispatch]);
 
   if (isLoading) {
     return (
@@ -79,21 +84,17 @@ export default function SharedEnergyChart() {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             {/* Positive Energy Chart */}
             <div className="rounded-lg bg-white p-6 shadow-sm">
-              <div className="mb-6 text-center">
-                <h2 className="flex items-center justify-center gap-2 text-xl font-semibold text-gray-900">
-                  <span className="text-2xl">⚡</span>
-                  Energiequellen
-                </h2>
-                {data.positive.activities.length > 0 && (
-                  <p className="mt-1 text-sm text-gray-500">
-                    {data.positive.activities.length} Aktivität{data.positive.activities.length !== 1 ? 'en' : ''}
-                  </p>
-                )}
-              </div>
+              <EnergyChart chartType="positive" className="mb-6" />
 
               <div data-testid="activity-list-positive">
                 {data.positive.activities.length > 0 ? (
-                  <ChartLegend activities={data.positive.activities} chartType="positive" />
+                  <>
+                    <h3 className="mb-3 text-lg font-medium text-gray-900">
+                      Aktivitäten
+                      <span className="ml-2 text-sm font-normal text-gray-500">({data.positive.activities.length})</span>
+                    </h3>
+                    <ChartLegend activities={data.positive.activities} chartType="positive" />
+                  </>
                 ) : (
                   <div className="py-4 text-center text-gray-500">
                     <div className="text-sm">Keine Energiequellen vorhanden</div>
@@ -104,21 +105,17 @@ export default function SharedEnergyChart() {
 
             {/* Negative Energy Chart */}
             <div className="rounded-lg bg-white p-6 shadow-sm">
-              <div className="mb-6 text-center">
-                <h2 className="flex items-center justify-center gap-2 text-xl font-semibold text-gray-900">
-                  <span className="text-2xl">🔋</span>
-                  Energieverbraucher
-                </h2>
-                {data.negative.activities.length > 0 && (
-                  <p className="mt-1 text-sm text-gray-500">
-                    {data.negative.activities.length} Aktivität{data.negative.activities.length !== 1 ? 'en' : ''}
-                  </p>
-                )}
-              </div>
+              <EnergyChart chartType="negative" className="mb-6" />
 
               <div data-testid="activity-list-negative">
                 {data.negative.activities.length > 0 ? (
-                  <ChartLegend activities={data.negative.activities} chartType="negative" />
+                  <>
+                    <h3 className="mb-3 text-lg font-medium text-gray-900">
+                      Aktivitäten
+                      <span className="ml-2 text-sm font-normal text-gray-500">({data.negative.activities.length})</span>
+                    </h3>
+                    <ChartLegend activities={data.negative.activities} chartType="negative" />
+                  </>
                 ) : (
                   <div className="py-4 text-center text-gray-500">
                     <div className="text-sm">Keine Energieverbraucher vorhanden</div>
