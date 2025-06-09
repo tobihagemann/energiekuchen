@@ -144,11 +144,6 @@ export function ShareModal() {
           </div>
         )}
 
-        <div className="flex justify-end">
-          <Button variant="secondary" onClick={handleClose}>
-            Schließen
-          </Button>
-        </div>
       </div>
     </Modal>
   );
