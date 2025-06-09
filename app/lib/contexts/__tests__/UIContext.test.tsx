@@ -11,6 +11,7 @@ describe('UIContext', () => {
     expect(result.current.state).toEqual({
       isShareModalOpen: false,
       isImportExportModalOpen: false,
+      deleteConfirmation: null,
       currentView: 'dashboard',
       editingActivity: null,
       sidebarOpen: false,
@@ -167,6 +168,7 @@ describe('UIContext', () => {
     expect(result.current.state).toEqual({
       isShareModalOpen: true,
       isImportExportModalOpen: false,
+      deleteConfirmation: null,
       currentView: 'dashboard',
       editingActivity: null,
       sidebarOpen: true,

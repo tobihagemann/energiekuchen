@@ -1,5 +1,5 @@
 import { createMockActivity } from '@/app/__tests__/utils/mocks';
-import { calculatePercentage, calculateTotalEnergy, generateUniqueId, getChartPixelSize, sortActivitiesByValue } from '@/app/lib/utils/calculations';
+import { calculatePercentage, calculateTotalEnergy, generateUniqueId, sortActivitiesByValue } from '@/app/lib/utils/calculations';
 import { Activity } from '@/app/types';
 
 describe('calculations utilities', () => {
@@ -110,40 +110,6 @@ describe('calculations utilities', () => {
 
       // Should not contain characters that need URL encoding
       expect(id).not.toMatch(/[+/=]/);
-    });
-  });
-
-  describe('getChartPixelSize', () => {
-    describe('desktop sizes', () => {
-      it('returns correct pixel sizes for desktop', () => {
-        expect(getChartPixelSize('small', false)).toBe(300);
-        expect(getChartPixelSize('medium', false)).toBe(400);
-        expect(getChartPixelSize('large', false)).toBe(500);
-      });
-
-      it('defaults to desktop when isMobile is not specified', () => {
-        expect(getChartPixelSize('small')).toBe(300);
-        expect(getChartPixelSize('medium')).toBe(400);
-        expect(getChartPixelSize('large')).toBe(500);
-      });
-    });
-
-    describe('mobile sizes', () => {
-      it('returns correct pixel sizes for mobile', () => {
-        expect(getChartPixelSize('small', true)).toBe(200);
-        expect(getChartPixelSize('medium', true)).toBe(250);
-        expect(getChartPixelSize('large', true)).toBe(300);
-      });
-    });
-
-    it('mobile sizes are smaller than desktop sizes', () => {
-      const sizes: Array<'small' | 'medium' | 'large'> = ['small', 'medium', 'large'];
-
-      sizes.forEach(size => {
-        const mobileSize = getChartPixelSize(size, true);
-        const desktopSize = getChartPixelSize(size, false);
-        expect(mobileSize).toBeLessThan(desktopSize);
-      });
     });
   });
 

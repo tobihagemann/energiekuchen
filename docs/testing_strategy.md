@@ -368,7 +368,6 @@ export function createMockEnergyKuchen(options?: { activitiesCount?: number }): 
       activities: Array.from({ length: activitiesCount }, (_, i) =>
         createMockActivity({ name: `Positive Activity ${i + 1}`, value: Math.floor(Math.random() * 9) + 1 })
       ),
-      size: 'medium',
     },
     negative: {
       id: uuidv4(),
@@ -376,7 +375,6 @@ export function createMockEnergyKuchen(options?: { activitiesCount?: number }): 
       activities: Array.from({ length: activitiesCount }, (_, i) =>
         createMockActivity({ name: `Negative Activity ${i + 1}`, value: Math.floor(Math.random() * 9) + 1 })
       ),
-      size: 'medium',
     },
   };
 }

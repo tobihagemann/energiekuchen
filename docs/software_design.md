@@ -222,7 +222,6 @@ erDiagram
         string id
         string type
         Activity[] activities
-        ChartSize size
         string title
     }
 
@@ -230,7 +229,6 @@ erDiagram
         string id
         string type
         Activity[] activities
-        ChartSize size
         string title
     }
 
@@ -260,7 +258,6 @@ export interface EnergyChart {
   id: string;
   type: 'positive' | 'negative';
   activities: Activity[];
-  size: ChartSize;
   title?: string;
 }
 
@@ -271,7 +268,6 @@ export interface EnergyKuchen {
   negative: EnergyChart;
 }
 
-export type ChartSize = 'small' | 'medium' | 'large';
 export type ColorScheme = 'default' | 'high-contrast' | 'colorblind-friendly';
 
 export interface ValidationResult {
@@ -393,7 +389,6 @@ export interface IValidationService {
 export interface EnergyChartProps {
   chartType: 'positive' | 'negative';
   activities: Activity[];
-  size: ChartSize;
   onActivityClick?: (activity: Activity) => void;
   onActivityHover?: (activity: Activity | null) => void;
   onActivityEdit?: (activity: Activity) => void;
@@ -613,7 +608,7 @@ export interface ActivityListProps {
 
 ```typescript
 // Purpose: Transform activity data for Chart.js consumption
-export function useChartData(activities: Activity[], chartType: 'positive' | 'negative', size: ChartSize) {
+export function useChartData(activities: Activity[], chartType: 'positive' | 'negative') {
   // Returns: { data, options, isEmpty }
   // Optimization: Memoized data transformation
   // Features: Responsive sizing, dynamic color assignment, accessibility labels
@@ -741,17 +736,17 @@ flowchart TD
 
 ```typescript
 // Component Memoization
-const EnergyChart = React.memo(({ activities, chartType, size, ...props }) => {
+const EnergyChart = React.memo(({ activities, chartType, ...props }) => {
   // Memoize expensive chart data calculations
   const chartData = useMemo(() =>
     generateChartData(activities, chartType),
     [activities, chartType]
   );
 
-  // Memoize chart options that depend on size
+  // Memoize chart options
   const chartOptions = useMemo(() =>
-    generateChartOptions(size),
-    [size]
+    generateChartOptions(),
+    []
   );
 
   return <Chart data={chartData} options={chartOptions} {...props} />;
@@ -939,10 +934,10 @@ The responsive design system supports multiple device categories:
 
 **Component Sizing Guidelines:**
 
-- **Chart sizes** vary by device:
-  - Mobile: Small (200px), Medium (240px), Large (280px)
-  - Tablet: Small (240px), Medium (300px), Large (360px)
-  - Desktop: Small (280px), Medium (360px), Large (440px)
+- **Chart sizes** are responsive to device:
+  - Mobile: 280px fixed width
+  - Tablet: 360px fixed width
+  - Desktop: 440px fixed width
 
 **Touch Target Standards:**
 

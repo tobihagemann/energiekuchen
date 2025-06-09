@@ -126,13 +126,11 @@ export function importData(jsonString: string): EnergyKuchen {
         id: 'positive',
         type: 'positive',
         activities: positiveActivities,
-        size: data.positive?.size || 'medium',
       },
       negative: {
         id: 'negative',
         type: 'negative',
         activities: negativeActivities,
-        size: data.negative?.size || 'medium',
       },
     };
 

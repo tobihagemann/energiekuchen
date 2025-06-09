@@ -41,11 +41,9 @@ describe('useChartData', () => {
         data: {
           positive: {
             activities: mockActivities,
-            size: 'small',
           },
           negative: {
             activities: [],
-            size: 'small',
           },
         },
       },
@@ -55,7 +53,6 @@ describe('useChartData', () => {
     const { result } = renderHook(() => useChartData('positive'));
 
     expect(result.current.activities).toEqual(mockActivities);
-    expect(result.current.size).toBe('small');
     expect(result.current.chartData.labels).toEqual(['Activity 1 (60%)', 'Activity 2 (40%)']);
     expect(result.current.chartData.datasets[0].data).toEqual([6, 4]);
     // backgroundColor should now be based on energy levels, not the removed color property
@@ -67,11 +64,9 @@ describe('useChartData', () => {
         data: {
           positive: {
             activities: [],
-            size: 'small',
           },
           negative: {
             activities: mockActivities,
-            size: 'medium',
           },
         },
       },
@@ -81,7 +76,6 @@ describe('useChartData', () => {
     const { result } = renderHook(() => useChartData('negative'));
 
     expect(result.current.activities).toEqual(mockActivities);
-    expect(result.current.size).toBe('medium');
     expect(result.current.chartData.labels).toEqual(['Activity 1 (60%)', 'Activity 2 (40%)']);
   });
 
@@ -91,11 +85,9 @@ describe('useChartData', () => {
         data: {
           positive: {
             activities: [],
-            size: 'small',
           },
           negative: {
             activities: [],
-            size: 'small',
           },
         },
       },
@@ -125,11 +117,9 @@ describe('useChartData', () => {
         data: {
           positive: {
             activities: mockActivities,
-            size: 'large',
           },
           negative: {
             activities: [],
-            size: 'large',
           },
         },
       },
@@ -153,11 +143,9 @@ describe('useChartData', () => {
         data: {
           positive: {
             activities: singleActivity,
-            size: 'medium',
           },
           negative: {
             activities: [],
-            size: 'medium',
           },
         },
       },
@@ -176,11 +164,9 @@ describe('useChartData', () => {
         data: {
           positive: {
             activities: mockActivities,
-            size: 'small',
           },
           negative: {
             activities: [],
-            size: 'small',
           },
         },
       },
@@ -207,11 +193,9 @@ describe('useChartData', () => {
         data: {
           positive: {
             activities: mockActivities,
-            size: 'medium',
           },
           negative: {
             activities: [],
-            size: 'medium',
           },
         },
       },
@@ -238,11 +222,9 @@ describe('useChartData', () => {
         data: {
           positive: {
             activities: newActivities,
-            size: 'large',
           },
           negative: {
             activities: [],
-            size: 'large',
           },
         },
       },

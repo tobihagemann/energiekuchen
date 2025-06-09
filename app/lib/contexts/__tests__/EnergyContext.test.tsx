@@ -118,16 +118,6 @@ describe('EnergyContext', () => {
     expect(result.current.state.data.positive.activities[1].name).toBe('Sport');
   });
 
-  test('should update chart size', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    act(() => {
-      result.current.updateChartSize('positive', 'large');
-    });
-
-    expect(result.current.state.data.positive.size).toBe('large');
-  });
-
   test('should reset data correctly', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
@@ -188,16 +178,6 @@ describe('EnergyContext', () => {
     }).toThrow('useEnergy must be used within an EnergyProvider');
 
     console.error = originalError;
-  });
-
-  test('should update chart size correctly', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    act(() => {
-      result.current.updateChartSize('positive', 'large');
-    });
-
-    expect(result.current.state.data.positive.size).toBe('large');
   });
 
   test('should reset all data correctly', () => {

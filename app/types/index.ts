@@ -10,7 +10,6 @@ export interface EnergyChart {
   id: string;
   type: 'positive' | 'negative';
   activities: Activity[];
-  size: ChartSize;
   title?: string;
 }
 
@@ -20,8 +19,6 @@ export interface EnergyKuchen {
   positive: EnergyChart;
   negative: EnergyChart;
 }
-
-export type ChartSize = 'small' | 'medium' | 'large';
 
 export interface ValidationResult {
   isValid: boolean;

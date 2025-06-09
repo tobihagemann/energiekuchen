@@ -2,7 +2,7 @@
 
 import { generateUniqueId } from '@/app/lib/utils/calculations';
 import { StorageManager } from '@/app/lib/utils/storage';
-import { Activity, ChartSize, EnergyKuchen } from '@/app/types';
+import { Activity, EnergyKuchen } from '@/app/types';
 import React, { createContext, ReactNode, useContext, useEffect, useReducer, useRef } from 'react';
 
 // Energy Reducer Actions
@@ -12,7 +12,6 @@ type EnergyAction =
   | { type: 'UPDATE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string; updates: Partial<Activity> } }
   | { type: 'DELETE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } }
   | { type: 'REORDER_ACTIVITIES'; payload: { chartType: 'positive' | 'negative'; fromIndex: number; toIndex: number } }
-  | { type: 'UPDATE_CHART_SIZE'; payload: { chartType: 'positive' | 'negative'; size: ChartSize } }
   | { type: 'RESET_DATA' }
   | { type: 'IMPORT_DATA'; payload: { data: EnergyKuchen; replaceExisting: boolean } }
   | { type: 'CLEAR_ALL_DATA' }
@@ -34,13 +33,11 @@ function createDefaultData(): EnergyKuchen {
       id: 'positive',
       type: 'positive',
       activities: [],
-      size: 'medium',
     },
     negative: {
       id: 'negative',
       type: 'negative',
       activities: [],
-      size: 'medium',
     },
   };
 }
@@ -154,24 +151,6 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       };
     }
 
-    case 'UPDATE_CHART_SIZE': {
-      const now = new Date().toISOString();
-      const updatedData = {
-        ...state.data,
-        lastModified: now,
-        [action.payload.chartType]: {
-          ...state.data[action.payload.chartType],
-          size: action.payload.size,
-        },
-      };
-
-      return {
-        ...state,
-        data: updatedData,
-        lastSaved: now,
-      };
-    }
-
     case 'RESET_DATA': {
       return {
         ...state,
@@ -236,7 +215,6 @@ interface EnergyContextType {
   updateActivity: (chartType: 'positive' | 'negative', activityId: string, updates: Partial<Activity>) => void;
   deleteActivity: (chartType: 'positive' | 'negative', activityId: string) => void;
   reorderActivities: (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => void;
-  updateChartSize: (chartType: 'positive' | 'negative', size: ChartSize) => void;
   resetData: () => void;
   saveData: () => void;
   loadData: () => void;
@@ -302,10 +280,6 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'REORDER_ACTIVITIES', payload: { chartType, fromIndex, toIndex } });
   };
 
-  const updateChartSize = (chartType: 'positive' | 'negative', size: ChartSize) => {
-    dispatch({ type: 'UPDATE_CHART_SIZE', payload: { chartType, size } });
-  };
-
   const resetData = () => {
     dispatch({ type: 'RESET_DATA' });
   };
@@ -337,7 +311,6 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     updateActivity,
     deleteActivity,
     reorderActivities,
-    updateChartSize,
     resetData,
     saveData,
     loadData,

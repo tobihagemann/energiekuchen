@@ -22,13 +22,11 @@ export function createMockEnergyKuchen(options?: { activitiesCount?: number }): 
       id: uuidv4(),
       type: 'positive',
       activities: Array.from({ length: activitiesCount }, (_, i) => createMockActivity({ name: `Positive Activity ${i + 1}` })),
-      size: 'medium',
     },
     negative: {
       id: uuidv4(),
       type: 'negative',
       activities: Array.from({ length: activitiesCount }, (_, i) => createMockActivity({ name: `Negative Activity ${i + 1}` })),
-      size: 'medium',
     },
   };
 }

@@ -60,7 +60,6 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 #### 1.3 Anpassungsoptionen
 
 - **Segment-Größe:** Benutzer können das Energielevel jeder Aktivität anpassen (1-9)
-- **Chart-Größe:** Globale Größeneinstellung für beide Kreisdiagramme (Klein/Mittel/Groß)
 - **Farbschema:** Vordefinierte Farbpaletten für bessere Visualisierung
 
 ### 2. Datenmanagement
@@ -81,8 +80,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
         "name": "Sport",
         "value": 3
       }
-    ],
-    "size": "medium"
+    ]
   },
   "negative": {
     "activities": [
@@ -91,8 +89,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
         "name": "Überstunden",
         "value": 5
       }
-    ],
-    "size": "medium"
+    ]
   }
 }
 ```
@@ -232,7 +229,6 @@ interface Activity {
 
 interface EnergyChart {
   activities: Activity[];
-  size: 'small' | 'medium' | 'large';
 }
 
 interface EnergyKuchen {

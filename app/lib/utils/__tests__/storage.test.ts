@@ -353,8 +353,9 @@ describe('StorageManager', () => {
     };
 
     const result = StorageManager.import(JSON.stringify(dataWithoutSize));
-    expect(result.positive.size).toBe('medium');
-    expect(result.negative.size).toBe('medium');
+    // Size fields no longer exist
+    expect(result.positive.activities).toEqual([]);
+    expect(result.negative.activities).toEqual([]);
   });
 
   test('should reject activity with value too low (0)', () => {

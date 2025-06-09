@@ -2,7 +2,6 @@
 
 import { useChartData } from '@/app/lib/hooks/useChartData';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
-import { getChartPixelSize } from '@/app/lib/utils/calculations';
 import { cn } from '@/app/lib/utils/cn';
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
 import { useRef } from 'react';
@@ -17,11 +16,12 @@ interface EnergyChartProps {
 }
 
 export function EnergyChart({ chartType, className, onActivityClick }: EnergyChartProps) {
-  const { chartData, activities, size } = useChartData(chartType);
-  const { isMobile } = useResponsive();
+  const { chartData, activities } = useChartData(chartType);
+  const { isMobile, isTablet } = useResponsive();
   const chartRef = useRef<ChartJS<'pie'>>(null);
 
-  const chartSize = getChartPixelSize(size, isMobile);
+  // Fixed responsive chart sizes
+  const chartSize = isMobile ? 280 : isTablet ? 360 : 440;
 
   const options = {
     responsive: true,

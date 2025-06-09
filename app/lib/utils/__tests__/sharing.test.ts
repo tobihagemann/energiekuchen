@@ -111,8 +111,6 @@ describe('SharingManager', () => {
 
     // Check that essential data is preserved
     expect(decoded.version).toBe(mockData.version);
-    expect(decoded.positive.size).toBe(mockData.positive.size);
-    expect(decoded.negative.size).toBe(mockData.negative.size);
   });
 
   test('should add timestamps when decoding', () => {
@@ -125,7 +123,6 @@ describe('SharingManager', () => {
           name: a.name,
           value: a.value,
         })),
-        size: mockData.positive.size,
       },
       negative: {
         activities: mockData.negative.activities.map(a => ({
@@ -133,7 +130,6 @@ describe('SharingManager', () => {
           name: a.name,
           value: a.value,
         })),
-        size: mockData.negative.size,
       },
     });
 

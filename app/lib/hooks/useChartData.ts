@@ -62,5 +62,5 @@ export function useChartData(chartType: 'positive' | 'negative') {
     };
   }, [chart.activities, chartType]);
 
-  return { chartData, activities: chart.activities, size: chart.size };
+  return { chartData, activities: chart.activities };
 }

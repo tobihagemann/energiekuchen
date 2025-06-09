@@ -5,24 +5,6 @@ export const BREAKPOINTS = {
   wide: '1440px',
 } as const;
 
-export const RESPONSIVE_CHART_SIZES = {
-  mobile: {
-    small: 200,
-    medium: 250,
-    large: 300,
-  },
-  tablet: {
-    small: 250,
-    medium: 300,
-    large: 350,
-  },
-  desktop: {
-    small: 300,
-    medium: 400,
-    large: 500,
-  },
-} as const;
-
 export const TOUCH_TARGET_SIZE = '44px';
 
 // Energy level to color mapping using oklch values from color palette
@@ -57,7 +39,6 @@ export const CHART_DEFAULTS = {
   minLevel: 1,
   maxLevel: 9,
   defaultLevel: 5,
-  defaultSize: 'medium' as const,
   animationDuration: 300,
 } as const;
 

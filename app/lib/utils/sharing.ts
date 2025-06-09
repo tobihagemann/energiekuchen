@@ -17,7 +17,6 @@ export class SharingManager {
             name: a.name,
             value: a.value,
           })),
-          size: data.positive.size,
         },
         negative: {
           activities: data.negative.activities.map(a => ({
@@ -25,7 +24,6 @@ export class SharingManager {
             name: a.name,
             value: a.value,
           })),
-          size: data.negative.size,
         },
       };
 
