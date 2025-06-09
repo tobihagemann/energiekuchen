@@ -64,7 +64,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', className
         aria-labelledby={title ? 'modal-title' : undefined}
         className={cn('relative flex max-h-[90vh] w-full flex-col rounded-lg bg-white shadow-xl transition-all', sizes[size], className)}>
         {title && (
-          <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-200 p-4 sm:p-6">
+          <div className="flex shrink-0 items-center justify-between border-b border-gray-200 p-4 sm:p-6">
             <h3 id="modal-title" className="text-lg font-semibold text-gray-900">
               {title}
             </h3>

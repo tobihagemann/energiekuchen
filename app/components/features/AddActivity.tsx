@@ -67,7 +67,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
           disabled={!name.trim() || isSubmitting}
           isLoading={isSubmitting}
           data-testid={`quick-add-button-${chartType}`}
-          className="flex-shrink-0">
+          className="shrink-0">
           <PlusIcon className="h-4 w-4" />
           <span className="ml-1">Hinzufügen</span>
         </Button>

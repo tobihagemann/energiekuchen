@@ -83,7 +83,7 @@ export function ShareModal() {
               <label className="mb-2 block text-sm font-medium text-gray-700">Sharing-Link</label>
               <div className="flex space-x-2">
                 <Input value={shareData.url} readOnly className="flex-1 text-sm" data-testid="share-url" />
-                <Button onClick={handleCopyUrl} variant="secondary" className="flex-shrink-0">
+                <Button onClick={handleCopyUrl} variant="secondary" className="shrink-0">
                   {copied ? <CheckIcon className="h-4 w-4" /> : <ClipboardIcon className="h-4 w-4" />}
                 </Button>
               </div>

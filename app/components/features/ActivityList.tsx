@@ -83,7 +83,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
                 className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-50"
                 data-testid={`activity-item-${activity.id}`}>
                 <div className="flex min-w-0 flex-1 items-center space-x-3" data-testid="activity-item">
-                  <div className="h-4 w-4 flex-shrink-0 rounded-full" style={{ backgroundColor: getColorForLevel(activity.value, chartType) }} />
+                  <div className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: getColorForLevel(activity.value, chartType) }} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium text-gray-900" data-testid={`activity-name-${activity.id}`}>
                       {activity.name}

@@ -30,7 +30,7 @@ export function ChartLegend({ activities, chartType, onActivityClick, className 
             className={cn('flex items-center justify-between rounded p-2 transition-colors hover:bg-gray-50', onActivityClick && 'cursor-pointer')}
             onClick={() => onActivityClick?.(activity.id)}>
             <div className="flex min-w-0 flex-1 items-center space-x-3">
-              <div className="h-4 w-4 flex-shrink-0 rounded-full" style={{ backgroundColor: getColorForLevel(activity.value, chartType) }} />
+              <div className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: getColorForLevel(activity.value, chartType) }} />
               <span className="truncate text-sm font-medium text-gray-900">{activity.name}</span>
             </div>
 
