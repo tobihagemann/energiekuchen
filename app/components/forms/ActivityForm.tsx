@@ -1,11 +1,10 @@
 'use client';
 
 import { Button } from '@/app/components/ui/Button';
-import { ColorPicker } from '@/app/components/ui/ColorPicker';
 import { Input } from '@/app/components/ui/Input';
 import { Slider } from '@/app/components/ui/Slider';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
-import { COLOR_PALETTES } from '@/app/lib/utils/constants';
+import { CHART_DEFAULTS, getColorForLevel } from '@/app/lib/utils/constants';
 import { validateActivity } from '@/app/lib/utils/validation';
 import { Activity } from '@/app/types';
 import React, { useEffect, useState } from 'react';
@@ -24,14 +23,13 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
 
   const [formData, setFormData] = useState({
     name: activity?.name || '',
-    value: activity?.value || 10,
-    color: activity?.color || COLOR_PALETTES[chartType][0],
+    value: activity?.value || CHART_DEFAULTS.defaultLevel,
+    color: activity?.color || getColorForLevel(CHART_DEFAULTS.defaultLevel, chartType),
   });
 
   const [errors, setErrors] = useState<string[]>([]);
 
   const isEditing = !!activity;
-  const colorPresets = COLOR_PALETTES[chartType];
 
   useEffect(() => {
     if (activity) {
@@ -67,8 +65,8 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
       // Reset form
       setFormData({
         name: '',
-        value: 10,
-        color: COLOR_PALETTES[chartType][0],
+        value: CHART_DEFAULTS.defaultLevel,
+        color: getColorForLevel(CHART_DEFAULTS.defaultLevel, chartType),
       });
       setErrors([]);
       onSuccess?.();
@@ -82,11 +80,20 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
   const handleCancel = () => {
     setFormData({
       name: '',
-      value: 10,
-      color: COLOR_PALETTES[chartType][0],
+      value: CHART_DEFAULTS.defaultLevel,
+      color: getColorForLevel(CHART_DEFAULTS.defaultLevel, chartType),
     });
     setErrors([]);
     onCancel?.();
+  };
+
+  // Update color when value changes
+  const handleValueChange = (value: number) => {
+    setFormData(prev => ({
+      ...prev,
+      value,
+      color: getColorForLevel(value, chartType),
+    }));
   };
 
   return (
@@ -105,24 +112,21 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
 
       <div>
         <Slider
-          label="Energiewert"
+          label="Energieniveau"
           value={formData.value}
-          onChange={value => setFormData(prev => ({ ...prev, value }))}
-          min={1}
-          max={100}
+          onChange={handleValueChange}
+          min={CHART_DEFAULTS.minLevel}
+          max={CHART_DEFAULTS.maxLevel}
           step={1}
           data-testid="activity-value-slider"
         />
       </div>
 
-      <div>
-        <ColorPicker
-          label="Farbe"
-          color={formData.color}
-          onChange={color => setFormData(prev => ({ ...prev, color }))}
-          presets={colorPresets}
-          data-testid="activity-color-picker"
-        />
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+        <div className="flex items-center space-x-3">
+          <div className="h-10 w-10 rounded-lg border-2 border-gray-300" style={{ backgroundColor: formData.color }} aria-label="Ausgewählte Farbe" />
+          <div className="text-sm text-gray-600">Die Farbe wird automatisch basierend auf dem Energieniveau zugewiesen.</div>
+        </div>
       </div>
 
       {errors.length > 0 && (

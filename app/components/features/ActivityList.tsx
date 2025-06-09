@@ -82,7 +82,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
                       {activity.name}
                     </div>
                     <div className="text-xs text-gray-500" data-testid={`activity-value-${activity.id}`}>
-                      Energie: {activity.value}
+                      Energieniveau: {activity.value}
                     </div>
                   </div>
                 </div>

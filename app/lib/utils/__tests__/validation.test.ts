@@ -5,8 +5,8 @@ describe('Activity Validation', () => {
   test('should validate correct activity', () => {
     const result = validateActivity({
       name: 'Sport',
-      value: 50,
-      color: '#10B981',
+      value: 5,
+      color: 'oklch(0.723 0.219 149.579)',
     });
     expect(result.isValid).toBe(true);
     expect(result.errors).toHaveLength(0);
@@ -19,9 +19,9 @@ describe('Activity Validation', () => {
   });
 
   test('should reject invalid activity value', () => {
-    const result = validateActivityValue(101);
+    const result = validateActivityValue(10);
     expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Wert muss zwischen 1 und 100 liegen');
+    expect(result.errors[0]).toContain('Energieniveau muss zwischen 1 und 9 liegen');
   });
 
   test('should reject activity name that is too long', () => {
@@ -40,13 +40,13 @@ describe('Activity Validation', () => {
   test('should reject activity value below minimum', () => {
     const result = validateActivityValue(0);
     expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Wert muss zwischen 1 und 100 liegen');
+    expect(result.errors[0]).toContain('Energieniveau muss zwischen 1 und 9 liegen');
   });
 
   test('should reject non-integer activity value', () => {
-    const result = validateActivityValue(50.5);
+    const result = validateActivityValue(5.5);
     expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Wert muss eine ganze Zahl sein');
+    expect(result.errors[0]).toContain('Energieniveau muss eine ganze Zahl sein');
   });
 
   test('should reject activity with invalid color', () => {
@@ -59,27 +59,20 @@ describe('Activity Validation', () => {
     expect(result.errors).toContain('Ungültige Farbe');
   });
 
-  test('should accept valid hex colors', () => {
-    const shortHex = validateActivity({
+  test('should accept valid oklch colors', () => {
+    const result = validateActivity({
       name: 'Sport',
-      value: 50,
-      color: '#123',
+      value: 5,
+      color: 'oklch(0.723 0.219 149.579)',
     });
-    expect(shortHex.isValid).toBe(true);
-
-    const longHex = validateActivity({
-      name: 'Sport',
-      value: 50,
-      color: '#123456',
-    });
-    expect(longHex.isValid).toBe(true);
+    expect(result.isValid).toBe(true);
   });
 
   test('should reject activity with name too long', () => {
     const result = validateActivity({
       name: 'a'.repeat(51), // Too long name
-      value: 50,
-      color: '#10B981',
+      value: 5,
+      color: 'oklch(0.723 0.219 149.579)',
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toContain('Aktivitätsname darf maximal 50 Zeichen haben');
@@ -88,8 +81,8 @@ describe('Activity Validation', () => {
   test('should reject activity with invalid name characters', () => {
     const result = validateActivity({
       name: 'Test@#$%', // Invalid characters
-      value: 50,
-      color: '#10B981',
+      value: 5,
+      color: 'oklch(0.723 0.219 149.579)',
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toContain('Aktivitätsname enthält ungültige Zeichen');
@@ -98,37 +91,37 @@ describe('Activity Validation', () => {
   test('should reject activity with value too high', () => {
     const result = validateActivity({
       name: 'Sport',
-      value: 101, // Too high value
-      color: '#10B981',
+      value: 10, // Too high value
+      color: 'oklch(0.723 0.219 149.579)',
     });
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Energiewert muss zwischen 1 und 100 liegen');
+    expect(result.errors).toContain('Energieniveau muss zwischen 1 und 9 liegen');
   });
 
   test('should reject activity with value too low', () => {
     const result = validateActivity({
       name: 'Sport',
       value: 0, // Too low value
-      color: '#10B981',
+      color: 'oklch(0.723 0.219 149.579)',
     });
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Energiewert muss zwischen 1 und 100 liegen');
+    expect(result.errors).toContain('Energieniveau muss zwischen 1 und 9 liegen');
   });
 
   test('should reject activity with missing value', () => {
     const result = validateActivity({
       name: 'Sport',
       // value is missing
-      color: '#10B981',
+      color: 'oklch(0.723 0.219 149.579)',
     });
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Energiewert muss zwischen 1 und 100 liegen');
+    expect(result.errors).toContain('Energieniveau muss zwischen 1 und 9 liegen');
   });
 
   test('should reject activity with missing color', () => {
     const result = validateActivity({
       name: 'Sport',
-      value: 50,
+      value: 5,
       // color is missing
     });
     expect(result.isValid).toBe(false);
@@ -138,13 +131,13 @@ describe('Activity Validation', () => {
   test('should reject activity with multiple validation errors', () => {
     const result = validateActivity({
       name: '', // Empty name
-      value: 101, // Invalid value
+      value: 10, // Invalid value
       color: 'invalid', // Invalid color
     });
     expect(result.isValid).toBe(false);
     expect(result.errors).toHaveLength(3);
     expect(result.errors).toContain('Aktivitätsname ist erforderlich');
-    expect(result.errors).toContain('Energiewert muss zwischen 1 und 100 liegen');
+    expect(result.errors).toContain('Energieniveau muss zwischen 1 und 9 liegen');
     expect(result.errors).toContain('Ungültige Farbe');
   });
 });

@@ -16,11 +16,11 @@ export function useChartData(chartType: 'positive' | 'negative') {
         datasets: [
           {
             data: [1],
-            backgroundColor: ['#E5E7EB'],
-            borderColor: ['#D1D5DB'],
+            backgroundColor: ['oklch(0.928 0.006 264.531)'], // gray-200
+            borderColor: ['#fff'],
             borderWidth: 2,
-            hoverBackgroundColor: ['#F3F4F6'],
-            hoverBorderColor: ['#9CA3AF'],
+            hoverBackgroundColor: ['oklch(0.967 0.003 264.542)'], // gray-100
+            hoverBorderColor: ['oklch(0.707 0.022 261.325)'], // gray-400
           },
         ],
       };
@@ -34,9 +34,10 @@ export function useChartData(chartType: 'positive' | 'negative') {
         {
           data: chart.activities.map(activity => activity.value),
           backgroundColor: chart.activities.map(activity => activity.color),
-          borderColor: chart.activities.map(activity => activity.color),
+          borderColor: chart.activities.map(() => '#fff'),
           borderWidth: 2,
-          hoverBackgroundColor: chart.activities.map(activity => activity.color + '80'),
+          // Use CSS relative color syntax to create hover effect with reduced opacity
+          hoverBackgroundColor: chart.activities.map(activity => `oklch(from ${activity.color} l c h / 0.8)`),
           hoverBorderColor: chart.activities.map(activity => activity.color),
         },
       ],

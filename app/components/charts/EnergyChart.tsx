@@ -26,6 +26,7 @@ export function EnergyChart({ chartType, className, onActivityClick }: EnergyCha
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    borderAlign: 'inner',
     plugins: {
       legend: {
         display: false, // We'll create our own legend

@@ -258,7 +258,7 @@ describe('StorageManager', () => {
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Energiewert haben');
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss ein Energieniveau haben');
 
     console.error = originalError;
   });
@@ -330,7 +330,7 @@ describe('StorageManager', () => {
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Energiewert haben');
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss ein Energieniveau haben');
 
     console.error = originalError;
   });

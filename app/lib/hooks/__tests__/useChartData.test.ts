@@ -109,7 +109,7 @@ describe('useChartData', () => {
     expect(result.current.activities).toEqual([]);
     expect(result.current.chartData.labels).toEqual(['Keine Aktivitäten']);
     expect(result.current.chartData.datasets[0].data).toEqual([1]);
-    expect(result.current.chartData.datasets[0].backgroundColor).toEqual(['#E5E7EB']);
+    expect(result.current.chartData.datasets[0].backgroundColor).toEqual(['oklch(0.928 0.006 264.531)']);
   });
 
   it('should include hover effects in chart data', () => {
@@ -133,7 +133,11 @@ describe('useChartData', () => {
 
     const dataset = result.current.chartData.datasets[0];
     expect(dataset.borderWidth).toBe(2);
-    expect(dataset.hoverBackgroundColor).toEqual(['#FF573380', '#33FF5780']);
+    // Hover colors use CSS relative color syntax with reduced opacity
+    expect(dataset.hoverBackgroundColor).toEqual([
+      'oklch(from #FF5733 l c h / 0.8)',
+      'oklch(from #33FF57 l c h / 0.8)'
+    ]);
     expect(dataset.hoverBorderColor).toEqual(['#FF5733', '#33FF57']);
   });
 

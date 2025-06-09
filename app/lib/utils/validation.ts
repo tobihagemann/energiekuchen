@@ -7,13 +7,13 @@ export const VALIDATION_RULES = {
       maxLength: 50,
       pattern: /^[a-zA-ZäöüÄÖÜß0-9\s\-_.,!?]+$/,
     },
-    value: {
+    level: {
       min: 1,
-      max: 100,
+      max: 9,
       type: 'integer',
     },
     color: {
-      pattern: /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
+      pattern: /^oklch\([0-9.]+\s+[0-9.]+\s+[0-9.]+\)$/,
     },
   },
   chart: {
@@ -37,8 +37,8 @@ export function validateActivity(activity: Partial<Activity>): ValidationResult 
     errors.push('Aktivitätsname enthält ungültige Zeichen');
   }
 
-  if (!activity.value || activity.value < VALIDATION_RULES.activity.value.min || activity.value > VALIDATION_RULES.activity.value.max) {
-    errors.push('Energiewert muss zwischen 1 und 100 liegen');
+  if (!activity.value || activity.value < VALIDATION_RULES.activity.level.min || activity.value > VALIDATION_RULES.activity.level.max) {
+    errors.push('Energieniveau muss zwischen 1 und 9 liegen');
   }
 
   if (!activity.color || !VALIDATION_RULES.activity.color.pattern.test(activity.color)) {
@@ -95,12 +95,12 @@ export function validateActivityName(name: string): ValidationResult {
 export function validateActivityValue(value: number): ValidationResult {
   const errors: string[] = [];
 
-  if (value < VALIDATION_RULES.activity.value.min || value > VALIDATION_RULES.activity.value.max) {
-    errors.push('Wert muss zwischen 1 und 100 liegen');
+  if (value < VALIDATION_RULES.activity.level.min || value > VALIDATION_RULES.activity.level.max) {
+    errors.push('Energieniveau muss zwischen 1 und 9 liegen');
   }
 
   if (!Number.isInteger(value)) {
-    errors.push('Wert muss eine ganze Zahl sein');
+    errors.push('Energieniveau muss eine ganze Zahl sein');
   }
 
   return {

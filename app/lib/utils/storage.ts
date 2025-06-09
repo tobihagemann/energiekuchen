@@ -73,7 +73,7 @@ export function importData(jsonString: string): EnergyKuchen {
           throw new Error('Aktivität muss einen Namen haben');
         }
         if (activity.value === undefined || typeof activity.value !== 'number') {
-          throw new Error('Aktivität muss einen Energiewert haben');
+          throw new Error('Aktivität muss ein Energieniveau haben');
         }
         return true;
       });
