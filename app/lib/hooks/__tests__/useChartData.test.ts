@@ -104,12 +104,21 @@ describe('useChartData', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const { result } = renderHook(() => useChartData('positive'));
+    // Test positive chart empty state
+    const { result: positiveResult } = renderHook(() => useChartData('positive'));
 
-    expect(result.current.activities).toEqual([]);
-    expect(result.current.chartData.labels).toEqual(['Keine Aktivitäten']);
-    expect(result.current.chartData.datasets[0].data).toEqual([1]);
-    expect(result.current.chartData.datasets[0].backgroundColor).toEqual(['oklch(0.928 0.006 264.531)']);
+    expect(positiveResult.current.activities).toEqual([]);
+    expect(positiveResult.current.chartData.labels).toEqual(['Keine Aktivitäten']);
+    expect(positiveResult.current.chartData.datasets[0].data).toEqual([1]);
+    expect(positiveResult.current.chartData.datasets[0].backgroundColor).toEqual(['oklch(0.962 0.044 156.743)']); // green-100
+
+    // Test negative chart empty state
+    const { result: negativeResult } = renderHook(() => useChartData('negative'));
+
+    expect(negativeResult.current.activities).toEqual([]);
+    expect(negativeResult.current.chartData.labels).toEqual(['Keine Aktivitäten']);
+    expect(negativeResult.current.chartData.datasets[0].data).toEqual([1]);
+    expect(negativeResult.current.chartData.datasets[0].backgroundColor).toEqual(['oklch(0.936 0.032 17.717)']); // red-100
   });
 
   it('should include hover effects in chart data', () => {

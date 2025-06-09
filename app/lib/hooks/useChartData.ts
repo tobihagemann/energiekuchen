@@ -11,16 +11,31 @@ export function useChartData(chartType: 'positive' | 'negative') {
 
   const chartData: ChartData = useMemo(() => {
     if (chart.activities.length === 0) {
+      const emptyChartColors = {
+        positive: {
+          backgroundColor: 'oklch(0.962 0.044 156.743)', // green-100
+          hoverBackgroundColor: 'oklch(0.982 0.018 155.826)', // green-50
+          hoverBorderColor: 'oklch(0.962 0.044 156.743)', // green-100
+        },
+        negative: {
+          backgroundColor: 'oklch(0.936 0.032 17.717)', // red-100
+          hoverBackgroundColor: 'oklch(0.971 0.013 17.38)', // red-50
+          hoverBorderColor: 'oklch(0.936 0.032 17.717)', // red-100
+        },
+      };
+
+      const colors = emptyChartColors[chartType];
+
       return {
         labels: ['Keine Aktivitäten'],
         datasets: [
           {
             data: [1],
-            backgroundColor: ['oklch(0.928 0.006 264.531)'], // gray-200
+            backgroundColor: [colors.backgroundColor],
             borderColor: ['#fff'],
             borderWidth: 2,
-            hoverBackgroundColor: ['oklch(0.967 0.003 264.542)'], // gray-100
-            hoverBorderColor: ['oklch(0.707 0.022 261.325)'], // gray-400
+            hoverBackgroundColor: [colors.hoverBackgroundColor],
+            hoverBorderColor: [colors.hoverBorderColor],
           },
         ],
       };
@@ -36,7 +51,6 @@ export function useChartData(chartType: 'positive' | 'negative') {
           backgroundColor: chart.activities.map(activity => activity.color),
           borderColor: chart.activities.map(() => '#fff'),
           borderWidth: 2,
-          // Use CSS relative color syntax to create hover effect with reduced opacity
           hoverBackgroundColor: chart.activities.map(activity => `oklch(from ${activity.color} l c h / 0.8)`),
           hoverBorderColor: chart.activities.map(activity => activity.color),
         },
