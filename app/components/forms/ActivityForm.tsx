@@ -90,6 +90,8 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
     }));
   };
 
+  const placeholder = chartType === 'positive' ? 'z.B. Sport, Entspannung, Zeit mit Freunden' : 'z.B. Überstunden, Stress, schwierige Gespräche';
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4" data-testid={`activity-form-${chartType}`}>
       <div>
@@ -97,7 +99,7 @@ export function ActivityForm({ chartType, activity, onSuccess, onCancel }: Activ
           label="Aktivitätsname"
           value={formData.name}
           onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-          placeholder="z.B. Sport, Entspannung, Überstunden..."
+          placeholder={placeholder}
           maxLength={50}
           error={errors.find(error => error.includes('name') || error.includes('Name'))}
           data-testid="activity-name-input"
