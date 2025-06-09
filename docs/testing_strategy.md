@@ -365,13 +365,17 @@ export function createMockEnergyKuchen(options?: { activitiesCount?: number }): 
     positive: {
       id: uuidv4(),
       type: 'positive',
-      activities: Array.from({ length: activitiesCount }, (_, i) => createMockActivity({ name: `Positive Activity ${i + 1}`, value: Math.floor(Math.random() * 9) + 1 })),
+      activities: Array.from({ length: activitiesCount }, (_, i) =>
+        createMockActivity({ name: `Positive Activity ${i + 1}`, value: Math.floor(Math.random() * 9) + 1 })
+      ),
       size: 'medium',
     },
     negative: {
       id: uuidv4(),
       type: 'negative',
-      activities: Array.from({ length: activitiesCount }, (_, i) => createMockActivity({ name: `Negative Activity ${i + 1}`, value: Math.floor(Math.random() * 9) + 1 })),
+      activities: Array.from({ length: activitiesCount }, (_, i) =>
+        createMockActivity({ name: `Negative Activity ${i + 1}`, value: Math.floor(Math.random() * 9) + 1 })
+      ),
       size: 'medium',
     },
   };

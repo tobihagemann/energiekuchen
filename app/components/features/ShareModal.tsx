@@ -143,7 +143,6 @@ export function ShareModal() {
             </Button>
           </div>
         )}
-
       </div>
     </Modal>
   );
