@@ -11,7 +11,7 @@ import { useResponsive } from '@/app/lib/hooks/useResponsive';
 export default function Dashboard() {
   const { state } = useEnergy();
   const { setEditingActivity } = useUI();
-  const { isMobile } = useResponsive();
+  const { isSmall } = useResponsive();
 
   const handleActivityClick = (chartType: 'positive' | 'negative') => (activityId: string) => {
     setEditingActivity({ chartType, activityId });
@@ -35,7 +35,7 @@ export default function Dashboard() {
       <main className="flex-1">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           {/* Charts Section */}
-          <div className={`grid gap-8 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`} data-testid="charts-section">
+          <div className={`grid gap-8 ${isSmall ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`} data-testid="charts-section">
             {/* Positive Energy Chart */}
             <div className="rounded-lg bg-white p-6 shadow-sm" data-testid="positive-energy-section">
               <EnergyChart chartType="positive" onActivityClick={handleActivityClick('positive')} className="mb-6" />

@@ -927,17 +927,16 @@ The responsive design system supports multiple device categories:
 
 **Device Breakpoints:**
 
-- **Mobile**: 320px and up - Small mobile devices
-- **Tablet**: 768px and up - Tablets and large mobile devices
-- **Desktop**: 1024px and up - Desktop and laptop computers
-- **Wide**: 1440px and up - Large desktop displays
+- **Small**: Below 640px - Small devices (phones)
+- **Medium**: 640px to 1279px - Medium devices (tablets and small laptops)
+- **Large**: 1280px and up - Large devices (desktops and large laptops)
 
 **Component Sizing Guidelines:**
 
 - **Chart sizes** are responsive to device:
-  - Mobile: 280px fixed width
-  - Tablet: 360px fixed width
-  - Desktop: 440px fixed width
+  - Small: 280px fixed width
+  - Medium: 360px fixed width
+  - Large: 440px fixed width
 
 **Touch Target Standards:**
 
@@ -961,7 +960,7 @@ The responsive design system supports multiple device categories:
 
 ```mermaid
 graph TD
-    subgraph "Mobile Layout (320px-767px)"
+    subgraph "Small Layout (Below 640px)"
         A[Header - Full Width]
         B[Positive Chart - Full Width]
         C[Positive Activities - Full Width]
@@ -970,14 +969,14 @@ graph TD
         F[Action Buttons - Full Width]
     end
 
-    subgraph "Tablet Layout (768px-1023px)"
+    subgraph "Medium Layout (640px-1279px)"
         G[Header - Full Width]
         H[Chart Row - Two Columns]
         I[Activities Row - Two Columns]
         J[Actions Row - Centered]
     end
 
-    subgraph "Desktop Layout (1024px+)"
+    subgraph "Large Layout (1280px+)"
         K[Header - Full Width]
         L[Main Grid - Two Columns with Sidebar]
         M[Chart Section - Primary]
@@ -989,13 +988,13 @@ graph TD
     K --> L --> M
     L --> N
 
-    classDef mobile fill:#fff3e0
-    classDef tablet fill:#e8f5e8
-    classDef desktop fill:#e3f2fd
+    classDef small fill:#fff3e0
+    classDef medium fill:#e8f5e8
+    classDef large fill:#e3f2fd
 
-    class A,B,C,D,E,F mobile
-    class G,H,I,J tablet
-    class K,L,M,N desktop
+    class A,B,C,D,E,F small
+    class G,H,I,J medium
+    class K,L,M,N large
 ````
 
 #### 6.3.2 Component Layout Specifications

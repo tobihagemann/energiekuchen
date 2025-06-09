@@ -94,9 +94,9 @@ interface Activity {
 
 ### Responsive Breakpoints
 
-- Mobile: 320px-767px (single column)
-- Tablet: 768px-1023px (two columns)
-- Desktop: 1024px+ (side-by-side charts)
+- Small: Below 640px (single column)
+- Medium: 640px-1279px (two columns)
+- Large: 1280px+ (side-by-side charts)
 
 ## Important Development Notes
 
@@ -134,3 +134,7 @@ When fixing bugs:
 ## Development Warnings
 
 - Do not run `npm run dev`, use tests to verify results
+
+## Development Memories
+
+- Run `npm run format` at the very end

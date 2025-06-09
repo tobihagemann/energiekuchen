@@ -5,7 +5,7 @@ import { act, renderHook } from '@testing-library/react';
 Object.defineProperty(window, 'innerWidth', {
   writable: true,
   configurable: true,
-  value: 1024,
+  value: 1280,
 });
 
 // Mock window.addEventListener and removeEventListener
@@ -26,72 +26,72 @@ Object.defineProperty(window, 'removeEventListener', {
 
 describe('useResponsive', () => {
   beforeEach(() => {
-    // Reset to default desktop size
+    // Reset to default large size
     Object.defineProperty(window, 'innerWidth', {
       writable: true,
       configurable: true,
-      value: 1024,
+      value: 1280,
     });
   });
 
   describe('initial screen size detection', () => {
-    it('detects mobile screen size correctly', () => {
+    it('detects small screen size correctly', () => {
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 767, // Just below 768px threshold
+        value: 639, // Just below 640px threshold
       });
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isMobile).toBe(true);
-      expect(result.current.isTablet).toBe(false);
-      expect(result.current.isDesktop).toBe(false);
+      expect(result.current.isSmall).toBe(true);
+      expect(result.current.isMedium).toBe(false);
+      expect(result.current.isLarge).toBe(false);
     });
 
-    it('detects tablet screen size correctly', () => {
+    it('detects medium screen size correctly', () => {
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 768, // Exactly at tablet threshold
+        value: 640, // Exactly at medium threshold
       });
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isMobile).toBe(false);
-      expect(result.current.isTablet).toBe(true);
-      expect(result.current.isDesktop).toBe(false);
+      expect(result.current.isSmall).toBe(false);
+      expect(result.current.isMedium).toBe(true);
+      expect(result.current.isLarge).toBe(false);
     });
 
-    it('detects tablet upper range correctly', () => {
+    it('detects medium upper range correctly', () => {
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 1023, // Just below desktop threshold
+        value: 1279, // Just below large threshold
       });
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isMobile).toBe(false);
-      expect(result.current.isTablet).toBe(true);
-      expect(result.current.isDesktop).toBe(false);
+      expect(result.current.isSmall).toBe(false);
+      expect(result.current.isMedium).toBe(true);
+      expect(result.current.isLarge).toBe(false);
     });
 
-    it('detects desktop screen size correctly', () => {
+    it('detects large screen size correctly', () => {
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 1024, // Exactly at desktop threshold
+        value: 1280, // Exactly at large threshold
       });
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isMobile).toBe(false);
-      expect(result.current.isTablet).toBe(false);
-      expect(result.current.isDesktop).toBe(true);
+      expect(result.current.isSmall).toBe(false);
+      expect(result.current.isMedium).toBe(false);
+      expect(result.current.isLarge).toBe(true);
     });
 
-    it('detects large desktop screen size correctly', () => {
+    it('detects very large screen size correctly', () => {
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
@@ -100,39 +100,39 @@ describe('useResponsive', () => {
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isMobile).toBe(false);
-      expect(result.current.isTablet).toBe(false);
-      expect(result.current.isDesktop).toBe(true);
+      expect(result.current.isSmall).toBe(false);
+      expect(result.current.isMedium).toBe(false);
+      expect(result.current.isLarge).toBe(true);
     });
   });
 
   describe('boundary values', () => {
-    it('handles exact mobile-tablet boundary', () => {
+    it('handles exact small-medium boundary', () => {
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 768,
+        value: 640,
       });
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isMobile).toBe(false);
-      expect(result.current.isTablet).toBe(true);
-      expect(result.current.isDesktop).toBe(false);
+      expect(result.current.isSmall).toBe(false);
+      expect(result.current.isMedium).toBe(true);
+      expect(result.current.isLarge).toBe(false);
     });
 
-    it('handles exact tablet-desktop boundary', () => {
+    it('handles exact medium-large boundary', () => {
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 1024,
+        value: 1280,
       });
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isMobile).toBe(false);
-      expect(result.current.isTablet).toBe(false);
-      expect(result.current.isDesktop).toBe(true);
+      expect(result.current.isSmall).toBe(false);
+      expect(result.current.isMedium).toBe(false);
+      expect(result.current.isLarge).toBe(true);
     });
 
     it('handles very small screen sizes', () => {
@@ -144,9 +144,9 @@ describe('useResponsive', () => {
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isMobile).toBe(true);
-      expect(result.current.isTablet).toBe(false);
-      expect(result.current.isDesktop).toBe(false);
+      expect(result.current.isSmall).toBe(true);
+      expect(result.current.isMedium).toBe(false);
+      expect(result.current.isLarge).toBe(false);
     });
 
     it('handles very large screen sizes', () => {
@@ -158,9 +158,9 @@ describe('useResponsive', () => {
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isMobile).toBe(false);
-      expect(result.current.isTablet).toBe(false);
-      expect(result.current.isDesktop).toBe(true);
+      expect(result.current.isSmall).toBe(false);
+      expect(result.current.isMedium).toBe(false);
+      expect(result.current.isLarge).toBe(true);
     });
   });
 
@@ -195,24 +195,24 @@ describe('useResponsive', () => {
   });
 
   describe('resize event handling', () => {
-    it('updates state when resizing from desktop to mobile', () => {
-      // Start with desktop
+    it('updates state when resizing from large to small', () => {
+      // Start with large
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 1024,
+        value: 1280,
       });
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isDesktop).toBe(true);
+      expect(result.current.isLarge).toBe(true);
 
-      // Simulate resize to mobile
+      // Simulate resize to small
       act(() => {
         Object.defineProperty(window, 'innerWidth', {
           writable: true,
           configurable: true,
-          value: 600,
+          value: 500,
         });
 
         // Get the resize handler that was added
@@ -220,24 +220,24 @@ describe('useResponsive', () => {
         resizeHandler();
       });
 
-      expect(result.current.isMobile).toBe(true);
-      expect(result.current.isTablet).toBe(false);
-      expect(result.current.isDesktop).toBe(false);
+      expect(result.current.isSmall).toBe(true);
+      expect(result.current.isMedium).toBe(false);
+      expect(result.current.isLarge).toBe(false);
     });
 
-    it('updates state when resizing from mobile to tablet', () => {
-      // Start with mobile
+    it('updates state when resizing from small to medium', () => {
+      // Start with small
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 600,
+        value: 500,
       });
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isMobile).toBe(true);
+      expect(result.current.isSmall).toBe(true);
 
-      // Simulate resize to tablet
+      // Simulate resize to medium
       act(() => {
         Object.defineProperty(window, 'innerWidth', {
           writable: true,
@@ -249,13 +249,13 @@ describe('useResponsive', () => {
         resizeHandler();
       });
 
-      expect(result.current.isMobile).toBe(false);
-      expect(result.current.isTablet).toBe(true);
-      expect(result.current.isDesktop).toBe(false);
+      expect(result.current.isSmall).toBe(false);
+      expect(result.current.isMedium).toBe(true);
+      expect(result.current.isLarge).toBe(false);
     });
 
-    it('updates state when resizing from tablet to desktop', () => {
-      // Start with tablet
+    it('updates state when resizing from medium to large', () => {
+      // Start with medium
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
@@ -264,23 +264,23 @@ describe('useResponsive', () => {
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isTablet).toBe(true);
+      expect(result.current.isMedium).toBe(true);
 
-      // Simulate resize to desktop
+      // Simulate resize to large
       act(() => {
         Object.defineProperty(window, 'innerWidth', {
           writable: true,
           configurable: true,
-          value: 1200,
+          value: 1400,
         });
 
         const resizeHandler = mockAddEventListener.mock.calls[0][1];
         resizeHandler();
       });
 
-      expect(result.current.isMobile).toBe(false);
-      expect(result.current.isTablet).toBe(false);
-      expect(result.current.isDesktop).toBe(true);
+      expect(result.current.isSmall).toBe(false);
+      expect(result.current.isMedium).toBe(false);
+      expect(result.current.isLarge).toBe(true);
     });
 
     it('handles multiple rapid resize events', () => {
@@ -290,37 +290,37 @@ describe('useResponsive', () => {
 
       // Rapid changes
       act(() => {
-        Object.defineProperty(window, 'innerWidth', { value: 600 });
+        Object.defineProperty(window, 'innerWidth', { value: 500 });
         resizeHandler();
       });
-      expect(result.current.isMobile).toBe(true);
+      expect(result.current.isSmall).toBe(true);
 
       act(() => {
         Object.defineProperty(window, 'innerWidth', { value: 800 });
         resizeHandler();
       });
-      expect(result.current.isTablet).toBe(true);
+      expect(result.current.isMedium).toBe(true);
 
       act(() => {
-        Object.defineProperty(window, 'innerWidth', { value: 1200 });
+        Object.defineProperty(window, 'innerWidth', { value: 1400 });
         resizeHandler();
       });
-      expect(result.current.isDesktop).toBe(true);
+      expect(result.current.isLarge).toBe(true);
 
       act(() => {
-        Object.defineProperty(window, 'innerWidth', { value: 500 });
+        Object.defineProperty(window, 'innerWidth', { value: 400 });
         resizeHandler();
       });
-      expect(result.current.isMobile).toBe(true);
+      expect(result.current.isSmall).toBe(true);
     });
   });
 
   describe('initial state', () => {
     it('has consistent initial state based on window width', () => {
       const testCases = [
-        { width: 600, expected: { isMobile: true, isTablet: false, isDesktop: false } },
-        { width: 768, expected: { isMobile: false, isTablet: true, isDesktop: false } },
-        { width: 1024, expected: { isMobile: false, isTablet: false, isDesktop: true } },
+        { width: 500, expected: { isSmall: true, isMedium: false, isLarge: false } },
+        { width: 640, expected: { isSmall: false, isMedium: true, isLarge: false } },
+        { width: 1280, expected: { isSmall: false, isMedium: false, isLarge: true } },
       ];
 
       testCases.forEach(({ width, expected }) => {
@@ -335,14 +335,14 @@ describe('useResponsive', () => {
 
   describe('state consistency', () => {
     it('ensures only one breakpoint is active at a time', () => {
-      const testWidths = [320, 500, 767, 768, 900, 1023, 1024, 1200, 1920];
+      const testWidths = [320, 500, 639, 640, 900, 1279, 1280, 1400, 1920];
 
       testWidths.forEach(width => {
         Object.defineProperty(window, 'innerWidth', { value: width });
 
         const { result } = renderHook(() => useResponsive());
 
-        const activeStates = [result.current.isMobile, result.current.isTablet, result.current.isDesktop].filter(Boolean);
+        const activeStates = [result.current.isSmall, result.current.isMedium, result.current.isLarge].filter(Boolean);
 
         expect(activeStates).toHaveLength(1);
       });
@@ -359,9 +359,9 @@ describe('useResponsive', () => {
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isMobile).toBe(true);
-      expect(result.current.isTablet).toBe(false);
-      expect(result.current.isDesktop).toBe(false);
+      expect(result.current.isSmall).toBe(true);
+      expect(result.current.isMedium).toBe(false);
+      expect(result.current.isLarge).toBe(false);
     });
 
     it('handles negative width (theoretical edge case)', () => {
@@ -373,9 +373,9 @@ describe('useResponsive', () => {
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isMobile).toBe(true);
-      expect(result.current.isTablet).toBe(false);
-      expect(result.current.isDesktop).toBe(false);
+      expect(result.current.isSmall).toBe(true);
+      expect(result.current.isMedium).toBe(false);
+      expect(result.current.isLarge).toBe(false);
     });
 
     it('handles very large width values', () => {
@@ -387,9 +387,9 @@ describe('useResponsive', () => {
 
       const { result } = renderHook(() => useResponsive());
 
-      expect(result.current.isMobile).toBe(false);
-      expect(result.current.isTablet).toBe(false);
-      expect(result.current.isDesktop).toBe(true);
+      expect(result.current.isSmall).toBe(false);
+      expect(result.current.isMedium).toBe(false);
+      expect(result.current.isLarge).toBe(true);
     });
   });
 });

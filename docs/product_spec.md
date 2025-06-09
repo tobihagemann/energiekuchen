@@ -132,9 +132,9 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 #### 4.2 Responsive Design
 
-- **Desktop (1024px+):** Zwei-Spalten-Layout
-- **Tablet (768px-1023px):** Gestapeltes Layout mit größeren Touch-Targets
-- **Mobile (320px-767px):** Single-Column mit Touch-optimierten Elementen
+- **Large (1280px+):** Zwei-Spalten-Layout
+- **Medium (640px-1279px):** Gestapeltes Layout mit größeren Touch-Targets
+- **Small (Below 640px):** Single-Column mit Touch-optimierten Elementen
 
 #### 4.3 Farbschema
 

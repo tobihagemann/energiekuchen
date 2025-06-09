@@ -1,8 +1,6 @@
 export const BREAKPOINTS = {
-  mobile: '320px',
-  tablet: '768px',
-  desktop: '1024px',
-  wide: '1440px',
+  small: 640,
+  medium: 1280,
 } as const;
 
 export const TOUCH_TARGET_SIZE = '44px';

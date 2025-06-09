@@ -5,7 +5,7 @@ test.describe('Responsive Design', () => {
     await page.goto('/');
   });
 
-  test('displays correctly on desktop (1920x1080)', async ({ page }) => {
+  test('displays correctly on large screens (1920x1080)', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
 
     // Wait for charts section to be visible
@@ -15,44 +15,65 @@ test.describe('Responsive Design', () => {
     await expect(page.getByTestId('import-button')).toBeVisible();
     await expect(page.getByTestId('share-button')).toBeVisible();
 
-    // Check layout is wide enough for desktop
+    // Check layout is wide enough for large screens
     const main = page.locator('main');
     const boundingBox = await main.boundingBox();
-    expect(boundingBox?.width).toBeGreaterThan(800);
+    expect(boundingBox?.width).toBeGreaterThan(1200);
   });
 
-  test('displays correctly on tablet (768x1024)', async ({ page }) => {
-    await page.setViewportSize({ width: 768, height: 1024 });
+  test('displays correctly on medium screens (800x1024)', async ({ page }) => {
+    await page.setViewportSize({ width: 800, height: 1024 });
 
     // Wait for charts section to be visible
     await expect(page.getByTestId('charts-section')).toBeVisible();
 
-    // Header navigation should adapt to smaller screen
+    // Header navigation should adapt to medium screen
     await expect(page.getByTestId('import-button')).toBeVisible();
     await expect(page.getByTestId('share-button')).toBeVisible();
 
-    // Check that content adapts to tablet width
+    // Check that content adapts to medium width
     const main = page.locator('main');
     const boundingBox = await main.boundingBox();
-    expect(boundingBox?.width).toBeLessThanOrEqual(768);
+    expect(boundingBox?.width).toBeLessThanOrEqual(800);
+    expect(boundingBox?.width).toBeGreaterThanOrEqual(640);
   });
 
-  test('displays correctly on mobile (375x667)', async ({ page }) => {
+  test('displays correctly on small screens (375x667)', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
 
     // Wait for charts section to be visible
     await expect(page.getByTestId('charts-section')).toBeVisible();
 
-    // Navigation should be compact or collapsed
+    // Navigation should be compact
     await expect(page.getByTestId('logo')).toBeVisible();
 
-    // Check that content fits within mobile viewport
+    // Check that content fits within small viewport
     const main = page.locator('main');
     const boundingBox = await main.boundingBox();
-    expect(boundingBox?.width).toBeLessThanOrEqual(375);
+    expect(boundingBox?.width).toBeLessThan(640);
   });
 
-  test('handles orientation change on mobile', async ({ page }) => {
+  test('handles small-medium boundary (640px)', async ({ page }) => {
+    // Test just below boundary
+    await page.setViewportSize({ width: 639, height: 800 });
+    await expect(page.getByTestId('charts-section')).toBeVisible();
+
+    // Test at boundary
+    await page.setViewportSize({ width: 640, height: 800 });
+    await expect(page.getByTestId('charts-section')).toBeVisible();
+  });
+
+  test('handles medium-large boundary (1280px)', async ({ page }) => {
+    // Test just below boundary
+    await page.setViewportSize({ width: 1279, height: 800 });
+    await expect(page.getByTestId('charts-section')).toBeVisible();
+
+    // Test at boundary
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(page.getByTestId('charts-section')).toBeVisible();
+  });
+
+  test('handles orientation change on small screens', async ({ page }) => {
     // Start in portrait
     await page.setViewportSize({ width: 375, height: 667 });
     await expect(page.getByTestId('charts-section')).toBeVisible();
@@ -61,7 +82,7 @@ test.describe('Responsive Design', () => {
     await page.setViewportSize({ width: 667, height: 375 });
     await expect(page.getByTestId('charts-section')).toBeVisible();
 
-    // Content should still be accessible
+    // Content should adapt to new orientation (now medium size)
     const main = page.locator('main');
     const boundingBox = await main.boundingBox();
     expect(boundingBox?.width).toBeLessThanOrEqual(667);
@@ -72,15 +93,15 @@ test.describe('Responsive Design', () => {
     await page.getByTestId('quick-add-input-negative').fill('Test Activity');
     await page.getByTestId('quick-add-button-negative').click();
 
-    // Test on desktop
+    // Test on large screen
     await page.setViewportSize({ width: 1920, height: 1080 });
     await expect(page.getByTestId('activity-item')).toBeVisible();
 
-    // Test on tablet
-    await page.setViewportSize({ width: 768, height: 1024 });
+    // Test on medium screen
+    await page.setViewportSize({ width: 800, height: 1024 });
     await expect(page.getByTestId('activity-item')).toBeVisible();
 
-    // Test on mobile
+    // Test on small screen
     await page.setViewportSize({ width: 375, height: 667 });
     await expect(page.getByTestId('activity-item')).toBeVisible();
 
@@ -92,9 +113,9 @@ test.describe('Responsive Design', () => {
   test('inline forms adapt to different screen sizes', async ({ page }) => {
     // Test inline quick add form on different sizes
     const screenSizes = [
-      { width: 1920, height: 1080 }, // Desktop
-      { width: 768, height: 1024 }, // Tablet
-      { width: 375, height: 667 }, // Mobile
+      { width: 1920, height: 1080 }, // Large
+      { width: 800, height: 1024 }, // Medium
+      { width: 375, height: 667 }, // Small
     ];
 
     for (const size of screenSizes) {
@@ -113,9 +134,9 @@ test.describe('Responsive Design', () => {
   test('modals adapt to different screen sizes', async ({ page }) => {
     // Test modal responsiveness on different screen sizes
     const screenSizes = [
-      { width: 1920, height: 1080 }, // Desktop
-      { width: 768, height: 1024 }, // Tablet
-      { width: 375, height: 667 }, // Mobile
+      { width: 1920, height: 1080 }, // Large
+      { width: 800, height: 1024 }, // Medium
+      { width: 375, height: 667 }, // Small
     ];
 
     for (const size of screenSizes) {
@@ -141,7 +162,7 @@ test.describe('Responsive Design', () => {
   test('navigation is accessible on touch devices', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
 
-    // Import button is now visible on mobile
+    // Import button is visible on small screens
     await expect(page.getByTestId('import-button')).toBeVisible();
 
     // Test touch interactions with visible header buttons
@@ -161,13 +182,13 @@ test.describe('Responsive Design', () => {
     await page.getByTestId('quick-add-button-negative').click();
 
     const screenSizes = [
-      { width: 1920, height: 1080 },
-      { width: 768, height: 1024 },
-      { width: 375, height: 667 },
+      { width: 1920, height: 1080, expectedChartSize: 440 }, // Large
+      { width: 800, height: 1024, expectedChartSize: 360 }, // Medium
+      { width: 375, height: 667, expectedChartSize: 280 }, // Small
     ];
 
-    for (const size of screenSizes) {
-      await page.setViewportSize(size);
+    for (const { width, height } of screenSizes) {
+      await page.setViewportSize({ width, height });
 
       // Charts section should be visible
       await expect(page.getByTestId('charts-section')).toBeVisible();
@@ -175,7 +196,7 @@ test.describe('Responsive Design', () => {
       // Charts should adapt to container width
       const chartsSection = page.getByTestId('charts-section');
       const chartsBoundingBox = await chartsSection.boundingBox();
-      expect(chartsBoundingBox?.width).toBeLessThanOrEqual(size.width);
+      expect(chartsBoundingBox?.width).toBeLessThanOrEqual(width);
     }
   });
 

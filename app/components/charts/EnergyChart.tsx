@@ -17,11 +17,11 @@ interface EnergyChartProps {
 
 export function EnergyChart({ chartType, className, onActivityClick }: EnergyChartProps) {
   const { chartData, activities } = useChartData(chartType);
-  const { isMobile, isTablet } = useResponsive();
+  const { isSmall, isMedium } = useResponsive();
   const chartRef = useRef<ChartJS<'pie'>>(null);
 
   // Fixed responsive chart sizes
-  const chartSize = isMobile ? 280 : isTablet ? 360 : 440;
+  const chartSize = isSmall ? 280 : isMedium ? 360 : 440;
 
   const options = {
     responsive: true,
