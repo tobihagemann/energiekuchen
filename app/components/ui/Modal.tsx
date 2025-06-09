@@ -55,7 +55,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', className
   const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       {/* Backdrop */}
-      <div className="bg-opacity-50 absolute inset-0 bg-black transition-opacity" onClick={onClose} />
+      <div className="absolute inset-0 bg-black opacity-50 transition-opacity" onClick={onClose} />
 
       {/* Modal */}
       <div
