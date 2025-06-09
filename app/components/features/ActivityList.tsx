@@ -3,6 +3,7 @@
 import { ActivityForm } from '@/app/components/forms/ActivityForm';
 import { AddActivity } from '@/app/components/features/AddActivity';
 import { Button } from '@/app/components/ui/Button';
+import { Modal } from '@/app/components/ui/Modal';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
 import { getColorForLevel } from '@/app/lib/utils/constants';
@@ -18,7 +19,7 @@ interface ActivityListProps {
 
 export function ActivityList({ chartType, activities, className }: ActivityListProps) {
   const { deleteActivity } = useEnergy();
-  const { state: uiState, setEditingActivity } = useUI();
+  const { state: uiState, setEditingActivity, setDeleteConfirmation } = useUI();
 
   const isEditing = uiState.editingActivity?.chartType === chartType;
   const editingActivityId = isEditing ? uiState.editingActivity?.activityId : null;
@@ -28,10 +29,15 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
   };
 
   const handleDelete = (activityId: string) => {
-    if (window.confirm('Möchten Sie diese Aktivität wirklich löschen?')) {
+    setDeleteConfirmation({ chartType, activityId });
+  };
+
+  const confirmDelete = () => {
+    if (uiState.deleteConfirmation) {
       try {
-        deleteActivity(chartType, activityId);
+        deleteActivity(uiState.deleteConfirmation.chartType, uiState.deleteConfirmation.activityId);
         toast.success('Aktivität gelöscht');
+        setDeleteConfirmation(null);
       } catch {
         toast.error('Fehler beim Löschen der Aktivität');
       }
@@ -120,6 +126,21 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
           <div className="mt-1 text-xs text-gray-400">Klicken Sie auf &ldquo;Hinzufügen&rdquo; um zu beginnen</div>
         </div>
       )}
+
+      {/* Delete confirmation modal */}
+      <Modal isOpen={uiState.deleteConfirmation?.chartType === chartType} onClose={() => setDeleteConfirmation(null)} title="Aktivität löschen" size="sm">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">Möchten Sie diese Aktivität wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
+          <div className="flex justify-end space-x-3">
+            <Button variant="secondary" onClick={() => setDeleteConfirmation(null)}>
+              Abbrechen
+            </Button>
+            <Button variant="primary" onClick={confirmDelete} className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-500">
+              Löschen
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

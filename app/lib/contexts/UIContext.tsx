@@ -7,6 +7,7 @@ interface UIState {
   // Modal states
   isShareModalOpen: boolean;
   isImportExportModalOpen: boolean;
+  deleteConfirmation: { chartType: 'positive' | 'negative'; activityId: string } | null;
 
   // Current view
   currentView: 'dashboard';
@@ -24,6 +25,7 @@ type UIAction =
   | { type: 'CLOSE_SHARE_MODAL' }
   | { type: 'OPEN_IMPORT_EXPORT_MODAL' }
   | { type: 'CLOSE_IMPORT_EXPORT_MODAL' }
+  | { type: 'SET_DELETE_CONFIRMATION'; payload: { chartType: 'positive' | 'negative'; activityId: string } | null }
   | { type: 'SET_CURRENT_VIEW'; payload: 'dashboard' }
   | { type: 'SET_EDITING_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } | null }
   | { type: 'TOGGLE_SIDEBAR' }
@@ -45,6 +47,9 @@ function uiReducer(state: UIState, action: UIAction): UIState {
     case 'CLOSE_IMPORT_EXPORT_MODAL':
       return { ...state, isImportExportModalOpen: false };
 
+    case 'SET_DELETE_CONFIRMATION':
+      return { ...state, deleteConfirmation: action.payload };
+
     case 'SET_CURRENT_VIEW':
       return { ...state, currentView: action.payload };
 
@@ -65,6 +70,7 @@ function uiReducer(state: UIState, action: UIAction): UIState {
         ...state,
         isShareModalOpen: false,
         isImportExportModalOpen: false,
+        deleteConfirmation: null,
       };
 
     default:
@@ -78,6 +84,7 @@ interface UIContextType {
   closeShareModal: () => void;
   openImportExportModal: () => void;
   closeImportExportModal: () => void;
+  setDeleteConfirmation: (confirmation: { chartType: 'positive' | 'negative'; activityId: string } | null) => void;
   setCurrentView: (view: 'dashboard') => void;
   setEditingActivity: (activity: { chartType: 'positive' | 'negative'; activityId: string } | null) => void;
   toggleSidebar: () => void;
@@ -92,6 +99,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(uiReducer, {
     isShareModalOpen: false,
     isImportExportModalOpen: false,
+    deleteConfirmation: null,
     currentView: 'dashboard',
     editingActivity: null,
     sidebarOpen: false,
@@ -102,6 +110,8 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const closeShareModal = () => dispatch({ type: 'CLOSE_SHARE_MODAL' });
   const openImportExportModal = () => dispatch({ type: 'OPEN_IMPORT_EXPORT_MODAL' });
   const closeImportExportModal = () => dispatch({ type: 'CLOSE_IMPORT_EXPORT_MODAL' });
+  const setDeleteConfirmation = (confirmation: { chartType: 'positive' | 'negative'; activityId: string } | null) =>
+    dispatch({ type: 'SET_DELETE_CONFIRMATION', payload: confirmation });
   const setCurrentView = (view: 'dashboard') => dispatch({ type: 'SET_CURRENT_VIEW', payload: view });
   const setEditingActivity = (activity: { chartType: 'positive' | 'negative'; activityId: string } | null) =>
     dispatch({ type: 'SET_EDITING_ACTIVITY', payload: activity });
@@ -116,6 +126,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
     closeShareModal,
     openImportExportModal,
     closeImportExportModal,
+    setDeleteConfirmation,
     setCurrentView,
     setEditingActivity,
     toggleSidebar,
