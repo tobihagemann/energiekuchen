@@ -21,6 +21,15 @@ export function Slider({ value, onChange, min = 0, max = 100, step = 1, label, c
 
   const percentage = ((value - min) / (max - min)) * 100;
 
+  // Calculate thumb position to keep it within bounds
+  // At 0%, thumb should be at left edge (0px)
+  // At 100%, thumb should be at right edge minus thumb width (calc(100% - 24px))
+  const thumbPosition = `calc(${percentage}% - ${(percentage / 100) * 24}px)`;
+
+  // Calculate fill width to align with thumb center
+  // Add half thumb width (12px) to the constrained position
+  const fillWidth = `calc(${percentage}% - ${(percentage / 100) * 24}px + 12px)`;
+
   const updateValue = useCallback(
     (clientX: number) => {
       if (!sliderRef.current || disabled) return;
@@ -93,14 +102,14 @@ export function Slider({ value, onChange, min = 0, max = 100, step = 1, label, c
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         data-testid={testId}>
-        <div className="absolute top-0 left-0 h-full rounded-full bg-yellow-400 transition-all duration-150" style={{ width: `${percentage}%` }} />
+        <div className="absolute top-0 left-0 h-full rounded-l-full bg-yellow-400" style={{ width: fillWidth }} />
         <div
           className={cn(
-            'absolute top-1/2 h-6 w-6 -translate-y-1/2 transform rounded-full border-2 border-yellow-400 bg-white shadow-sm transition-all duration-150',
+            'absolute top-1/2 h-6 w-6 -translate-y-1/2 transform rounded-full border-2 border-yellow-400 bg-white shadow-sm',
             isDragging && 'scale-110 shadow-md',
             disabled && 'border-gray-300'
           )}
-          style={{ left: `calc(${percentage}% - 12px)` }}
+          style={{ left: thumbPosition }}
         />
       </div>
     </div>
