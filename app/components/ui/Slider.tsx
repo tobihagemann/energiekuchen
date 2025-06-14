@@ -12,10 +12,22 @@ interface SliderProps {
   label?: string;
   className?: string;
   disabled?: boolean;
+  fillColor?: string;
   'data-testid'?: string;
 }
 
-export function Slider({ value, onChange, min = 0, max = 100, step = 1, label, className, disabled = false, 'data-testid': testId }: SliderProps) {
+export function Slider({
+  value,
+  onChange,
+  min = 0,
+  max = 100,
+  step = 1,
+  label,
+  className,
+  disabled = false,
+  fillColor = 'oklch(0.852 0.199 91.936)',
+  'data-testid': testId,
+}: SliderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -102,14 +114,13 @@ export function Slider({ value, onChange, min = 0, max = 100, step = 1, label, c
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         data-testid={testId}>
-        <div className="absolute top-0 left-0 h-full rounded-l-full bg-yellow-400" style={{ width: fillWidth }} />
+        <div className="absolute top-0 left-0 h-full rounded-l-full" style={{ width: fillWidth, backgroundColor: fillColor }} />
         <div
-          className={cn(
-            'absolute top-1/2 h-6 w-6 -translate-y-1/2 transform rounded-full border-2 border-yellow-400 bg-white shadow-sm',
-            isDragging && 'scale-110 shadow-md',
-            disabled && 'border-gray-300'
-          )}
-          style={{ left: thumbPosition }}
+          className={cn('absolute top-1/2 h-6 w-6 -translate-y-1/2 transform rounded-full border-2 bg-white shadow-sm', isDragging && 'scale-110 shadow-md')}
+          style={{
+            left: thumbPosition,
+            borderColor: disabled ? 'oklch(0.872 0.01 258.338)' : fillColor,
+          }}
         />
       </div>
     </div>
