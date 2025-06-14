@@ -79,7 +79,7 @@ export function ImportExportModal() {
       closeImportExportModal();
     } catch (error) {
       console.error('Import error:', error);
-      const errorMsg = 'Fehler beim Importieren der Daten. Bitte überprüfe das Format.';
+      const errorMsg = error instanceof Error ? error.message : 'Fehler beim Importieren der Daten. Bitte überprüfe das Format.';
       setImportError(errorMsg);
       toast.error(errorMsg);
     } finally {

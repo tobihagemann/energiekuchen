@@ -166,7 +166,7 @@ test.describe('Sharing Functionality', () => {
     await expect(page.locator('[data-testid="share-modal"]')).toBeVisible();
 
     // Should show share URL or options
-    await expect(page.locator('[data-testid="share-modal"]')).toContainText('Teilen');
+    await expect(page.locator('[data-testid="share-modal"]')).toContainText('Teile');
   });
 
   test('should generate shareable URL with data', async ({ page }) => {
@@ -284,7 +284,7 @@ test.describe('Sharing Functionality', () => {
     await expect(page.locator('[data-testid="share-modal"]')).toBeVisible();
 
     // Should still show share modal but might have empty state message
-    await expect(page.locator('[data-testid="share-modal"]')).toContainText('Teilen');
+    await expect(page.locator('[data-testid="share-modal"]')).toContainText('Teile');
   });
 
   test('should show shared data in URL preview', async ({ page }) => {

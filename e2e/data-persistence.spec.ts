@@ -188,8 +188,11 @@ test.describe('Data Persistence', () => {
 
     // Use the first delete button (for Reading)
     if (buttonCount > 0) {
-      page.on('dialog', dialog => dialog.accept());
       await deleteButtons.first().click();
+
+      // Handle the modal confirmation
+      await expect(page.locator('text="Aktivität löschen"')).toBeVisible();
+      await page.locator('button:has-text("Löschen")').last().click();
     }
 
     // Wait for the activity to be removed

@@ -53,7 +53,7 @@ describe('useChartData', () => {
     const { result } = renderHook(() => useChartData('positive'));
 
     expect(result.current.activities).toEqual(mockActivities);
-    expect(result.current.chartData.labels).toEqual(['Activity 1 (60%)', 'Activity 2 (40%)']);
+    expect(result.current.chartData.labels).toEqual(['Activity 1', 'Activity 2']);
     expect(result.current.chartData.datasets[0].data).toEqual([6, 4]);
     // backgroundColor should now be based on energy levels, not the removed color property
   });
@@ -76,7 +76,7 @@ describe('useChartData', () => {
     const { result } = renderHook(() => useChartData('negative'));
 
     expect(result.current.activities).toEqual(mockActivities);
-    expect(result.current.chartData.labels).toEqual(['Activity 1 (60%)', 'Activity 2 (40%)']);
+    expect(result.current.chartData.labels).toEqual(['Activity 1', 'Activity 2']);
   });
 
   it('should return empty state chart data when no activities', () => {
@@ -154,7 +154,7 @@ describe('useChartData', () => {
 
     const { result } = renderHook(() => useChartData('positive'));
 
-    expect(result.current.chartData.labels).toEqual(['Activity 1 (100%)']);
+    expect(result.current.chartData.labels).toEqual(['Activity 1']);
     expect(result.current.chartData.datasets[0].data).toEqual([6]);
   });
 
@@ -236,6 +236,6 @@ describe('useChartData', () => {
     const secondChartData = result.current.chartData;
 
     expect(firstChartData).not.toBe(secondChartData); // Different reference
-    expect(result.current.chartData.labels).toEqual(['New Activity (100%)']);
+    expect(result.current.chartData.labels).toEqual(['New Activity']);
   });
 });
