@@ -4,10 +4,11 @@ import { useChartData } from '@/app/lib/hooks/useChartData';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
 import { cn } from '@/app/lib/utils/cn';
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { useRef } from 'react';
 import { Pie } from 'react-chartjs-2';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 interface EnergyChartProps {
   chartType: 'positive' | 'negative';
@@ -23,23 +24,51 @@ export function EnergyChart({ chartType, className, onActivityClick }: EnergyCha
   // Fixed responsive chart sizes
   const chartSize = isSmall ? 280 : isMedium ? 360 : 440;
 
+  // Determine label color based on activity value
+  // Values 1-4 use lighter backgrounds (100-400), need dark text
+  // Values 5-9 use darker backgrounds (500-900), need white text
+  const getLabelColor = (value: number): string => {
+    if (value >= 5) {
+      return '#fff'; // white for dark backgrounds
+    }
+    // Dark green for positive, dark red for negative (using oklch)
+    return chartType === 'positive' ? 'oklch(0.393 0.095 152.535)' : 'oklch(0.396 0.141 25.723)'; // green-900 : red-900
+  };
+
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    borderAlign: 'inner',
+    borderAlign: 'inner' as const,
     plugins: {
       legend: {
         display: false, // We'll create our own legend
       },
       tooltip: {
-        enabled: true,
-        callbacks: {
-          label: (context: { dataIndex: number }) => {
-            const activity = activities[context.dataIndex];
-            if (!activity) return '';
-            return `${activity.name}: ${activity.value} Energie`;
-          },
+        enabled: false,
+      },
+      datalabels: {
+        display: () => {
+          // Don't show label for empty state
+          return activities.length > 0;
         },
+        color: (context: { dataIndex: number }) => {
+          const activity = activities[context.dataIndex];
+          return activity ? getLabelColor(activity.value) : '#fff';
+        },
+        font: {
+          size: isSmall ? 12 : isMedium ? 14 : 16,
+          weight: 'bold' as const,
+        },
+        formatter: (value: number, context: { dataIndex: number }) => {
+          const activity = activities[context.dataIndex];
+          if (!activity) return '';
+          return activity.name;
+        },
+        anchor: 'center' as const,
+        align: 'center' as const,
+        clip: true,
+        textAlign: 'center' as const,
+        padding: 4,
       },
     },
     onClick: (event: unknown, elements: { index: number }[]) => {

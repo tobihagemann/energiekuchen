@@ -1,7 +1,6 @@
 'use client';
 
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
-import { calculatePercentage, calculateTotalEnergy } from '@/app/lib/utils/calculations';
 import { getColorForLevel } from '@/app/lib/utils/constants';
 import { ChartData } from '@/app/types/chart';
 import { useMemo } from 'react';
@@ -42,10 +41,8 @@ export function useChartData(chartType: 'positive' | 'negative') {
       };
     }
 
-    const total = calculateTotalEnergy(chart.activities);
-
     return {
-      labels: chart.activities.map(activity => `${activity.name} (${calculatePercentage(activity.value, total)}%)`),
+      labels: chart.activities.map(activity => activity.name),
       datasets: [
         {
           data: chart.activities.map(activity => activity.value),
