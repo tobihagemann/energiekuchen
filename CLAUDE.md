@@ -100,7 +100,7 @@ interface Activity {
 
 ## Important Development Notes
 
-1. **German Language Required**: All UI text, labels, error messages must be in German. Code comments can be English.
+1. **German Language Required**: All UI text, labels, error messages must be in German using informal "du" (duzen) instead of formal "Sie" (siezen). Code comments can be English.
 
 2. **Client-Side Only**: No API calls or server-side rendering. Everything runs in the browser with localStorage.
 

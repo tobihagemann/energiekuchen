@@ -143,7 +143,7 @@ export default function ImpressumPage() {
               <h2 className="mb-4 text-xl font-semibold text-gray-900">Datenschutz</h2>
               <div className="text-gray-600">
                 <p>
-                  Informationen zur Erhebung und Verarbeitung personenbezogener Daten finden Sie in unserer{' '}
+                  Informationen zur Erhebung und Verarbeitung personenbezogener Daten findest du in unserer{' '}
                   <Link href="/datenschutz" className="text-blue-600 hover:text-blue-700">
                     Datenschutzerklärung
                   </Link>

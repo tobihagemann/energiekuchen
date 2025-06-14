@@ -123,14 +123,14 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
         <div className="py-8 text-center text-gray-500" data-testid={`empty-activities-${chartType}`}>
           <div className="mb-2 text-4xl">📝</div>
           <div className="text-sm">Noch keine Aktivitäten vorhanden</div>
-          <div className="mt-1 text-xs text-gray-400">Klicken Sie auf &ldquo;Hinzufügen&rdquo; um zu beginnen</div>
+          <div className="mt-1 text-xs text-gray-400">Klicke auf &ldquo;Hinzufügen&rdquo; um zu beginnen</div>
         </div>
       )}
 
       {/* Delete confirmation modal */}
       <Modal isOpen={uiState.deleteConfirmation?.chartType === chartType} onClose={() => setDeleteConfirmation(null)} title="Aktivität löschen" size="sm">
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">Möchten Sie diese Aktivität wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
+          <p className="text-sm text-gray-600">Möchtest du diese Aktivität wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
           <div className="flex justify-end space-x-3">
             <Button variant="secondary" onClick={() => setDeleteConfirmation(null)}>
               Abbrechen

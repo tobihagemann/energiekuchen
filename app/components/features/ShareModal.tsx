@@ -69,7 +69,7 @@ export function ShareModal() {
   return (
     <Modal isOpen={uiState.isShareModalOpen} onClose={handleClose} title="Energiekuchen teilen" size="md">
       <div className="space-y-6" data-testid="share-modal">
-        <div className="text-sm text-gray-600">Teilen Sie Ihre Energiekuchen mit anderen, damit sie Ihre Energieverteilung einsehen können.</div>
+        <div className="text-sm text-gray-600">Teile deinen Energiekuchen mit anderen, damit sie deine Energieverteilung einsehen können.</div>
 
         {isGenerating ? (
           <div className="flex items-center justify-center py-8">
@@ -130,7 +130,7 @@ export function ShareModal() {
             {/* Info */}
             <div className="rounded-md bg-blue-50 p-3">
               <p className="text-sm text-blue-800">
-                <strong>Hinweis:</strong> Der Link enthält Ihre Energiekuchen-Daten. Jeder mit diesem Link kann Ihre Aktivitäten einsehen.
+                <strong>Hinweis:</strong> Der Link enthält deine Energiekuchen-Daten. Jeder mit diesem Link kann deine Aktivitäten einsehen.
               </p>
             </div>
           </div>

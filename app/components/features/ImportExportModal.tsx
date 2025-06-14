@@ -79,7 +79,7 @@ export function ImportExportModal() {
       closeImportExportModal();
     } catch (error) {
       console.error('Import error:', error);
-      const errorMsg = 'Fehler beim Importieren der Daten. Bitte überprüfen Sie das Format.';
+      const errorMsg = 'Fehler beim Importieren der Daten. Bitte überprüfe das Format.';
       setImportError(errorMsg);
       toast.error(errorMsg);
     } finally {
@@ -88,7 +88,7 @@ export function ImportExportModal() {
   };
 
   const handleClearAll = () => {
-    if (window.confirm('Sind Sie sicher, dass Sie alle Daten löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+    if (window.confirm('Bist du sicher, dass du alle Daten löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.')) {
       dispatch({ type: 'CLEAR_ALL_DATA' });
       toast.success('Alle Daten wurden gelöscht');
       closeImportExportModal();
@@ -122,7 +122,7 @@ export function ImportExportModal() {
             <DocumentArrowDownIcon className="h-5 w-5" />
             Daten exportieren
           </h3>
-          <p className="mb-4 text-gray-600">Speichern Sie Ihre Energiekuchen-Daten in einer JSON-Datei.</p>
+          <p className="mb-4 text-gray-600">Speichere deine Energiekuchen-Daten in einer JSON-Datei.</p>
           <Button onClick={handleExport} variant="secondary" className="w-full" data-testid="export-button">
             <DocumentArrowDownIcon className="mr-2 h-4 w-4" />
             Daten exportieren
@@ -135,7 +135,7 @@ export function ImportExportModal() {
             <DocumentArrowUpIcon className="h-5 w-5" />
             Daten importieren
           </h3>
-          <p className="mb-4 text-gray-600">Laden Sie Energiekuchen-Daten aus einer JSON-Datei oder fügen Sie JSON-Text ein.</p>
+          <p className="mb-4 text-gray-600">Lade Energiekuchen-Daten aus einer JSON-Datei oder füge JSON-Text ein.</p>
 
           <div className="space-y-4">
             {/* File Input */}
