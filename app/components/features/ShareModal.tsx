@@ -2,6 +2,7 @@
 
 import { Button } from '@/app/components/ui/Button';
 import { Input } from '@/app/components/ui/Input';
+import { InputGroup } from '@/app/components/ui/InputGroup';
 import { Modal } from '@/app/components/ui/Modal';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
@@ -102,12 +103,12 @@ export function ShareModal() {
               {/* URL Input */}
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">Sharing-Link</label>
-                <div className="flex space-x-2">
+                <InputGroup>
                   <Input value={shareData.url} readOnly className="flex-1 text-sm" data-testid="share-url" />
                   <Button onClick={handleCopyUrl} variant="secondary" className="shrink-0">
                     {copied ? <CheckIcon className="h-4 w-4" /> : <ClipboardIcon className="h-4 w-4" />}
                   </Button>
-                </div>
+                </InputGroup>
               </div>
 
               {/* Quick share options */}

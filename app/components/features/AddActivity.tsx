@@ -2,6 +2,7 @@
 
 import { Button } from '@/app/components/ui/Button';
 import { Input } from '@/app/components/ui/Input';
+import { InputGroup } from '@/app/components/ui/InputGroup';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { CHART_DEFAULTS } from '@/app/lib/utils/constants';
 import { validateActivity } from '@/app/lib/utils/validation';
@@ -52,7 +53,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
 
   return (
     <form onSubmit={handleSubmit} className={className} data-testid={`quick-add-form-${chartType}`}>
-      <div className="flex space-x-2">
+      <InputGroup>
         <Input
           placeholder={placeholder}
           value={name}
@@ -71,7 +72,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
           <PlusIcon className="h-4 w-4" />
           <span className="ml-1">Hinzufügen</span>
         </Button>
-      </div>
+      </InputGroup>
     </form>
   );
 }
