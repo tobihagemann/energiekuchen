@@ -71,7 +71,10 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
             if (isCurrentlyEditing) {
               return (
                 <div key={activity.id} className="rounded-lg bg-blue-50 p-4" data-testid={`edit-activity-form-${activity.id}`}>
-                  <h4 className="mb-3 text-sm font-medium text-gray-700">Aktivität bearbeiten</h4>
+                  <h4 className="mb-3 flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <PencilIcon className="h-4 w-4" />
+                    Aktivität bearbeiten
+                  </h4>
                   <ActivityForm chartType={chartType} activity={activity} onSuccess={handleEditSuccess} onCancel={handleEditCancel} />
                 </div>
               );
