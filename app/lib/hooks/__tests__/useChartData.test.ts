@@ -1,12 +1,10 @@
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useChartData } from '@/app/lib/hooks/useChartData';
-import * as calculations from '@/app/lib/utils/calculations';
 import { Activity } from '@/app/types';
 import { renderHook } from '@testing-library/react';
 
 // Mock dependencies
 jest.mock('@/app/lib/contexts/EnergyContext');
-jest.mock('@/app/lib/utils/calculations');
 
 const mockUseEnergy = useEnergy as jest.MockedFunction<typeof useEnergy>;
 
@@ -27,13 +25,6 @@ describe('useChartData', () => {
       updatedAt: new Date().toISOString(),
     },
   ];
-
-  beforeEach(() => {
-    // Mock calculations
-    const mockedCalculations = calculations as jest.Mocked<typeof calculations>;
-    mockedCalculations.calculateTotalEnergy.mockImplementation((activities: Activity[]) => activities.reduce((sum, activity) => sum + activity.value, 0));
-    mockedCalculations.calculatePercentage.mockImplementation((value: number, total: number) => Math.round((value / total) * 100));
-  });
 
   it('should return chart data for positive chart with activities', () => {
     mockUseEnergy.mockReturnValue({
