@@ -1,6 +1,5 @@
 'use client';
 
-import { calculatePercentage, calculateTotalEnergy } from '@/app/lib/utils/calculations';
 import { cn } from '@/app/lib/utils/cn';
 import { getColorForLevel } from '@/app/lib/utils/constants';
 import { Activity } from '@/app/types';
@@ -17,13 +16,9 @@ export function ChartLegend({ activities, chartType, onActivityClick, className 
     return null;
   }
 
-  const total = calculateTotalEnergy(activities);
-
   return (
     <div className={cn('space-y-2', className)}>
       {activities.map(activity => {
-        const percentage = calculatePercentage(activity.value, total);
-
         return (
           <div
             key={activity.id}
@@ -31,12 +26,10 @@ export function ChartLegend({ activities, chartType, onActivityClick, className 
             onClick={() => onActivityClick?.(activity.id)}>
             <div className="flex min-w-0 flex-1 items-center space-x-3">
               <div className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: getColorForLevel(activity.value, chartType) }} />
-              <span className="truncate text-sm font-medium text-gray-900">{activity.name}</span>
-            </div>
-
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <span>{activity.value}</span>
-              <span className="text-xs">({percentage}%)</span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium text-gray-900">{activity.name}</div>
+                <div className="text-xs text-gray-500">Energieniveau: {activity.value}</div>
+              </div>
             </div>
           </div>
         );
