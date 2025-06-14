@@ -36,7 +36,6 @@ Energiekuchen is a client-side web application that helps German-speaking users 
 - **State Management:** React Context API with useReducer
 - **Icons:** Heroicons for consistent iconography
 - **Notifications:** react-hot-toast for user feedback
-- **QR Code Generation:** qrcode library
 - **Color Management:** Dynamic color assignment based on energy level and chart type
 
 ## 2. System Architecture
@@ -652,7 +651,9 @@ graph TB
     subgraph "Feature Components"
         E[Dashboard]
         F[ShareModal]
-        G[ActivityForm]
+        G[ImportModal]
+        H[DeleteModal]
+        I[ActivityForm]
     end
 
     A --> B
@@ -662,6 +663,7 @@ graph TB
     D --> F
     D --> G
     D --> H
+    D --> I
 
     classDef root fill:#ffebee
     classDef provider fill:#e8f5e8
@@ -669,7 +671,7 @@ graph TB
 
     class A root
     class B,C,D provider
-    class E,F,G,H component
+    class E,F,G,H,I component
 ```
 
 ### 5.5 Component State Management Strategy
@@ -1229,7 +1231,6 @@ The application is designed to meet specific performance targets:
     "tailwindcss": "^4.1.7",
     "@heroicons/react": "^2.2.0",
     "react-hot-toast": "^2.5.2",
-    "qrcode": "^1.5.4",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.3.0",
     "uuid": "^11.1.0"
@@ -1245,7 +1246,6 @@ The application is designed to meet specific performance targets:
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/qrcode": "^1.5.5",
     "@types/uuid": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.1.8",

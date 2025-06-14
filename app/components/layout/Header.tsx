@@ -2,12 +2,12 @@
 
 import { Button } from '@/app/components/ui/Button';
 import { useUI } from '@/app/lib/contexts/UIContext';
-import { ArrowUpTrayIcon, ShareIcon } from '@heroicons/react/24/outline';
+import { ArrowDownTrayIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export function Header() {
-  const { openShareModal, openImportExportModal } = useUI();
+  const { openShareModal, openImportModal, openDeleteModal } = useUI();
 
   return (
     <header className="border-b border-gray-200 bg-white shadow-sm" data-testid="header">
@@ -21,14 +21,19 @@ export function Header() {
 
           {/* Navigation */}
           <nav className="flex items-center space-x-1 sm:space-x-2" data-testid="navigation">
-            <Button variant="ghost" size="sm" onClick={openImportExportModal} data-testid="import-button">
-              <ArrowUpTrayIcon className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Import/Export</span>
+            <Button variant="ghost" size="sm" onClick={openImportModal} data-testid="import-button">
+              <ArrowDownTrayIcon className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Importieren</span>
             </Button>
 
             <Button variant="ghost" size="sm" onClick={openShareModal} data-testid="share-button">
-              <ShareIcon className="mr-2 h-4 w-4" />
+              <ShareIcon className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Teilen</span>
+            </Button>
+
+            <Button variant="ghost" size="sm" onClick={openDeleteModal} data-testid="delete-button">
+              <TrashIcon className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Löschen</span>
             </Button>
           </nav>
         </div>

@@ -6,7 +6,8 @@ import { createContext, ReactNode, useContext, useReducer } from 'react';
 interface UIState {
   // Modal states
   isShareModalOpen: boolean;
-  isImportExportModalOpen: boolean;
+  isImportModalOpen: boolean;
+  isDeleteModalOpen: boolean;
   deleteConfirmation: { chartType: 'positive' | 'negative'; activityId: string } | null;
 
   // Current view
@@ -23,8 +24,10 @@ interface UIState {
 type UIAction =
   | { type: 'OPEN_SHARE_MODAL' }
   | { type: 'CLOSE_SHARE_MODAL' }
-  | { type: 'OPEN_IMPORT_EXPORT_MODAL' }
-  | { type: 'CLOSE_IMPORT_EXPORT_MODAL' }
+  | { type: 'OPEN_IMPORT_MODAL' }
+  | { type: 'CLOSE_IMPORT_MODAL' }
+  | { type: 'OPEN_DELETE_MODAL' }
+  | { type: 'CLOSE_DELETE_MODAL' }
   | { type: 'SET_DELETE_CONFIRMATION'; payload: { chartType: 'positive' | 'negative'; activityId: string } | null }
   | { type: 'SET_CURRENT_VIEW'; payload: 'dashboard' }
   | { type: 'SET_EDITING_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } | null }
@@ -41,11 +44,17 @@ function uiReducer(state: UIState, action: UIAction): UIState {
     case 'CLOSE_SHARE_MODAL':
       return { ...state, isShareModalOpen: false };
 
-    case 'OPEN_IMPORT_EXPORT_MODAL':
-      return { ...state, isImportExportModalOpen: true };
+    case 'OPEN_IMPORT_MODAL':
+      return { ...state, isImportModalOpen: true };
 
-    case 'CLOSE_IMPORT_EXPORT_MODAL':
-      return { ...state, isImportExportModalOpen: false };
+    case 'CLOSE_IMPORT_MODAL':
+      return { ...state, isImportModalOpen: false };
+
+    case 'OPEN_DELETE_MODAL':
+      return { ...state, isDeleteModalOpen: true };
+
+    case 'CLOSE_DELETE_MODAL':
+      return { ...state, isDeleteModalOpen: false };
 
     case 'SET_DELETE_CONFIRMATION':
       return { ...state, deleteConfirmation: action.payload };
@@ -69,7 +78,8 @@ function uiReducer(state: UIState, action: UIAction): UIState {
       return {
         ...state,
         isShareModalOpen: false,
-        isImportExportModalOpen: false,
+        isImportModalOpen: false,
+        isDeleteModalOpen: false,
         deleteConfirmation: null,
       };
 
@@ -82,8 +92,10 @@ interface UIContextType {
   state: UIState;
   openShareModal: () => void;
   closeShareModal: () => void;
-  openImportExportModal: () => void;
-  closeImportExportModal: () => void;
+  openImportModal: () => void;
+  closeImportModal: () => void;
+  openDeleteModal: () => void;
+  closeDeleteModal: () => void;
   setDeleteConfirmation: (confirmation: { chartType: 'positive' | 'negative'; activityId: string } | null) => void;
   setCurrentView: (view: 'dashboard') => void;
   setEditingActivity: (activity: { chartType: 'positive' | 'negative'; activityId: string } | null) => void;
@@ -98,7 +110,8 @@ const UIContext = createContext<UIContextType | undefined>(undefined);
 export function UIProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(uiReducer, {
     isShareModalOpen: false,
-    isImportExportModalOpen: false,
+    isImportModalOpen: false,
+    isDeleteModalOpen: false,
     deleteConfirmation: null,
     currentView: 'dashboard',
     editingActivity: null,
@@ -108,8 +121,10 @@ export function UIProvider({ children }: { children: ReactNode }) {
 
   const openShareModal = () => dispatch({ type: 'OPEN_SHARE_MODAL' });
   const closeShareModal = () => dispatch({ type: 'CLOSE_SHARE_MODAL' });
-  const openImportExportModal = () => dispatch({ type: 'OPEN_IMPORT_EXPORT_MODAL' });
-  const closeImportExportModal = () => dispatch({ type: 'CLOSE_IMPORT_EXPORT_MODAL' });
+  const openImportModal = () => dispatch({ type: 'OPEN_IMPORT_MODAL' });
+  const closeImportModal = () => dispatch({ type: 'CLOSE_IMPORT_MODAL' });
+  const openDeleteModal = () => dispatch({ type: 'OPEN_DELETE_MODAL' });
+  const closeDeleteModal = () => dispatch({ type: 'CLOSE_DELETE_MODAL' });
   const setDeleteConfirmation = (confirmation: { chartType: 'positive' | 'negative'; activityId: string } | null) =>
     dispatch({ type: 'SET_DELETE_CONFIRMATION', payload: confirmation });
   const setCurrentView = (view: 'dashboard') => dispatch({ type: 'SET_CURRENT_VIEW', payload: view });
@@ -124,8 +139,10 @@ export function UIProvider({ children }: { children: ReactNode }) {
     state,
     openShareModal,
     closeShareModal,
-    openImportExportModal,
-    closeImportExportModal,
+    openImportModal,
+    closeImportModal,
+    openDeleteModal,
+    closeDeleteModal,
     setDeleteConfirmation,
     setCurrentView,
     setEditingActivity,

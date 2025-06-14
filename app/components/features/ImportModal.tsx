@@ -1,43 +1,24 @@
 'use client';
 
-import { DocumentArrowDownIcon, DocumentArrowUpIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import React, { useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
-import { exportData, importData } from '../../lib/utils/storage';
+import { importData } from '../../lib/utils/storage';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 
-export function ImportExportModal() {
-  const { state: uiState, closeImportExportModal } = useUI();
-  const { state: energyState, dispatch } = useEnergy();
+export function ImportModal() {
+  const { state: uiState, closeImportModal } = useUI();
+  const { dispatch } = useEnergy();
   const [isImporting, setIsImporting] = useState(false);
   const [importContent, setImportContent] = useState('');
   const [importError, setImportError] = useState('');
   const [replaceExistingData, setReplaceExistingData] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const modalTitle = 'Import / Export';
-
-  const handleExport = () => {
-    try {
-      const dataToExport = exportData(energyState.data);
-      const blob = new Blob([dataToExport], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `energiekuchen-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      toast.success('Daten erfolgreich exportiert!');
-    } catch (error) {
-      console.error('Export error:', error);
-      toast.error('Fehler beim Exportieren der Daten');
-    }
-  };
+  const modalTitle = 'Importieren';
 
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -76,7 +57,7 @@ export function ImportExportModal() {
 
       toast.success('Daten erfolgreich importiert!');
       setImportContent('');
-      closeImportExportModal();
+      closeImportModal();
     } catch (error) {
       console.error('Import error:', error);
       const errorMsg = error instanceof Error ? error.message : 'Fehler beim Importieren der Daten. Bitte überprüfe das Format.';
@@ -87,21 +68,13 @@ export function ImportExportModal() {
     }
   };
 
-  const handleClearAll = () => {
-    if (window.confirm('Bist du sicher, dass du alle Daten löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.')) {
-      dispatch({ type: 'CLEAR_ALL_DATA' });
-      toast.success('Alle Daten wurden gelöscht');
-      closeImportExportModal();
-    }
-  };
-
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
 
   return (
-    <Modal isOpen={uiState.isImportExportModalOpen} onClose={closeImportExportModal} title={modalTitle} size="lg">
-      <div className="space-y-6" data-testid="import-modal">
+    <Modal isOpen={uiState.isImportModalOpen} onClose={closeImportModal} title={modalTitle} titleIcon={<ArrowDownTrayIcon className="h-5 w-5" />} size="md">
+      <div className="space-y-4" data-testid="import-modal">
         {/* Error Display */}
         {importError && (
           <div>
@@ -116,32 +89,14 @@ export function ImportExportModal() {
           </div>
         )}
 
-        {/* Export Section */}
-        <div className="rounded-lg border p-4">
-          <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-            <DocumentArrowDownIcon className="h-5 w-5" />
-            Daten exportieren
-          </h3>
-          <p className="mb-4 text-gray-600">Speichere deine Energiekuchen-Daten in einer JSON-Datei.</p>
-          <Button onClick={handleExport} variant="secondary" className="w-full" data-testid="export-button">
-            <DocumentArrowDownIcon className="mr-2 h-4 w-4" />
-            Daten exportieren
-          </Button>
-        </div>
-
         {/* Import Section */}
-        <div className="rounded-lg border p-4">
-          <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-            <DocumentArrowUpIcon className="h-5 w-5" />
-            Daten importieren
-          </h3>
+        <div>
           <p className="mb-4 text-gray-600">Lade Energiekuchen-Daten aus einer JSON-Datei oder füge JSON-Text ein.</p>
 
           <div className="space-y-4">
             {/* File Input */}
             <div>
               <Button onClick={triggerFileInput} variant="secondary" className="mb-2 w-full">
-                <DocumentArrowUpIcon className="mr-2 h-4 w-4" />
                 Datei auswählen
               </Button>
               <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileImport} className="hidden" data-testid="import-file-input" />
@@ -181,19 +136,6 @@ export function ImportExportModal() {
               {isImporting ? 'Importiere...' : 'Daten importieren'}
             </Button>
           </div>
-        </div>
-
-        {/* Clear All Data Section */}
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-red-700">
-            <TrashIcon className="h-5 w-5" />
-            Alle Daten löschen
-          </h3>
-          <p className="mb-4 text-red-600">Löscht alle Aktivitäten und setzt die Anwendung zurück. Diese Aktion kann nicht rückgängig gemacht werden.</p>
-          <Button onClick={handleClearAll} variant="danger" className="w-full">
-            <TrashIcon className="mr-2 h-4 w-4" />
-            Alle Daten löschen
-          </Button>
         </div>
       </div>
     </Modal>

@@ -1,6 +1,5 @@
 import { Activity, EnergyKuchen } from '@/app/types';
 import { ShareData } from '@/app/types/storage';
-import QRCode from 'qrcode';
 import { MAX_URL_LENGTH } from './constants';
 
 export class SharingManager {
@@ -35,12 +34,9 @@ export class SharingManager {
         throw new Error('Daten sind zu umfangreich zum Teilen');
       }
 
-      const qrCode = await QRCode.toDataURL(url);
-
       return {
         encoded,
         url,
-        qrCode,
       };
     } catch (error) {
       console.error('Failed to generate share data:', error);

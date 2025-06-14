@@ -1,11 +1,6 @@
 import { createMockEnergyKuchen } from '../../../__tests__/utils/mocks';
 import { SharingManager } from '../sharing';
 
-// Mock QRCode since it's used in SharingManager
-jest.mock('qrcode', () => ({
-  toDataURL: jest.fn().mockResolvedValue('data:image/png;base64,mockqrcode'),
-}));
-
 // Mock document methods for clipboard tests
 Object.defineProperty(document, 'execCommand', {
   value: jest.fn(),

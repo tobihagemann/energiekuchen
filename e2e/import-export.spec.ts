@@ -100,7 +100,16 @@ async function openImportModal(page: Page) {
   await expect(page.locator('[data-testid="import-modal"]')).toBeVisible({ timeout: 10000 });
 }
 
-test.describe('Import/Export Functionality', () => {
+async function openDeleteModal(page: Page) {
+  // Click the header delete button
+  const headerDeleteButton = page.locator('[data-testid="delete-button"]');
+  await headerDeleteButton.click();
+
+  // Verify delete modal opens (wait a bit longer for modal transitions)
+  await expect(page.locator('[data-testid="delete-modal"]')).toBeVisible({ timeout: 10000 });
+}
+
+test.describe('Import & Export Functionality', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
@@ -114,14 +123,15 @@ test.describe('Import/Export Functionality', () => {
     await page.locator('[data-testid="quick-add-input-negative"]').fill('Email Overload');
     await page.locator('[data-testid="quick-add-button-negative"]').click();
 
-    // Open import/export modal
-    await openImportModal(page);
+    // Open share modal
+    await page.locator('[data-testid="share-button"]').click();
+    await expect(page.locator('[data-testid="share-modal"]')).toBeVisible();
 
     // Set up download handling
     const downloadPromise = page.waitForEvent('download');
 
     // Click export button in the modal
-    const exportButton = page.locator('[data-testid="export-button"], button:has-text("Exportieren")').first();
+    const exportButton = page.locator('[data-testid="export-button"], button:has-text("Als JSON exportieren")').first();
     await exportButton.click();
 
     // Wait for download
@@ -395,5 +405,20 @@ test.describe('Import/Export Functionality', () => {
 
     // Focus on verifying data preservation during export/import
     // Energy balance calculations removed
+  });
+
+  test('should delete all data', async ({ page }) => {
+    // Add some test data
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Test Activity');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
+
+    // Open delete modal
+    await openDeleteModal(page);
+
+    // Click delete button
+    await page.locator('button:has-text("Daten löschen")').click();
+
+    // Verify all data is deleted
+    await expect(page.locator('[data-testid="activity-list-positive"]')).not.toContainText('Test Activity');
   });
 });

@@ -94,11 +94,11 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 }
 ```
 
-#### 2.2 Import/Export
+#### 2.2 Import/Export/Löschen
 
-- **Export:** Download als JSON-Datei
-- **Import:** Upload von JSON-Datei mit Validierung
-- **Reset:** Komplett zurücksetzen mit Bestätigung
+- **Import:** Upload von JSON-Datei mit Validierung oder JSON-Text einfügen
+- **Export:** Download als JSON-Datei (über Teilen-Modal verfügbar)
+- **Löschen:** Alle Daten zurücksetzen mit Bestätigung
 
 ### 3. Sharing-Funktionalität
 
@@ -112,8 +112,8 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 #### 3.2 Share-Optionen
 
 - **Kopieren-Button:** URL in Zwischenablage kopieren
-- **QR-Code:** Generierung für mobile Geräte
 - **Social Media:** Vorgefertigte Texte für WhatsApp, E-Mail, etc.
+- **Export-Funktion:** JSON-Datei Download im gleichen Modal
 
 ### 4. Benutzeroberfläche
 
@@ -121,14 +121,13 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 - **Header:**
   - Logo/Titel "Energiekuchen"
-  - Navigation (Neu, Laden, Teilen)
+  - Navigation (Importieren, Teilen, Löschen)
 - **Hauptbereich:**
   - Side-by-side Anordnung der beiden Kreisdiagramme (Desktop)
   - Gestapelte Anordnung (Mobile)
   - Aktivitätenliste unter jedem Diagramm
 - **Sidebar/Panel:**
   - Aktivität hinzufügen
-  - Export/Import
 
 #### 4.2 Responsive Design
 
@@ -243,7 +242,6 @@ interface EnergyKuchen {
 
 - **Chart.js** für Kreisdiagramme
 - **react-hot-toast** für Notifications
-- **qrcode** für QR-Code-Generierung
 
 ### Ordnerstruktur
 

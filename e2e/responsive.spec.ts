@@ -14,6 +14,7 @@ test.describe('Responsive Design', () => {
     // Header should show all navigation items horizontally
     await expect(page.getByTestId('import-button')).toBeVisible();
     await expect(page.getByTestId('share-button')).toBeVisible();
+    await expect(page.getByTestId('delete-button')).toBeVisible();
 
     // Check layout is wide enough for large screens
     const main = page.locator('main');
@@ -30,6 +31,7 @@ test.describe('Responsive Design', () => {
     // Header navigation should adapt to medium screen
     await expect(page.getByTestId('import-button')).toBeVisible();
     await expect(page.getByTestId('share-button')).toBeVisible();
+    await expect(page.getByTestId('delete-button')).toBeVisible();
 
     // Check that content adapts to medium width
     const main = page.locator('main');

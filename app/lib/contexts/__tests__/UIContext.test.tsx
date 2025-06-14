@@ -10,7 +10,8 @@ describe('UIContext', () => {
 
     expect(result.current.state).toEqual({
       isShareModalOpen: false,
-      isImportExportModalOpen: false,
+      isImportModalOpen: false,
+      isDeleteModalOpen: false,
       deleteConfirmation: null,
       currentView: 'dashboard',
       editingActivity: null,
@@ -35,20 +36,36 @@ describe('UIContext', () => {
     expect(result.current.state.isShareModalOpen).toBe(false);
   });
 
-  it('should open and close import export modal', () => {
+  it('should open and close import modal', () => {
     const { result } = renderHook(() => useUI(), { wrapper });
 
     act(() => {
-      result.current.openImportExportModal();
+      result.current.openImportModal();
     });
 
-    expect(result.current.state.isImportExportModalOpen).toBe(true);
+    expect(result.current.state.isImportModalOpen).toBe(true);
 
     act(() => {
-      result.current.closeImportExportModal();
+      result.current.closeImportModal();
     });
 
-    expect(result.current.state.isImportExportModalOpen).toBe(false);
+    expect(result.current.state.isImportModalOpen).toBe(false);
+  });
+
+  it('should open and close delete modal', () => {
+    const { result } = renderHook(() => useUI(), { wrapper });
+
+    act(() => {
+      result.current.openDeleteModal();
+    });
+
+    expect(result.current.state.isDeleteModalOpen).toBe(true);
+
+    act(() => {
+      result.current.closeDeleteModal();
+    });
+
+    expect(result.current.state.isDeleteModalOpen).toBe(false);
   });
 
   it('should set current view', () => {
@@ -135,18 +152,21 @@ describe('UIContext', () => {
     // Open all modals
     act(() => {
       result.current.openShareModal();
-      result.current.openImportExportModal();
+      result.current.openImportModal();
+      result.current.openDeleteModal();
     });
 
     expect(result.current.state.isShareModalOpen).toBe(true);
-    expect(result.current.state.isImportExportModalOpen).toBe(true);
+    expect(result.current.state.isImportModalOpen).toBe(true);
+    expect(result.current.state.isDeleteModalOpen).toBe(true);
 
     act(() => {
       result.current.closeAllModals();
     });
 
     expect(result.current.state.isShareModalOpen).toBe(false);
-    expect(result.current.state.isImportExportModalOpen).toBe(false);
+    expect(result.current.state.isImportModalOpen).toBe(false);
+    expect(result.current.state.isDeleteModalOpen).toBe(false);
   });
 
   it('should throw error when used outside provider', () => {
@@ -167,7 +187,8 @@ describe('UIContext', () => {
 
     expect(result.current.state).toEqual({
       isShareModalOpen: true,
-      isImportExportModalOpen: false,
+      isImportModalOpen: false,
+      isDeleteModalOpen: false,
       deleteConfirmation: null,
       currentView: 'dashboard',
       editingActivity: null,

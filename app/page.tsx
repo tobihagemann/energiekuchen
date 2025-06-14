@@ -2,7 +2,8 @@
 
 import { EnergyChart } from '@/app/components/charts/EnergyChart';
 import { ActivityList } from '@/app/components/features/ActivityList';
-import { ImportExportModal } from '@/app/components/features/ImportExportModal';
+import { DeleteModal } from '@/app/components/features/DeleteModal';
+import { ImportModal } from '@/app/components/features/ImportModal';
 import { ShareModal } from '@/app/components/features/ShareModal';
 import { Header } from '@/app/components/layout/Header';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
@@ -54,7 +55,8 @@ export default function Dashboard() {
       </main>
 
       <ShareModal />
-      <ImportExportModal />
+      <ImportModal />
+      <DeleteModal />
     </div>
   );
 }
