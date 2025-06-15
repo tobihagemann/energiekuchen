@@ -126,7 +126,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
         <div className="py-8 text-center text-gray-500" data-testid={`empty-activities-${chartType}`}>
           <div className="mb-2 text-4xl">📝</div>
           <div className="text-sm">Noch keine Aktivitäten vorhanden</div>
-          <div className="mt-1 text-xs text-gray-400">Klicke auf &ldquo;Hinzufügen&rdquo; um zu beginnen</div>
+          <div className="mt-1 text-xs text-gray-400">Füge deine erste Aktivität hinzu, um zu beginnen</div>
         </div>
       )}
 
