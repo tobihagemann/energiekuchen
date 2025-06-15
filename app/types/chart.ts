@@ -17,5 +17,5 @@ export interface Dataset {
   borderColor: string[];
   borderWidth: number;
   hoverBackgroundColor: string[];
-  hoverBorderColor: string[];
+  hoverBorderColor?: string[];
 }

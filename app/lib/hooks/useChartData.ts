@@ -5,37 +5,29 @@ import { getColorForLevel } from '@/app/lib/utils/constants';
 import { ChartData } from '@/app/types/chart';
 import { useMemo } from 'react';
 
-export function useChartData(chartType: 'positive' | 'negative') {
+export function useChartData(chartType: 'positive' | 'negative', editingActivity: { chartType: 'positive' | 'negative'; activityId: string } | null) {
   const { state } = useEnergy();
   const chart = state.data[chartType];
 
   const chartData: ChartData = useMemo(() => {
     if (chart.activities.length === 0) {
       const emptyChartColors = {
-        positive: {
-          backgroundColor: 'oklch(0.962 0.044 156.743)', // green-100
-          hoverBackgroundColor: 'oklch(0.982 0.018 155.826)', // green-50
-          hoverBorderColor: 'oklch(0.962 0.044 156.743)', // green-100
-        },
-        negative: {
-          backgroundColor: 'oklch(0.936 0.032 17.717)', // red-100
-          hoverBackgroundColor: 'oklch(0.971 0.013 17.38)', // red-50
-          hoverBorderColor: 'oklch(0.936 0.032 17.717)', // red-100
-        },
+        positive: 'oklch(0.962 0.044 156.743)', // green-100
+        negative: 'oklch(0.936 0.032 17.717)', // red-100
       };
 
-      const colors = emptyChartColors[chartType];
+      const backgroundColor = emptyChartColors[chartType];
 
       return {
         labels: ['Keine Aktivitäten'],
         datasets: [
           {
             data: [1],
-            backgroundColor: [colors.backgroundColor],
+            backgroundColor: [backgroundColor],
             borderColor: ['#fff'],
             borderWidth: 2,
-            hoverBackgroundColor: [colors.hoverBackgroundColor],
-            hoverBorderColor: [colors.hoverBorderColor],
+            hoverBackgroundColor: [`oklch(from ${backgroundColor} calc(l + 0.1) c h)`], // 10% lighter
+            hoverBorderColor: ['#fff'], // Keep border white on hover
           },
         ],
       };
@@ -47,17 +39,33 @@ export function useChartData(chartType: 'positive' | 'negative') {
         {
           data: chart.activities.map(activity => activity.value),
           backgroundColor: chart.activities.map(activity => getColorForLevel(activity.value, chartType)),
-          borderColor: chart.activities.map(() => '#fff'),
+          borderColor: chart.activities.map(activity => {
+            // Check if this activity is being edited
+            const isActive = editingActivity?.chartType === chartType && editingActivity?.activityId === activity.id;
+            if (isActive) {
+              const baseColor = getColorForLevel(activity.value, chartType);
+              return `oklch(from ${baseColor} calc(l - 0.1) c h)`; // 10% darker
+            }
+            return '#fff';
+          }),
           borderWidth: 2,
           hoverBackgroundColor: chart.activities.map(activity => {
             const color = getColorForLevel(activity.value, chartType);
-            return `oklch(from ${color} l c h / 0.8)`;
+            return `oklch(from ${color} calc(l + 0.1) c h)`; // 10% lighter
           }),
-          hoverBorderColor: chart.activities.map(activity => getColorForLevel(activity.value, chartType)),
+          hoverBorderColor: chart.activities.map(activity => {
+            // Keep the same border color on hover as the regular state
+            const isActive = editingActivity?.chartType === chartType && editingActivity?.activityId === activity.id;
+            if (isActive) {
+              const baseColor = getColorForLevel(activity.value, chartType);
+              return `oklch(from ${baseColor} calc(l - 0.1) c h)`; // 10% darker
+            }
+            return '#fff';
+          }),
         },
       ],
     };
-  }, [chart.activities, chartType]);
+  }, [chart.activities, chartType, editingActivity]);
 
   return { chartData, activities: chart.activities };
 }

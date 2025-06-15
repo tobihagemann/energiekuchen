@@ -2,6 +2,7 @@
 
 import { useChartData } from '@/app/lib/hooks/useChartData';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
+import { useUI } from '@/app/lib/contexts/UIContext';
 import { cn } from '@/app/lib/utils/cn';
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -17,7 +18,8 @@ interface EnergyChartProps {
 }
 
 export function EnergyChart({ chartType, className, onActivityClick }: EnergyChartProps) {
-  const { chartData, activities } = useChartData(chartType);
+  const { state: uiState } = useUI();
+  const { chartData, activities } = useChartData(chartType, uiState.editingActivity);
   const { isSmall, isMedium } = useResponsive();
   const chartRef = useRef<ChartJS<'pie'>>(null);
 

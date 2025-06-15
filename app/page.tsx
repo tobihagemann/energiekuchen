@@ -11,11 +11,16 @@ import { useUI } from '@/app/lib/contexts/UIContext';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
 export default function Dashboard() {
   const { state } = useEnergy();
-  const { setEditingActivity } = useUI();
+  const { state: uiState, setEditingActivity } = useUI();
   const { isSmall } = useResponsive();
 
   const handleActivityClick = (chartType: 'positive' | 'negative') => (activityId: string) => {
-    setEditingActivity({ chartType, activityId });
+    // Toggle editing mode: deselect if clicking on the active segment
+    if (uiState.editingActivity?.chartType === chartType && uiState.editingActivity?.activityId === activityId) {
+      setEditingActivity(null);
+    } else {
+      setEditingActivity({ chartType, activityId });
+    }
   };
 
   if (state.isLoading) {
