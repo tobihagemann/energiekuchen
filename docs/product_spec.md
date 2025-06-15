@@ -56,6 +56,10 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 - **Löschen von Aktivitäten:**
   - Löschen-Button mit Bestätigungsdialog
   - Drag-to-delete Funktionalität
+- **Neu anordnen von Aktivitäten:**
+  - Drag-and-Drop zum Umordnen von Aktivitäten in der Liste
+  - Visuelles Feedback während des Ziehens (Transparenz, Schatten)
+  - Reihenfolge wird im Diagramm übernommen
 
 #### 1.3 Anpassungsoptionen
 

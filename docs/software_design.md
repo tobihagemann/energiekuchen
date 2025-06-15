@@ -34,6 +34,7 @@ Energiekuchen is a client-side web application that helps German-speaking users 
 - **Styling:** Tailwind CSS 4.x with responsive design
 - **Data Visualization:** Chart.js with react-chartjs-2
 - **State Management:** React Context API with useReducer
+- **Drag and Drop:** @dnd-kit/core and @dnd-kit/sortable for activity reordering
 - **Icons:** Heroicons for consistent iconography
 - **Notifications:** react-hot-toast for user feedback
 - **Color Management:** Dynamic color assignment based on energy level and chart type
@@ -598,7 +599,7 @@ export interface ActivityListProps {
   className?: string;
 }
 
-// Features: Inline editing, activity management, responsive design
+// Features: Inline editing, activity management, responsive design, drag-and-drop reordering
 ```
 
 ### 5.3 Custom Hooks Design

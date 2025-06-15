@@ -6,10 +6,25 @@ import { Button } from '@/app/components/ui/Button';
 import { Modal } from '@/app/components/ui/Modal';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
-import { getColorForLevel } from '@/app/lib/utils/constants';
 import { Activity } from '@/app/types';
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  DragStartEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  defaultDropAnimationSideEffects,
+  DropAnimation,
+} from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { PencilIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { useState } from 'react';
+import { SortableActivityItem } from './SortableActivityItem';
 
 interface ActivityListProps {
   chartType: 'positive' | 'negative';
@@ -17,12 +32,30 @@ interface ActivityListProps {
   className?: string;
 }
 
+const dropAnimationConfig: DropAnimation = {
+  sideEffects: defaultDropAnimationSideEffects({
+    styles: {
+      active: {
+        opacity: '0.5',
+      },
+    },
+  }),
+};
+
 export function ActivityList({ chartType, activities, className }: ActivityListProps) {
-  const { deleteActivity } = useEnergy();
+  const { deleteActivity, reorderActivities } = useEnergy();
   const { state: uiState, setEditingActivity, setDeleteConfirmation } = useUI();
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const isEditing = uiState.editingActivity?.chartType === chartType;
   const editingActivityId = isEditing ? uiState.editingActivity?.activityId : null;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleEdit = (activityId: string) => {
     setEditingActivity({ chartType, activityId });
@@ -52,6 +85,29 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
     setEditingActivity(null);
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = activities.findIndex(activity => activity.id === active.id);
+      const newIndex = activities.findIndex(activity => activity.id === over.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        reorderActivities(chartType, oldIndex, newIndex);
+      }
+    }
+
+    setActiveId(null);
+  };
+
+  const handleDragCancel = () => {
+    setActiveId(null);
+  };
+
   return (
     <div className={className} data-testid={`activity-list-${chartType}`}>
       <div className="mb-4">
@@ -64,64 +120,55 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
 
       {/* Activities list */}
       {activities.length > 0 ? (
-        <div className="space-y-2" data-testid={`activities-list-${chartType}`}>
-          {activities.map(activity => {
-            const isCurrentlyEditing = editingActivityId === activity.id;
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+          autoScroll={false}>
+          <SortableContext items={activities.map(activity => activity.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2" data-testid={`activities-list-${chartType}`}>
+              {activities.map(activity => {
+                const isCurrentlyEditing = editingActivityId === activity.id;
 
-            if (isCurrentlyEditing) {
-              return (
-                <div key={activity.id} className="rounded-lg bg-blue-50 p-4" data-testid={`edit-activity-form-${activity.id}`}>
-                  <h4 className="mb-3 flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <PencilIcon className="h-4 w-4" />
-                    Aktivität bearbeiten
-                  </h4>
-                  <ActivityForm chartType={chartType} activity={activity} onSuccess={handleEditSuccess} onCancel={handleEditCancel} />
-                </div>
-              );
-            }
-
-            return (
-              <div
-                key={activity.id}
-                className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-50"
-                data-testid={`activity-item-${activity.id}`}>
-                <div className="flex min-w-0 flex-1 items-center space-x-3" data-testid="activity-item">
-                  <div className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: getColorForLevel(activity.value, chartType) }} />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium text-gray-900" data-testid={`activity-name-${activity.id}`}>
-                      {activity.name}
+                if (isCurrentlyEditing) {
+                  return (
+                    <div key={activity.id} className="rounded-lg bg-blue-50 p-4" data-testid={`edit-activity-form-${activity.id}`}>
+                      <h4 className="mb-3 flex items-center gap-2 text-sm font-medium text-gray-700">
+                        <PencilIcon className="h-4 w-4" />
+                        Aktivität bearbeiten
+                      </h4>
+                      <ActivityForm chartType={chartType} activity={activity} onSuccess={handleEditSuccess} onCancel={handleEditCancel} />
                     </div>
-                    <div className="text-xs text-gray-500" data-testid={`activity-value-${activity.id}`}>
-                      Energieniveau: {activity.value}
-                    </div>
-                  </div>
-                </div>
+                  );
+                }
 
-                <div className="flex items-center space-x-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEdit(activity.id)}
-                    disabled={isEditing}
-                    className="activity-edit-button h-8 w-8 p-0"
-                    data-testid={`edit-activity-button-${activity.id}`}>
-                    <PencilIcon className="h-4 w-4" />
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(activity.id)}
-                    disabled={isEditing}
-                    className="activity-delete-button h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
-                    data-testid={`delete-activity-button-${activity.id}`}>
-                    <TrashIcon className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                return (
+                  <SortableActivityItem
+                    key={activity.id}
+                    activity={activity}
+                    chartType={chartType}
+                    isEditing={isEditing}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                );
+              })}
+            </div>
+          </SortableContext>
+          <DragOverlay dropAnimation={dropAnimationConfig}>
+            {activeId ? (
+              <SortableActivityItem
+                activity={activities.find(a => a.id === activeId)!}
+                chartType={chartType}
+                isEditing={false}
+                onEdit={() => {}}
+                onDelete={() => {}}
+              />
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       ) : (
         <div className="py-8 text-center text-gray-500" data-testid={`empty-activities-${chartType}`}>
           <div className="mb-2 text-4xl">📝</div>

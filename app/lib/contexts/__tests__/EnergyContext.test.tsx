@@ -118,6 +118,61 @@ describe('EnergyContext', () => {
     expect(result.current.state.data.positive.activities[1].name).toBe('Sport');
   });
 
+  test('should reorder multiple activities correctly', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add three activities
+    act(() => {
+      result.current.addActivity('negative', {
+        name: 'Stress',
+        value: 7,
+      });
+      result.current.addActivity('negative', {
+        name: 'Müdigkeit',
+        value: 5,
+      });
+      result.current.addActivity('negative', {
+        name: 'Langeweile',
+        value: 3,
+      });
+    });
+
+    // Initial order
+    expect(result.current.state.data.negative.activities[0].name).toBe('Stress');
+    expect(result.current.state.data.negative.activities[1].name).toBe('Müdigkeit');
+    expect(result.current.state.data.negative.activities[2].name).toBe('Langeweile');
+
+    // Move last item to first position
+    act(() => {
+      result.current.reorderActivities('negative', 2, 0);
+    });
+
+    expect(result.current.state.data.negative.activities[0].name).toBe('Langeweile');
+    expect(result.current.state.data.negative.activities[1].name).toBe('Stress');
+    expect(result.current.state.data.negative.activities[2].name).toBe('Müdigkeit');
+  });
+
+  test('should handle reorder with same indices', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    act(() => {
+      result.current.addActivity('positive', {
+        name: 'Sport',
+        value: 5,
+      });
+    });
+
+    const initialActivities = [...result.current.state.data.positive.activities];
+
+    // Reorder with same from and to index
+    act(() => {
+      result.current.reorderActivities('positive', 0, 0);
+    });
+
+    // Should remain unchanged
+    expect(result.current.state.data.positive.activities).toEqual(initialActivities);
+  });
+
   test('should reset data correctly', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
