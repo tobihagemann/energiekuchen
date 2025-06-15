@@ -23,7 +23,7 @@ import {
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { PencilIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SortableActivityItem } from './SortableActivityItem';
 
 interface ActivityListProps {
@@ -65,7 +65,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
     setDeleteConfirmation({ chartType, activityId });
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = useCallback(() => {
     if (uiState.deleteConfirmation) {
       try {
         deleteActivity(uiState.deleteConfirmation.chartType, uiState.deleteConfirmation.activityId);
@@ -75,7 +75,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
         toast.error('Fehler beim Löschen der Aktivität');
       }
     }
-  };
+  }, [uiState.deleteConfirmation, deleteActivity, setDeleteConfirmation]);
 
   const handleEditSuccess = () => {
     setEditingActivity(null);
@@ -107,6 +107,23 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
   const handleDragCancel = () => {
     setActiveId(null);
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && uiState.deleteConfirmation?.chartType === chartType) {
+        e.preventDefault();
+        confirmDelete();
+      }
+    };
+
+    if (uiState.deleteConfirmation?.chartType === chartType) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [uiState.deleteConfirmation, chartType, confirmDelete]);
 
   return (
     <div className={className} data-testid={`activity-list-${chartType}`}>
@@ -179,7 +196,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
 
       {/* Delete confirmation modal */}
       <Modal isOpen={uiState.deleteConfirmation?.chartType === chartType} onClose={() => setDeleteConfirmation(null)} title="Aktivität löschen" size="sm">
-        <div className="space-y-4">
+        <div className="space-y-4" data-testid="activity-delete-confirmation-modal">
           <p className="text-sm text-gray-600">Möchtest du diese Aktivität wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
           <div className="flex justify-end space-x-3">
             <Button variant="secondary" onClick={() => setDeleteConfirmation(null)}>

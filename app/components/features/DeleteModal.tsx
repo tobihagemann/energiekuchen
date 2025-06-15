@@ -2,6 +2,7 @@
 
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
+import { useCallback, useEffect } from 'react';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
 import { Button } from '../ui/Button';
@@ -11,11 +12,28 @@ export function DeleteModal() {
   const { state: uiState, closeDeleteModal } = useUI();
   const { dispatch } = useEnergy();
 
-  const handleClearAll = () => {
+  const handleClearAll = useCallback(() => {
     dispatch({ type: 'CLEAR_ALL_DATA' });
     toast.success('Alle Daten wurden gelöscht');
     closeDeleteModal();
-  };
+  }, [dispatch, closeDeleteModal]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && uiState.isDeleteModalOpen) {
+        e.preventDefault();
+        handleClearAll();
+      }
+    };
+
+    if (uiState.isDeleteModalOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [uiState.isDeleteModalOpen, handleClearAll]);
 
   return (
     <Modal isOpen={uiState.isDeleteModalOpen} onClose={closeDeleteModal} title="Löschen" titleIcon={<TrashIcon className="h-5 w-5" />} size="sm">
