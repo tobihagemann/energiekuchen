@@ -36,7 +36,7 @@ export function DeleteModal() {
   }, [uiState.isDeleteModalOpen, handleClearAll]);
 
   return (
-    <Modal isOpen={uiState.isDeleteModalOpen} onClose={closeDeleteModal} title="Löschen" titleIcon={<TrashIcon className="h-5 w-5" />} size="sm">
+    <Modal isOpen={uiState.isDeleteModalOpen} onClose={closeDeleteModal} title="Energiekuchen löschen" titleIcon={<TrashIcon className="h-5 w-5" />} size="sm">
       <div className="space-y-4" data-testid="delete-modal">
         <p className="text-gray-600">Diese Aktion löscht alle deine Aktivitäten und setzt die Anwendung zurück. Sie kann nicht rückgängig gemacht werden.</p>
 

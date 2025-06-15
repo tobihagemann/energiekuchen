@@ -18,7 +18,7 @@ export function ImportModal() {
   const [replaceExistingData, setReplaceExistingData] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const modalTitle = 'Importieren';
+  const modalTitle = 'Energiekuchen importieren';
 
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

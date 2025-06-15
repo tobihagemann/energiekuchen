@@ -87,7 +87,7 @@ export function ShareModal() {
   };
 
   return (
-    <Modal isOpen={uiState.isShareModalOpen} onClose={handleClose} title="Teilen" titleIcon={<ShareIcon className="h-5 w-5" />} size="md">
+    <Modal isOpen={uiState.isShareModalOpen} onClose={handleClose} title="Energiekuchen teilen" titleIcon={<ShareIcon className="h-5 w-5" />} size="md">
       <div className="space-y-6" data-testid="share-modal">
         {/* Share Section */}
         <div className="space-y-4">
