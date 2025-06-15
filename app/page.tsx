@@ -3,6 +3,7 @@
 import { EnergyChart } from '@/app/components/charts/EnergyChart';
 import { ActivityList } from '@/app/components/features/ActivityList';
 import { DeleteModal } from '@/app/components/features/DeleteModal';
+import { EditActivityModal } from '@/app/components/features/EditActivityModal';
 import { ImportModal } from '@/app/components/features/ImportModal';
 import { ShareModal } from '@/app/components/features/ShareModal';
 import { Header } from '@/app/components/layout/Header';
@@ -11,7 +12,7 @@ import { useUI } from '@/app/lib/contexts/UIContext';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
 export default function Dashboard() {
   const { state } = useEnergy();
-  const { state: uiState, setEditingActivity } = useUI();
+  const { state: uiState, setEditingActivity, openEditModal } = useUI();
   const { isSmall } = useResponsive();
 
   const handleActivityClick = (chartType: 'positive' | 'negative') => (activityId: string) => {
@@ -20,6 +21,7 @@ export default function Dashboard() {
       setEditingActivity(null);
     } else {
       setEditingActivity({ chartType, activityId });
+      openEditModal();
     }
   };
 
@@ -62,6 +64,7 @@ export default function Dashboard() {
       <ShareModal />
       <ImportModal />
       <DeleteModal />
+      <EditActivityModal />
     </div>
   );
 }

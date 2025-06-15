@@ -151,12 +151,17 @@ test.describe('Data Persistence', () => {
     const id = activityId?.replace('activity-item-', '') || '';
 
     await page.locator(`[data-testid="edit-activity-button-${id}"]`).click();
-    await page.locator('[data-testid="activity-name-input"]').fill('Intensive Workout');
+
+    // Wait for edit modal to open
+    const editModal = page.locator('[data-testid="edit-activity-modal"]');
+    await expect(editModal).toBeVisible();
+
+    await editModal.locator('[data-testid="activity-name-input"]').fill('Intensive Workout');
 
     // Note: Slider interaction is flaky in tests, so we're only testing name persistence
     // The important part of this test is that edits persist after reload
 
-    await page.locator('[data-testid="submit-activity-button"]').click();
+    await editModal.locator('[data-testid="submit-activity-button"]').click();
 
     // Verify edit took effect (name should be updated)
     await expect(page.locator(`[data-testid="activity-name-${id}"]`)).toContainText('Intensive Workout');

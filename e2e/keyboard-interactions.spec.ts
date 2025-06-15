@@ -101,4 +101,43 @@ test.describe('Keyboard Interactions', () => {
     // Verify activity is NOT deleted
     await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Test Activity');
   });
+
+  test('should cancel edit activity with Escape key when focus is in edit form', async ({ page }) => {
+    // Add test activity
+    await page.locator('[data-testid="quick-add-input-positive"]').fill('Original Name');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
+
+    // Wait for activity to be visible
+    const activityItem = page.locator('[data-testid^="activity-item-"]').first();
+    await expect(activityItem).toBeVisible();
+
+    // Get the activity ID
+    const activityId = await activityItem.getAttribute('data-testid');
+    const id = activityId?.replace('activity-item-', '') || '';
+
+    // Click edit button for activity
+    const editButton = page.locator(`[data-testid="edit-activity-button-${id}"]`);
+    await expect(editButton).toBeVisible();
+    await editButton.click();
+
+    // Verify edit modal is visible
+    const editModal = page.locator('[data-testid="edit-activity-modal"]');
+    await expect(editModal).toBeVisible();
+
+    // Focus on the input field and change the name
+    const nameInput = editModal.locator('[data-testid="activity-name-input"]');
+    await nameInput.focus();
+    await nameInput.clear();
+    await nameInput.fill('Changed Name');
+
+    // Press Escape to cancel editing
+    await page.keyboard.press('Escape');
+
+    // Verify edit modal is closed
+    await expect(editModal).not.toBeVisible();
+
+    // Verify activity still has original name
+    await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Original Name');
+    await expect(page.locator('[data-testid="activity-list-positive"]')).not.toContainText('Changed Name');
+  });
 });

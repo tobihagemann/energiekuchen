@@ -1,6 +1,5 @@
 'use client';
 
-import { ActivityForm } from '@/app/components/forms/ActivityForm';
 import { AddActivity } from '@/app/components/features/AddActivity';
 import { Button } from '@/app/components/ui/Button';
 import { Modal } from '@/app/components/ui/Modal';
@@ -21,7 +20,6 @@ import {
   DropAnimation,
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { PencilIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { useState, useEffect, useCallback } from 'react';
 import { SortableActivityItem } from './SortableActivityItem';
@@ -44,11 +42,8 @@ const dropAnimationConfig: DropAnimation = {
 
 export function ActivityList({ chartType, activities, className }: ActivityListProps) {
   const { deleteActivity, reorderActivities } = useEnergy();
-  const { state: uiState, setEditingActivity, setDeleteConfirmation } = useUI();
+  const { state: uiState, setEditingActivity, setDeleteConfirmation, openEditModal } = useUI();
   const [activeId, setActiveId] = useState<string | null>(null);
-
-  const isEditing = uiState.editingActivity?.chartType === chartType;
-  const editingActivityId = isEditing ? uiState.editingActivity?.activityId : null;
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -59,6 +54,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
 
   const handleEdit = (activityId: string) => {
     setEditingActivity({ chartType, activityId });
+    openEditModal();
   };
 
   const handleDelete = (activityId: string) => {
@@ -76,14 +72,6 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
       }
     }
   }, [uiState.deleteConfirmation, deleteActivity, setDeleteConfirmation]);
-
-  const handleEditSuccess = () => {
-    setEditingActivity(null);
-  };
-
-  const handleEditCancel = () => {
-    setEditingActivity(null);
-  };
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -146,32 +134,16 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
           autoScroll={false}>
           <SortableContext items={activities.map(activity => activity.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-2" data-testid={`activities-list-${chartType}`}>
-              {activities.map(activity => {
-                const isCurrentlyEditing = editingActivityId === activity.id;
-
-                if (isCurrentlyEditing) {
-                  return (
-                    <div key={activity.id} className="rounded-lg bg-blue-50 p-4" data-testid={`edit-activity-form-${activity.id}`}>
-                      <h4 className="mb-3 flex items-center gap-2 text-sm font-medium text-gray-700">
-                        <PencilIcon className="h-4 w-4" />
-                        Aktivität bearbeiten
-                      </h4>
-                      <ActivityForm chartType={chartType} activity={activity} onSuccess={handleEditSuccess} onCancel={handleEditCancel} />
-                    </div>
-                  );
-                }
-
-                return (
-                  <SortableActivityItem
-                    key={activity.id}
-                    activity={activity}
-                    chartType={chartType}
-                    isEditing={isEditing}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                );
-              })}
+              {activities.map(activity => (
+                <SortableActivityItem
+                  key={activity.id}
+                  activity={activity}
+                  chartType={chartType}
+                  isEditing={false}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))}
             </div>
           </SortableContext>
           <DragOverlay dropAnimation={dropAnimationConfig}>

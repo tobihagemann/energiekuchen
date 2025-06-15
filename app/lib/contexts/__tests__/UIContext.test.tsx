@@ -12,6 +12,7 @@ describe('UIContext', () => {
       isShareModalOpen: false,
       isImportModalOpen: false,
       isDeleteModalOpen: false,
+      isEditModalOpen: false,
       deleteConfirmation: null,
       currentView: 'dashboard',
       editingActivity: null,
@@ -66,6 +67,22 @@ describe('UIContext', () => {
     });
 
     expect(result.current.state.isDeleteModalOpen).toBe(false);
+  });
+
+  it('should open and close edit modal', () => {
+    const { result } = renderHook(() => useUI(), { wrapper });
+
+    act(() => {
+      result.current.openEditModal();
+    });
+
+    expect(result.current.state.isEditModalOpen).toBe(true);
+
+    act(() => {
+      result.current.closeEditModal();
+    });
+
+    expect(result.current.state.isEditModalOpen).toBe(false);
   });
 
   it('should set current view', () => {
@@ -154,11 +171,13 @@ describe('UIContext', () => {
       result.current.openShareModal();
       result.current.openImportModal();
       result.current.openDeleteModal();
+      result.current.openEditModal();
     });
 
     expect(result.current.state.isShareModalOpen).toBe(true);
     expect(result.current.state.isImportModalOpen).toBe(true);
     expect(result.current.state.isDeleteModalOpen).toBe(true);
+    expect(result.current.state.isEditModalOpen).toBe(true);
 
     act(() => {
       result.current.closeAllModals();
@@ -167,6 +186,7 @@ describe('UIContext', () => {
     expect(result.current.state.isShareModalOpen).toBe(false);
     expect(result.current.state.isImportModalOpen).toBe(false);
     expect(result.current.state.isDeleteModalOpen).toBe(false);
+    expect(result.current.state.isEditModalOpen).toBe(false);
   });
 
   it('should throw error when used outside provider', () => {
@@ -189,6 +209,7 @@ describe('UIContext', () => {
       isShareModalOpen: true,
       isImportModalOpen: false,
       isDeleteModalOpen: false,
+      isEditModalOpen: false,
       deleteConfirmation: null,
       currentView: 'dashboard',
       editingActivity: null,
