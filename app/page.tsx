@@ -2,6 +2,7 @@
 
 import { EnergyChart } from '@/app/components/charts/EnergyChart';
 import { ActivityList } from '@/app/components/features/ActivityList';
+import { DeleteActivityModal } from '@/app/components/features/DeleteActivityModal';
 import { DeleteModal } from '@/app/components/features/DeleteModal';
 import { EditActivityModal } from '@/app/components/features/EditActivityModal';
 import { ImportModal } from '@/app/components/features/ImportModal';
@@ -65,6 +66,7 @@ export default function Dashboard() {
       <ImportModal />
       <DeleteModal />
       <EditActivityModal />
+      <DeleteActivityModal />
     </div>
   );
 }

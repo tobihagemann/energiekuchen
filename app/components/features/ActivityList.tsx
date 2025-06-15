@@ -1,8 +1,6 @@
 'use client';
 
 import { AddActivity } from '@/app/components/features/AddActivity';
-import { Button } from '@/app/components/ui/Button';
-import { Modal } from '@/app/components/ui/Modal';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
 import { Activity } from '@/app/types';
@@ -20,8 +18,7 @@ import {
   DropAnimation,
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import toast from 'react-hot-toast';
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { SortableActivityItem } from './SortableActivityItem';
 
 interface ActivityListProps {
@@ -41,8 +38,8 @@ const dropAnimationConfig: DropAnimation = {
 };
 
 export function ActivityList({ chartType, activities, className }: ActivityListProps) {
-  const { deleteActivity, reorderActivities } = useEnergy();
-  const { state: uiState, setEditingActivity, setDeleteConfirmation, openEditModal } = useUI();
+  const { reorderActivities } = useEnergy();
+  const { setEditingActivity, setDeleteConfirmation, openEditModal } = useUI();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -60,18 +57,6 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
   const handleDelete = (activityId: string) => {
     setDeleteConfirmation({ chartType, activityId });
   };
-
-  const confirmDelete = useCallback(() => {
-    if (uiState.deleteConfirmation) {
-      try {
-        deleteActivity(uiState.deleteConfirmation.chartType, uiState.deleteConfirmation.activityId);
-        toast.success('Aktivität gelöscht');
-        setDeleteConfirmation(null);
-      } catch {
-        toast.error('Fehler beim Löschen der Aktivität');
-      }
-    }
-  }, [uiState.deleteConfirmation, deleteActivity, setDeleteConfirmation]);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -95,23 +80,6 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
   const handleDragCancel = () => {
     setActiveId(null);
   };
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && uiState.deleteConfirmation?.chartType === chartType) {
-        e.preventDefault();
-        confirmDelete();
-      }
-    };
-
-    if (uiState.deleteConfirmation?.chartType === chartType) {
-      document.addEventListener('keydown', handleKeyDown);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [uiState.deleteConfirmation, chartType, confirmDelete]);
 
   return (
     <div className={className} data-testid={`activity-list-${chartType}`}>
@@ -165,21 +133,6 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
           <div className="mt-1 text-xs text-gray-400">Füge deine erste Aktivität hinzu, um zu beginnen</div>
         </div>
       )}
-
-      {/* Delete confirmation modal */}
-      <Modal isOpen={uiState.deleteConfirmation?.chartType === chartType} onClose={() => setDeleteConfirmation(null)} title="Aktivität löschen" size="sm">
-        <div className="space-y-4" data-testid="activity-delete-confirmation-modal">
-          <p className="text-sm text-gray-600">Möchtest du diese Aktivität wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
-          <div className="flex justify-end space-x-3">
-            <Button variant="secondary" onClick={() => setDeleteConfirmation(null)}>
-              Abbrechen
-            </Button>
-            <Button variant="primary" onClick={confirmDelete} className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-500">
-              Löschen
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }
