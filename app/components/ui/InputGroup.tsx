@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/app/lib/utils/cn';
-import { HTMLAttributes, Children, cloneElement, isValidElement, ReactElement } from 'react';
+import { Children, cloneElement, HTMLAttributes, isValidElement, ReactElement } from 'react';
 
 interface InputGroupProps extends HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;

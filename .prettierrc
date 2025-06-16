@@ -12,5 +12,5 @@
   "quoteProps": "as-needed",
   "jsxSingleQuote": false,
   "htmlWhitespaceSensitivity": "ignore",
-  "plugins": ["prettier-plugin-tailwindcss"]
+  "plugins": ["prettier-plugin-organize-imports", "prettier-plugin-tailwindcss"]
 }

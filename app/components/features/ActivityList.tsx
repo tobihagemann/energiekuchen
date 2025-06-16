@@ -6,16 +6,16 @@ import { useUI } from '@/app/lib/contexts/UIContext';
 import { Activity } from '@/app/types';
 import {
   closestCenter,
+  defaultDropAnimationSideEffects,
   DndContext,
   DragEndEvent,
+  DragOverlay,
   DragStartEvent,
+  DropAnimation,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  DragOverlay,
-  defaultDropAnimationSideEffects,
-  DropAnimation,
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useState } from 'react';

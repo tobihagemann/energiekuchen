@@ -1,8 +1,8 @@
 'use client';
 
 import { TrashIcon } from '@heroicons/react/24/outline';
-import { toast } from 'react-hot-toast';
 import { useCallback, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
 import { Button } from '../ui/Button';
