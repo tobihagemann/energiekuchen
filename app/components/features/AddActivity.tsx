@@ -7,7 +7,7 @@ import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { CHART_DEFAULTS } from '@/app/lib/utils/constants';
 import { validateActivity } from '@/app/lib/utils/validation';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
 interface AddActivityProps {
@@ -19,6 +19,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
   const { addActivity } = useEnergy();
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const placeholder = chartType === 'positive' ? 'z.B. Sport, Entspannung, Zeit mit Freunden' : 'z.B. Überstunden, Stress, schwierige Gespräche';
 
@@ -44,6 +45,10 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
       await addActivity(chartType, newActivity);
       toast.success('Aktivität hinzugefügt');
       setName('');
+      // Small delay to ensure DOM updates are complete
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
     } catch {
       toast.error('Fehler beim Hinzufügen der Aktivität');
     } finally {
@@ -55,6 +60,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
     <form onSubmit={handleSubmit} className={className} data-testid={`quick-add-form-${chartType}`}>
       <InputGroup>
         <Input
+          ref={inputRef}
           placeholder={placeholder}
           value={name}
           onChange={e => setName(e.target.value)}

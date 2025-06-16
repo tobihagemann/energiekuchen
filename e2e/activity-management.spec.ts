@@ -144,4 +144,32 @@ test.describe('Activity Management', () => {
     await expect(page.locator('[data-testid="empty-activities-positive"]')).toBeVisible();
     await expect(page.locator('[data-testid="empty-activities-negative"]')).toBeVisible();
   });
+
+  test('should return focus to input after adding activity', async ({ page }) => {
+    // Add a positive activity
+    const positiveInput = page.locator('[data-testid="quick-add-input-positive"]');
+    await positiveInput.fill('Meditation');
+    await page.locator('[data-testid="quick-add-button-positive"]').click();
+
+    // Wait for the activity to be added
+    await expect(page.locator('[data-testid="activity-list-positive"]')).toBeVisible();
+    await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Meditation');
+
+    // Check that input is cleared and has focus
+    await expect(positiveInput).toHaveValue('');
+    await expect(positiveInput).toBeFocused();
+
+    // Add a negative activity
+    const negativeInput = page.locator('[data-testid="quick-add-input-negative"]');
+    await negativeInput.fill('Überstunden');
+    await page.locator('[data-testid="quick-add-button-negative"]').click();
+
+    // Wait for the activity to be added
+    await expect(page.locator('[data-testid="activity-list-negative"]')).toBeVisible();
+    await expect(page.locator('[data-testid="activity-list-negative"]')).toContainText('Überstunden');
+
+    // Check that input is cleared and has focus
+    await expect(negativeInput).toHaveValue('');
+    await expect(negativeInput).toBeFocused();
+  });
 });
