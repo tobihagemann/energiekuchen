@@ -8,20 +8,20 @@ Object.defineProperty(document, 'execCommand', {
 });
 
 // Mock window.location for URL generation
-Object.defineProperty(window, 'location', {
-  value: {
-    origin: 'http://localhost:3000',
-    href: 'http://localhost:3000/',
-    protocol: 'http:',
-    host: 'localhost:3000',
-    hostname: 'localhost',
-    port: '3000',
-    pathname: '/',
-    search: '',
-    hash: '',
-  },
-  writable: true,
-});
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+delete (window as any).location;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(window as any).location = {
+  origin: 'http://localhost:3000',
+  href: 'http://localhost:3000/',
+  protocol: 'http:',
+  host: 'localhost:3000',
+  hostname: 'localhost',
+  port: '3000',
+  pathname: '/',
+  search: '',
+  hash: '',
+};
 
 describe('SharingManager', () => {
   test('should generate and decode share data', async () => {
