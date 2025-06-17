@@ -158,16 +158,19 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
           ...importedData,
         };
       } else {
-        // Merge imported activities with existing activities
+        // Merge imported activities with existing activities, avoiding duplicates by ID
+        const existingPositiveIds = new Set(state.data.positive.activities.map(a => a.id));
+        const existingNegativeIds = new Set(state.data.negative.activities.map(a => a.id));
+
         resultData = {
           ...importedData,
           positive: {
             ...importedData.positive,
-            activities: [...state.data.positive.activities, ...importedData.positive.activities],
+            activities: [...state.data.positive.activities, ...importedData.positive.activities.filter(a => !existingPositiveIds.has(a.id))],
           },
           negative: {
             ...importedData.negative,
-            activities: [...state.data.negative.activities, ...importedData.negative.activities],
+            activities: [...state.data.negative.activities, ...importedData.negative.activities.filter(a => !existingNegativeIds.has(a.id))],
           },
         };
       }

@@ -605,6 +605,64 @@ describe('EnergyContext', () => {
     expect(result.current.state.data.positive.activities[0].name).toBe('Imported Positive');
   });
 
+  test('should not add duplicate activities when importing with merge mode', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add some initial activities with specific IDs
+    act(() => {
+      result.current.dispatch({
+        type: 'SET_DATA',
+        payload: {
+          version: '1.0',
+          positive: {
+            activities: [
+              { id: 'activity-1', name: 'Existing Sport', value: 7 },
+              { id: 'activity-2', name: 'Existing Reading', value: 5 },
+            ],
+          },
+          negative: {
+            activities: [{ id: 'activity-3', name: 'Existing Stress', value: 8 }],
+          },
+        },
+      });
+    });
+
+    const importData = {
+      version: '1.0',
+      positive: {
+        activities: [
+          { id: 'activity-1', name: 'Duplicate Sport', value: 9 }, // Same ID as existing
+          { id: 'activity-4', name: 'New Meditation', value: 6 }, // New ID
+        ],
+      },
+      negative: {
+        activities: [
+          { id: 'activity-3', name: 'Duplicate Stress', value: 3 }, // Same ID as existing
+          { id: 'activity-5', name: 'New Commute', value: 4 }, // New ID
+        ],
+      },
+    };
+
+    // Import with merge mode (replaceExisting: false)
+    act(() => {
+      result.current.dispatch({
+        type: 'IMPORT_DATA',
+        payload: { data: importData, replaceExisting: false },
+      });
+    });
+
+    // Should have 3 positive activities (2 existing + 1 new, duplicate ignored)
+    expect(result.current.state.data.positive.activities).toHaveLength(3);
+    expect(result.current.state.data.positive.activities[0].name).toBe('Existing Sport');
+    expect(result.current.state.data.positive.activities[1].name).toBe('Existing Reading');
+    expect(result.current.state.data.positive.activities[2].name).toBe('New Meditation');
+
+    // Should have 2 negative activities (1 existing + 1 new, duplicate ignored)
+    expect(result.current.state.data.negative.activities).toHaveLength(2);
+    expect(result.current.state.data.negative.activities[0].name).toBe('Existing Stress');
+    expect(result.current.state.data.negative.activities[1].name).toBe('New Commute');
+  });
+
   test('should handle CLEAR_ALL_DATA action', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
