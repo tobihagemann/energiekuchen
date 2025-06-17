@@ -1,27 +1,17 @@
 'use client';
 
-import { Header } from '@/app/components/layout/Header';
-import { Button } from '@/app/components/ui/Button';
-import { HomeIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
+import { LegalHeader } from '@/app/components/layout/LegalHeader';
+import { ShieldCheckIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
 export default function PrivacyPage() {
   return (
     <div className="flex flex-1 flex-col">
-      <Header />
+      <LegalHeader />
 
       <main className="flex-1">
         <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <div className="mb-4 flex items-center gap-4">
-              <Link href="/">
-                <Button variant="secondary" size="sm">
-                  <HomeIcon className="mr-2 h-4 w-4" />
-                  Zurück zur App
-                </Button>
-              </Link>
-            </div>
-
             <div className="mb-4 flex items-center gap-3">
               <ShieldCheckIcon className="h-8 w-8 text-green-600" />
               <h1 className="text-3xl font-bold text-gray-900">Datenschutzerklärung</h1>
@@ -175,7 +165,7 @@ export default function PrivacyPage() {
           </div>
 
           <div className="mt-8 text-center">
-            <p className="text-sm text-gray-500">Stand: Dezember 2024</p>
+            <p className="text-sm text-gray-500">Stand: Juni 2025</p>
           </div>
         </div>
       </main>
