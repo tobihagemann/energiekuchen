@@ -107,7 +107,7 @@ interface Activity {
 
 5. **Performance**: Keep bundle size minimal for fast initial loads (<3s target).
 
-6. **Color Definitions**: When defining colors in code (not using Tailwind classes), always use oklch color format from `docs/color_palette.md`.
+6. **Color Definitions**: When defining colors in code (not using Tailwind classes), always use oklch color format from `docs/color-palette.md`.
 
 ## Common Tasks
 
