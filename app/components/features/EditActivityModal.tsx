@@ -96,7 +96,7 @@ export function EditActivityModal() {
   return (
     <Modal isOpen={uiState.isEditModalOpen} onClose={handleClose} title="Aktivität bearbeiten" titleIcon={<PencilIcon className="h-5 w-5" />} size="md">
       <div data-testid="edit-activity-modal">
-        <form onSubmit={handleSubmit} className="space-y-4" data-testid={`activity-form-${chartType}`}>
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6" data-testid={`activity-form-${chartType}`}>
           <div>
             <Input
               ref={nameInputRef}

@@ -18,6 +18,8 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 - **Styling:** Tailwind CSS
 - **Rendering:** Client-side rendering (CSR) - keine Server-side Rendering oder Backend-Komponenten
 - **Charts:** Chart.js für Kreisdiagramm-Visualisierung
+- **Drag & Drop:** dnd-kit für Aktivitäten-Neuanordnung
+- **Notifications:** react-hot-toast für Benutzer-Feedback
 - **State Management:** React useState/useReducer
 - **Persistierung:** Browser localStorage für lokale Datenspeicherung
 - **Sharing:** URL-basierte Datenübertragung mit Base64-encoded JSON
@@ -38,10 +40,10 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 - **Positiver Energiekuchen:** Visualisiert energiegebende Aktivitäten
   - Grüne Farbpalette
-  - Symbol: ⚡ oder ☀️
+  - Symbol: ⚡
 - **Negativer Energiekuchen:** Visualisiert energiezehrende Aktivitäten
-  - Rote/Orange Farbpalette
-  - Symbol: 🔋 oder ⚠️
+  - Rote Farbpalette
+  - Symbol: 🔋
 
 #### 1.2 Aktivitäten-Management
 
@@ -76,7 +78,6 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 ```json
 {
   "version": "1.0",
-  "lastModified": "2025-05-24T10:30:00Z",
   "positive": {
     "activities": [
       {
@@ -116,7 +117,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 #### 3.2 Share-Optionen
 
 - **Kopieren-Button:** URL in Zwischenablage kopieren
-- **Social Media:** Vorgefertigte Texte für WhatsApp, E-Mail, etc.
+- **Social Media:** Vorgefertigte Texte für WhatsApp und E-Mail
 - **Export-Funktion:** JSON-Datei Download im gleichen Modal
 
 ### 4. Benutzeroberfläche
@@ -129,8 +130,8 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 - **Hauptbereich:**
   - Side-by-side Anordnung der beiden Kreisdiagramme (Desktop)
   - Gestapelte Anordnung (Mobile)
+- **ActivityList:**
   - Aktivitätenliste unter jedem Diagramm
-- **Sidebar/Panel:**
   - Aktivität hinzufügen
 
 #### 4.2 Responsive Design
@@ -141,11 +142,22 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 #### 4.3 Farbschema
 
-- **Primär:** Energiegelb (#FCD34D)
-- **Sekundär:** Neutralgrau (#6B7280)
-- **Positiv:** Grüntöne (#10B981, #34D399, #6EE7B7)
-- **Negativ:** Rottöne (#EF4444, #F87171, #FCA5A5)
-- **Hintergrund:** Hellgrau (#F9FAFB)
+Alle Farben folgen dem Tailwind CSS 4 Standard mit oklch-Farbformat (siehe `docs/color-palette.md`):
+
+- **Primär:** Yellow-400/500 - Energiegelb für Buttons und Akzente
+- **Sekundär:** Gray-Palette - Neutrale Grautöne für UI-Elemente
+  - Text: gray-900 (primär), gray-700 (sekundär), gray-500 (tertiär)
+  - Buttons: gray-200/300 für sekundäre Aktionen
+- **Hintergrund:**
+  - gray-50 für Seitenhintergrund
+  - Weiß (#fff) für Content-Bereiche, Karten und Modals
+- **Positiv (Energiegebend):** Grüntöne
+  - Level 1-9: Von green-100 bis green-900
+  - Beispiel: `oklch(0.723 0.219 149.579)` für green-500
+- **Negativ (Energiezehrend):** Rottöne
+  - Level 1-9: Von red-100 bis red-900
+  - Beispiel: `oklch(0.637 0.237 25.331)` für red-500
+  - Zusätzlich red-500/600 für Lösch-Buttons und Fehlermeldungen
 
 ### 5. Interaktivität
 
@@ -153,13 +165,11 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 - **Hover-Effekte:** Highlight von Segmenten
 - **Click-Events:** Auswahl und Bearbeitung von Aktivitäten
-- **Tooltips:** Anzeige von Aktivitätsname und Energiewert
 - **Animations:** Smooth transitions bei Änderungen
 
 #### 5.2 Drag & Drop
 
 - Neuanordnung von Aktivitäten
-- Verschieben zwischen positivem und negativem Chart
 
 ## Nicht-funktionale Anforderungen
 
@@ -193,24 +203,33 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 4. **Als Nutzer möchte ich die Größe der Segmente anpassen können, um die relative Wichtigkeit zu reflektieren.**
 5. **Als Nutzer möchte ich meine Energiekuchen speichern und später wieder öffnen können.**
 6. **Als Nutzer möchte ich meine Energiekuchen mit anderen teilen können.**
-
-### Erweiterte Funktionen
-
-7. **Als Nutzer möchte ich verschiedene Farbschemata wählen können.**
-8. **Als Nutzer möchte ich meine Daten exportieren und importieren können.**
-9. **Als Nutzer möchte ich eine mobile-optimierte Ansicht haben.**
-10. **Als Nutzer möchte ich Tooltips zur Bedienung erhalten.**
+7. **Als Nutzer möchte ich meine Daten exportieren und importieren können.**
+8. **Als Nutzer möchte ich eine mobile-optimierte Ansicht haben.**
 
 ## Wireframes & UI-Komponenten
 
 ### Hauptkomponenten
 
-1. **EnergyChart:** Kreisdiagramm-Komponente
-2. **ActivityList:** Liste der Aktivitäten mit Edit/Delete
-3. **ActivityForm:** Formular zum Hinzufügen/Bearbeiten
-4. **ShareModal:** Modal für Sharing-Optionen
-5. **Header:** Navigation und Aktionen
-6. **Sidebar:** Schnellzugriff auf Funktionen
+1. **EnergyChart:** Kreisdiagramm-Komponente für Visualisierung
+2. **ChartLegend:** Legende mit Farbzuordnung für Energielevel
+3. **ActivityList:** Liste der Aktivitäten mit Drag-and-Drop
+4. **SortableActivityItem:** Einzelne Aktivität mit Bearbeitungs- und Löschfunktion
+5. **AddActivity:** Komponente zum Hinzufügen neuer Aktivitäten
+6. **Header:** Navigation mit Logo und Hauptaktionen
+7. **Footer:** Footer mit Links zu Impressum und Datenschutz
+
+### Modal-Komponenten
+
+1. **ShareModal:** Teilen-Funktionalität mit URL-Generierung und Export
+2. **ImportModal:** Import von JSON-Daten
+3. **EditActivityModal:** Bearbeiten bestehender Aktivitäten
+4. **DeleteActivityModal:** Bestätigung beim Löschen einzelner Aktivitäten
+5. **DeleteModal:** Bestätigung beim Löschen aller Daten
+
+### State Management
+
+1. **EnergyContext:** Verwaltung der Aktivitätsdaten und localStorage-Synchronisation
+2. **UIContext:** Verwaltung des UI-Zustands (Modals, aktuelle Bearbeitung)
 
 ### Seiten-Struktur
 
@@ -234,34 +253,32 @@ interface EnergyChart {
   activities: Activity[];
 }
 
-interface EnergyKuchen {
+interface EnergyPie {
   version: string;
-  lastModified: string;
   positive: EnergyChart;
   negative: EnergyChart;
 }
 ```
-
-### Key Libraries
-
-- **Chart.js** für Kreisdiagramme
-- **react-hot-toast** für Notifications
 
 ### Ordnerstruktur
 
 ```
 /app
   /components
-    /ui           # Basis UI-Komponenten
-    /charts       # Chart-Komponenten
-    /forms        # Formular-Komponenten
+    /charts       # Chart-Visualisierungskomponenten
+    /features     # Feature-spezifische Komponenten (Modals, Listen)
+    /layout       # Layout-Komponenten (Header, Footer)
+    /ui           # Basis UI-Komponenten (Button, Input, Modal, etc.)
   /lib
-    /utils        # Utility-Funktionen
-    /storage      # localStorage-Management
-    /sharing      # URL-Encoding/Decoding
+    /contexts     # React Context für State Management
+    /hooks        # Custom React Hooks
+    /utils        # Utility-Funktionen inkl. storage.ts und sharing.ts
   /types          # TypeScript-Definitionen
-  /(main)         # Hauptseiten
-  /share/[data]   # Sharing-Route
+  /datenschutz    # Datenschutz-Seite
+  /impressum      # Impressum-Seite
+  /share/[data]   # Dynamische Sharing-Route
+  page.tsx        # Hauptanwendung (Dashboard)
+  layout.tsx      # Root-Layout
 ```
 
 ## Testing-Strategie

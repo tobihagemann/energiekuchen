@@ -1,4 +1,4 @@
-import { Activity, EnergyKuchen } from '@/app/types';
+import { Activity, EnergyPie } from '@/app/types';
 import { v4 as uuidv4 } from 'uuid';
 
 export function createMockActivity(overrides?: Partial<Activity>): Activity {
@@ -6,26 +6,19 @@ export function createMockActivity(overrides?: Partial<Activity>): Activity {
     id: uuidv4(),
     name: 'Test Activity',
     value: 5,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     ...overrides,
   };
 }
 
-export function createMockEnergyKuchen(options?: { activitiesCount?: number }): EnergyKuchen {
+export function createMockEnergyPie(options?: { activitiesCount?: number }): EnergyPie {
   const activitiesCount = options?.activitiesCount || 2;
 
   return {
     version: '1.0',
-    lastModified: new Date().toISOString(),
     positive: {
-      id: uuidv4(),
-      type: 'positive',
       activities: Array.from({ length: activitiesCount }, (_, i) => createMockActivity({ name: `Positive Activity ${i + 1}` })),
     },
     negative: {
-      id: uuidv4(),
-      type: 'negative',
       activities: Array.from({ length: activitiesCount }, (_, i) => createMockActivity({ name: `Negative Activity ${i + 1}` })),
     },
   };

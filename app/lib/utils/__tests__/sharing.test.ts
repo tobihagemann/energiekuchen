@@ -1,4 +1,4 @@
-import { createMockEnergyKuchen } from '../../../__tests__/utils/mocks';
+import { createMockEnergyPie } from '../../../__tests__/utils/mocks';
 import { SharingManager } from '../sharing';
 
 // Mock document methods for clipboard tests
@@ -25,7 +25,7 @@ delete (window as any).location;
 
 describe('SharingManager', () => {
   test('should generate and decode share data', async () => {
-    const mockData = createMockEnergyKuchen();
+    const mockData = createMockEnergyPie();
 
     const shareData = await SharingManager.generateShareData(mockData);
     const decoded = SharingManager.decodeShareData(shareData.encoded);
@@ -65,7 +65,7 @@ describe('SharingManager', () => {
     const originalError = console.error;
     console.error = jest.fn();
 
-    const largeData = createMockEnergyKuchen({ activitiesCount: 20 });
+    const largeData = createMockEnergyPie({ activitiesCount: 20 });
 
     try {
       const shareData = await SharingManager.generateShareData(largeData);
@@ -100,7 +100,7 @@ describe('SharingManager', () => {
   });
 
   test('should preserve essential data in sharing', async () => {
-    const mockData = createMockEnergyKuchen();
+    const mockData = createMockEnergyPie();
     const shareData = await SharingManager.generateShareData(mockData);
     const decoded = SharingManager.decodeShareData(shareData.encoded);
 
@@ -108,8 +108,8 @@ describe('SharingManager', () => {
     expect(decoded.version).toBe(mockData.version);
   });
 
-  test('should add timestamps when decoding', () => {
-    const mockData = createMockEnergyKuchen();
+  test('should decode share data correctly', () => {
+    const mockData = createMockEnergyPie();
     const jsonString = JSON.stringify({
       version: mockData.version,
       positive: {
@@ -131,9 +131,12 @@ describe('SharingManager', () => {
     const encoded = btoa(encodeURIComponent(jsonString));
     const decoded = SharingManager.decodeShareData(encoded);
 
-    expect(decoded.lastModified).toBeDefined();
-    expect(decoded.positive.activities[0].createdAt).toBeDefined();
-    expect(decoded.positive.activities[0].updatedAt).toBeDefined();
+    // Activities should only have id, name, and value
+    expect(decoded.positive.activities[0]).toHaveProperty('id');
+    expect(decoded.positive.activities[0]).toHaveProperty('name');
+    expect(decoded.positive.activities[0]).toHaveProperty('value');
+    expect(decoded.positive.activities[0]).not.toHaveProperty('createdAt');
+    expect(decoded.positive.activities[0]).not.toHaveProperty('updatedAt');
   });
 
   test('should copy to clipboard successfully', async () => {

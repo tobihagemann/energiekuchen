@@ -2,20 +2,14 @@ export interface Activity {
   id: string;
   name: string;
   value: number; // 1-9 energy level
-  createdAt: string;
-  updatedAt: string;
 }
 
 interface EnergyChart {
-  id: string;
-  type: 'positive' | 'negative';
   activities: Activity[];
-  title?: string;
 }
 
-export interface EnergyKuchen {
+export interface EnergyPie {
   version: string;
-  lastModified: string;
   positive: EnergyChart;
   negative: EnergyChart;
 }

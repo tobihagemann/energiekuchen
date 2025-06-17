@@ -2,41 +2,34 @@
 
 import { generateUniqueId } from '@/app/lib/utils/calculations';
 import { StorageManager } from '@/app/lib/utils/storage';
-import { Activity, EnergyKuchen } from '@/app/types';
+import { Activity, EnergyPie } from '@/app/types';
 import React, { createContext, ReactNode, useContext, useEffect, useReducer, useRef } from 'react';
 
 // Energy Reducer Actions
 type EnergyAction =
-  | { type: 'SET_DATA'; payload: EnergyKuchen; shouldSave?: boolean }
+  | { type: 'SET_DATA'; payload: EnergyPie; shouldSave?: boolean }
   | { type: 'ADD_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'> } }
   | { type: 'UPDATE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string; updates: Partial<Activity> } }
   | { type: 'DELETE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } }
   | { type: 'REORDER_ACTIVITIES'; payload: { chartType: 'positive' | 'negative'; fromIndex: number; toIndex: number } }
   | { type: 'RESET_DATA' }
-  | { type: 'IMPORT_DATA'; payload: { data: EnergyKuchen; replaceExisting: boolean } }
+  | { type: 'IMPORT_DATA'; payload: { data: EnergyPie; replaceExisting: boolean } }
   | { type: 'CLEAR_ALL_DATA' }
   | { type: 'SET_LOADING'; payload: boolean };
 
 interface EnergyState {
-  data: EnergyKuchen;
+  data: EnergyPie;
   isLoading: boolean;
   lastSaved: string | null;
 }
 
-function createDefaultData(): EnergyKuchen {
-  const now = new Date().toISOString();
-
+function createDefaultData(): EnergyPie {
   return {
     version: '1.0',
-    lastModified: now,
     positive: {
-      id: 'positive',
-      type: 'positive',
       activities: [],
     },
     negative: {
-      id: 'negative',
-      type: 'negative',
       activities: [],
     },
   };
@@ -71,13 +64,10 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       const newActivity: Activity = {
         ...action.payload.activity,
         id: generateUniqueId(),
-        createdAt: now,
-        updatedAt: now,
       };
 
       const updatedData = {
         ...state.data,
-        lastModified: now,
         [action.payload.chartType]: {
           ...state.data[action.payload.chartType],
           activities: [...state.data[action.payload.chartType].activities, newActivity],
@@ -95,11 +85,10 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       const now = new Date().toISOString();
       const updatedData = {
         ...state.data,
-        lastModified: now,
         [action.payload.chartType]: {
           ...state.data[action.payload.chartType],
           activities: state.data[action.payload.chartType].activities.map(activity =>
-            activity.id === action.payload.activityId ? { ...activity, ...action.payload.updates, updatedAt: now } : activity
+            activity.id === action.payload.activityId ? { ...activity, ...action.payload.updates } : activity
           ),
         },
       };
@@ -115,7 +104,6 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       const now = new Date().toISOString();
       const updatedData = {
         ...state.data,
-        lastModified: now,
         [action.payload.chartType]: {
           ...state.data[action.payload.chartType],
           activities: state.data[action.payload.chartType].activities.filter(activity => activity.id !== action.payload.activityId),
@@ -137,7 +125,6 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
 
       const updatedData = {
         ...state.data,
-        lastModified: now,
         [action.payload.chartType]: {
           ...state.data[action.payload.chartType],
           activities,
@@ -169,13 +156,11 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
         // Replace existing data with imported data
         resultData = {
           ...importedData,
-          lastModified: now,
         };
       } else {
         // Merge imported activities with existing activities
         resultData = {
           ...importedData,
-          lastModified: now,
           positive: {
             ...importedData.positive,
             activities: [...state.data.positive.activities, ...importedData.positive.activities],
@@ -264,7 +249,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const addActivity = (chartType: 'positive' | 'negative', activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addActivity = (chartType: 'positive' | 'negative', activity: Omit<Activity, 'id'>) => {
     dispatch({ type: 'ADD_ACTIVITY', payload: { chartType, activity } });
   };
 

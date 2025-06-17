@@ -57,7 +57,7 @@ export function DeleteActivityModal() {
 
   return (
     <Modal isOpen={!!uiState.deleteConfirmation} onClose={handleClose} title="Aktivität löschen" titleIcon={<TrashIcon className="h-5 w-5" />} size="sm">
-      <div className="space-y-4" data-testid="activity-delete-confirmation-modal">
+      <div className="space-y-4 sm:space-y-6" data-testid="activity-delete-confirmation-modal">
         <p className="text-gray-600">
           Möchtest du die Aktivität „<strong>{activity.name}</strong>“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
         </p>

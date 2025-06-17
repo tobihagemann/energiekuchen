@@ -74,7 +74,7 @@ export function ImportModal() {
 
   return (
     <Modal isOpen={uiState.isImportModalOpen} onClose={closeImportModal} title={modalTitle} titleIcon={<ArrowDownTrayIcon className="h-5 w-5" />} size="md">
-      <div className="space-y-4" data-testid="import-modal">
+      <div className="space-y-4 sm:space-y-6" data-testid="import-modal">
         {/* Error Display */}
         {importError && (
           <div>
@@ -93,7 +93,7 @@ export function ImportModal() {
         <div>
           <p className="mb-4 text-gray-600">Lade Energiekuchen-Daten aus einer JSON-Datei oder füge JSON-Text ein.</p>
 
-          <div className="space-y-4">
+          <div className="space-y-4 sm:space-y-6">
             {/* File Input */}
             <div>
               <Button onClick={triggerFileInput} variant="secondary" className="mb-2 w-full">

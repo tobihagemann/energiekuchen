@@ -74,7 +74,10 @@ export function ShareModal() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `energiekuchen-${new Date().toISOString().split('T')[0]}.json`;
+      // Create filesystem-safe timestamp: YYYY-MM-DD_HH-MM-SS
+      const now = new Date();
+      const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
+      link.download = `energiekuchen_${timestamp}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -90,7 +93,7 @@ export function ShareModal() {
     <Modal isOpen={uiState.isShareModalOpen} onClose={handleClose} title="Energiekuchen teilen" titleIcon={<ShareIcon className="h-5 w-5" />} size="md">
       <div className="space-y-6" data-testid="share-modal">
         {/* Share Section */}
-        <div className="space-y-4">
+        <div className="space-y-4 sm:space-y-6">
           <div className="text-gray-600">Teile deinen Energiekuchen mit anderen, damit sie deine Energieverteilung einsehen können.</div>
 
           {isGenerating ? (
@@ -162,7 +165,7 @@ export function ShareModal() {
         <hr className="border-gray-200" />
 
         {/* Export Section */}
-        <div className="space-y-4">
+        <div className="space-y-4 sm:space-y-6">
           <div className="text-gray-600">Exportiere deine Energiekuchen-Daten als JSON-Datei zur Sicherung oder Weitergabe.</div>
 
           <Button onClick={handleExport} variant="secondary" className="w-full" data-testid="export-button">

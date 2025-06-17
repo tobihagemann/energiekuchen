@@ -1,4 +1,4 @@
-import { createMockEnergyKuchen } from '../../../__tests__/utils/mocks';
+import { createMockEnergyPie } from '../../../__tests__/utils/mocks';
 import { StorageManager, exportData, importData } from '../storage';
 
 describe('StorageManager', () => {
@@ -7,23 +7,19 @@ describe('StorageManager', () => {
   });
 
   test('should save and load data correctly', () => {
-    const mockData = createMockEnergyKuchen();
+    const mockData = createMockEnergyPie();
     StorageManager.save(mockData);
     const loaded = StorageManager.load();
     expect(loaded).toEqual(mockData);
   });
 
   test('should handle export and import', () => {
-    const mockData = createMockEnergyKuchen();
+    const mockData = createMockEnergyPie();
     const exported = exportData(mockData);
     const imported = importData(exported);
 
-    // importData normalizes chart IDs to 'positive' and 'negative'
-    const expectedData = {
-      ...mockData,
-      positive: { ...mockData.positive, id: 'positive' },
-      negative: { ...mockData.negative, id: 'negative' },
-    };
+    // importData returns the data as-is since there are no more id/type fields
+    const expectedData = mockData;
 
     expect(imported).toEqual(expectedData);
   });
@@ -44,7 +40,7 @@ describe('StorageManager', () => {
   });
 
   test('should clear localStorage data', () => {
-    const mockData = createMockEnergyKuchen();
+    const mockData = createMockEnergyPie();
     StorageManager.save(mockData);
     StorageManager.clear();
     const loaded = StorageManager.load();
@@ -62,7 +58,7 @@ describe('StorageManager', () => {
     const originalError = console.error;
     console.error = jest.fn();
 
-    const mockData = createMockEnergyKuchen();
+    const mockData = createMockEnergyPie();
     expect(() => StorageManager.save(mockData)).toThrow('Daten konnten nicht gespeichert werden');
 
     // Restore original methods
@@ -136,7 +132,7 @@ describe('StorageManager', () => {
   });
 
   test('should export valid JSON with proper formatting', () => {
-    const mockData = createMockEnergyKuchen();
+    const mockData = createMockEnergyPie();
     StorageManager.save(mockData);
 
     const exported = StorageManager.export();
@@ -166,17 +162,13 @@ describe('StorageManager', () => {
   });
 
   test('should validate StorageManager.import method', () => {
-    const mockData = createMockEnergyKuchen();
+    const mockData = createMockEnergyPie();
     const exported = JSON.stringify(mockData, null, 2);
 
     const imported = StorageManager.import(exported);
 
-    // StorageManager.import normalizes chart IDs to 'positive' and 'negative'
-    const expectedData = {
-      ...mockData,
-      positive: { ...mockData.positive, id: 'positive' },
-      negative: { ...mockData.negative, id: 'negative' },
-    };
+    // StorageManager.import returns the data as-is since there are no more id/type fields
+    const expectedData = mockData;
 
     expect(imported).toEqual(expectedData);
   });
@@ -198,26 +190,17 @@ describe('StorageManager', () => {
 
     const dataWithInvalidActivity = {
       version: '1.0',
-      lastModified: new Date().toISOString(),
       positive: {
-        id: 'positive',
-        type: 'positive',
         activities: [
           {
             id: '1',
             name: '', // Invalid: empty name
             value: 5,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
           },
         ],
-        size: 'medium',
       },
       negative: {
-        id: 'negative',
-        type: 'negative',
         activities: [],
-        size: 'medium',
       },
     };
 
@@ -233,26 +216,17 @@ describe('StorageManager', () => {
 
     const dataWithInvalidActivity = {
       version: '1.0',
-      lastModified: new Date().toISOString(),
       positive: {
-        id: 'positive',
-        type: 'positive',
         activities: [
           {
             id: '1',
             name: 'Test Activity',
             // value missing - this should trigger the validation error
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
           },
         ],
-        size: 'medium',
       },
       negative: {
-        id: 'negative',
-        type: 'negative',
         activities: [],
-        size: 'medium',
       },
     };
 
@@ -268,26 +242,17 @@ describe('StorageManager', () => {
 
     const dataWithInvalidActivity = {
       version: '1.0',
-      lastModified: new Date().toISOString(),
       positive: {
-        id: 'positive',
-        type: 'positive',
         activities: [
           {
             id: '1',
             name: 123, // Invalid: name should be string
             value: 5,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
           },
         ],
-        size: 'medium',
       },
       negative: {
-        id: 'negative',
-        type: 'negative',
         activities: [],
-        size: 'medium',
       },
     };
 
@@ -303,26 +268,17 @@ describe('StorageManager', () => {
 
     const dataWithInvalidActivity = {
       version: '1.0',
-      lastModified: new Date().toISOString(),
       positive: {
-        id: 'positive',
-        type: 'positive',
         activities: [
           {
             id: '1',
             name: 'Test Activity',
             value: 'invalid', // Invalid: value should be number
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
           },
         ],
-        size: 'medium',
       },
       negative: {
-        id: 'negative',
-        type: 'negative',
         activities: [],
-        size: 'medium',
       },
     };
 

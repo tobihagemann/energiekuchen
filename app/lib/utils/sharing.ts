@@ -1,11 +1,11 @@
-import { Activity, EnergyKuchen } from '@/app/types';
+import { Activity, EnergyPie } from '@/app/types';
 import { ShareData } from '@/app/types/storage';
 import { MAX_URL_LENGTH } from './constants';
 
 export class SharingManager {
   private static readonly BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://energiekuchen.de';
 
-  static async generateShareData(data: EnergyKuchen): Promise<ShareData> {
+  static async generateShareData(data: EnergyPie): Promise<ShareData> {
     try {
       // Remove timestamps and non-essential data for sharing
       const shareableData = {
@@ -44,38 +44,27 @@ export class SharingManager {
     }
   }
 
-  static decodeShareData(encoded: string): EnergyKuchen {
+  static decodeShareData(encoded: string): EnergyPie {
     try {
       const jsonString = decodeURIComponent(atob(encoded));
       const data = JSON.parse(jsonString);
 
-      // Add missing fields for full EnergyKuchen object
-      const now = new Date().toISOString();
-
+      // Add missing fields for full EnergyPie object
       return {
         ...data,
-        lastModified: now,
         positive: {
           ...data.positive,
-          id: 'positive',
-          type: 'positive' as const,
           activities: data.positive.activities.map((a: Activity) => ({
             ...a,
-            createdAt: now,
-            updatedAt: now,
           })),
         },
         negative: {
           ...data.negative,
-          id: 'negative',
-          type: 'negative' as const,
           activities: data.negative.activities.map((a: Activity) => ({
             ...a,
-            createdAt: now,
-            updatedAt: now,
           })),
         },
-      } as EnergyKuchen;
+      } as EnergyPie;
     } catch (error) {
       console.error('Failed to decode share data:', error);
       throw new Error('Ungültige Sharing-Daten');

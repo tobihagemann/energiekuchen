@@ -1,9 +1,9 @@
-import { EnergyKuchen } from '@/app/types';
+import { EnergyPie } from '@/app/types';
 import { STORAGE_KEY } from './constants';
 import { validateActivityValue } from './validation';
 
 export class StorageManager {
-  static save(data: EnergyKuchen): void {
+  static save(data: EnergyPie): void {
     try {
       const serialized = JSON.stringify(data);
       localStorage.setItem(STORAGE_KEY, serialized);
@@ -13,21 +13,21 @@ export class StorageManager {
     }
   }
 
-  static load(): EnergyKuchen | null {
+  static load(): EnergyPie | null {
     try {
       const serialized = localStorage.getItem(STORAGE_KEY);
       if (!serialized) {
         return null;
       }
 
-      const parsed = JSON.parse(serialized) as EnergyKuchen;
+      const parsed = JSON.parse(serialized) as EnergyPie;
 
-      // Migration: Remove color property from activities if it exists
+      // Migration: Remove color and timestamp properties from activities if they exist
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const migrateActivities = (activities: any[]): any[] => {
         return activities.map(activity => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { color, ...rest } = activity;
+          const { color, createdAt, updatedAt, ...rest } = activity;
           return rest;
         });
       };
@@ -61,17 +61,17 @@ export class StorageManager {
     return JSON.stringify(data, null, 2);
   }
 
-  static import(jsonString: string): EnergyKuchen {
+  static import(jsonString: string): EnergyPie {
     return importData(jsonString);
   }
 }
 
 // Standalone export/import functions for use in components
-export function exportData(data: EnergyKuchen): string {
+export function exportData(data: EnergyPie): string {
   return JSON.stringify(data, null, 2);
 }
 
-export function importData(jsonString: string): EnergyKuchen {
+export function importData(jsonString: string): EnergyPie {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data = JSON.parse(jsonString) as any;
@@ -88,11 +88,11 @@ export function importData(jsonString: string): EnergyKuchen {
 
       return activities
         .map(activity => {
-          // Migration: Remove color property if it exists
+          // Migration: Remove color and timestamp properties if they exist
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { color, ...activityWithoutColor } = activity;
+          const { color, createdAt, updatedAt, ...activityWithoutLegacyFields } = activity;
 
-          return activityWithoutColor;
+          return activityWithoutLegacyFields;
         })
         .filter(activity => {
           // Check required fields
@@ -118,18 +118,12 @@ export function importData(jsonString: string): EnergyKuchen {
     const negativeActivities = data.negative?.activities ? validateActivities(data.negative.activities) : [];
 
     // Create a complete data structure with defaults
-    const now = new Date().toISOString();
-    const result: EnergyKuchen = {
+    const result: EnergyPie = {
       version: data.version || '1.0',
-      lastModified: data.lastModified || now,
       positive: {
-        id: 'positive',
-        type: 'positive',
         activities: positiveActivities,
       },
       negative: {
-        id: 'negative',
-        type: 'negative',
         activities: negativeActivities,
       },
     };

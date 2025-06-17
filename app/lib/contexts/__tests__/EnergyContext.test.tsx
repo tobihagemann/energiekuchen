@@ -198,18 +198,11 @@ describe('EnergyContext', () => {
 
     const importData = JSON.stringify({
       version: '1.0',
-      lastModified: new Date().toISOString(),
       positive: {
-        id: 'positive',
-        type: 'positive',
         activities: [createMockActivity({ name: 'Imported Activity' })],
-        size: 'medium',
       },
       negative: {
-        id: 'negative',
-        type: 'negative',
         activities: [],
-        size: 'medium',
       },
     });
 
@@ -400,18 +393,11 @@ describe('EnergyContext', () => {
   test('should load saved data on mount', () => {
     const mockData = {
       version: '1.0',
-      lastModified: new Date().toISOString(),
       positive: {
-        id: 'positive',
-        type: 'positive' as const,
         activities: [createMockActivity({ name: 'Loaded Activity' })],
-        size: 'medium' as const,
       },
       negative: {
-        id: 'negative',
-        type: 'negative' as const,
         activities: [],
-        size: 'medium' as const,
       },
     };
 
@@ -428,18 +414,11 @@ describe('EnergyContext', () => {
 
     const mockData = {
       version: '1.0',
-      lastModified: new Date().toISOString(),
       positive: {
-        id: 'positive',
-        type: 'positive' as const,
         activities: [createMockActivity({ name: 'Manual Load' })],
-        size: 'medium' as const,
       },
       negative: {
-        id: 'negative',
-        type: 'negative' as const,
         activities: [],
-        size: 'medium' as const,
       },
     };
 
@@ -496,7 +475,6 @@ describe('EnergyContext', () => {
     // Mock import data
     const importData = {
       version: '1.0',
-      lastModified: new Date().toISOString(),
       positive: {
         id: 'positive',
         type: 'positive' as const,
@@ -561,17 +539,16 @@ describe('EnergyContext', () => {
 
     const importData = {
       version: '1.0',
-      lastModified: '2023-01-01T00:00:00.000Z',
       positive: {
         id: 'positive',
         type: 'positive' as const,
-        activities: [{ id: '1', name: 'Imported Positive', value: 5, createdAt: '2023-01-01T00:00:00.000Z', updatedAt: '2023-01-01T00:00:00.000Z' }],
+        activities: [{ id: '1', name: 'Imported Positive', value: 5 }],
         size: 'medium' as const,
       },
       negative: {
         id: 'negative',
         type: 'negative' as const,
-        activities: [{ id: '2', name: 'Imported Negative', value: 6, createdAt: '2023-01-01T00:00:00.000Z', updatedAt: '2023-01-01T00:00:00.000Z' }],
+        activities: [{ id: '2', name: 'Imported Negative', value: 6 }],
         size: 'medium' as const,
       },
     };
@@ -601,11 +578,10 @@ describe('EnergyContext', () => {
 
     const importData = {
       version: '1.0',
-      lastModified: '2023-01-01T00:00:00.000Z',
       positive: {
         id: 'positive',
         type: 'positive' as const,
-        activities: [{ id: '1', name: 'Imported Positive', value: 5, createdAt: '2023-01-01T00:00:00.000Z', updatedAt: '2023-01-01T00:00:00.000Z' }],
+        activities: [{ id: '1', name: 'Imported Positive', value: 5 }],
         size: 'medium' as const,
       },
       negative: {

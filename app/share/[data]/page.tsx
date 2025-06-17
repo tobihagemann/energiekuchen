@@ -4,7 +4,7 @@ import { ChartLegend } from '@/app/components/charts/ChartLegend';
 import { EnergyChart } from '@/app/components/charts/EnergyChart';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { SharingManager } from '@/app/lib/utils/sharing';
-import { EnergyKuchen } from '@/app/types';
+import { EnergyPie } from '@/app/types';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -14,7 +14,7 @@ export default function SharedEnergyChart() {
   const params = useParams();
   const router = useRouter();
   const { dispatch } = useEnergy();
-  const [data, setData] = useState<EnergyKuchen | null>(null);
+  const [data, setData] = useState<EnergyPie | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

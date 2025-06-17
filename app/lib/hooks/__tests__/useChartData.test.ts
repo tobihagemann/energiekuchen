@@ -14,15 +14,11 @@ describe('useChartData', () => {
       id: '1',
       name: 'Activity 1',
       value: 6,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     },
     {
       id: '2',
       name: 'Activity 2',
       value: 4,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     },
   ];
 
@@ -209,8 +205,6 @@ describe('useChartData', () => {
         id: '3',
         name: 'New Activity',
         value: 9,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       },
     ];
 
@@ -273,7 +267,7 @@ describe('useChartData', () => {
 
   it('should use OKLCH color manipulation for active borders and hover states', () => {
     // Test with level 1 activity
-    const level1Activity = [{ id: '1', name: 'Low Energy', value: 1, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }];
+    const level1Activity = [{ id: '1', name: 'Low Energy', value: 1 }];
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
@@ -292,7 +286,7 @@ describe('useChartData', () => {
     expect(result.current.chartData.datasets[0].hoverBackgroundColor[0]).toBe('oklch(from oklch(0.962 0.044 156.743) calc(l + 0.1) c h)'); // green-100 lightened
 
     // Test with level 9 activity
-    const level9Activity = [{ id: '2', name: 'High Energy', value: 9, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }];
+    const level9Activity = [{ id: '2', name: 'High Energy', value: 9 }];
     mockUseEnergy.mockReturnValue({
       state: {
         data: {

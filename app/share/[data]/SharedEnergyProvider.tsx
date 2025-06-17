@@ -1,31 +1,24 @@
 'use client';
 
-import { Activity, EnergyKuchen } from '@/app/types';
+import { Activity, EnergyPie } from '@/app/types';
 import React, { createContext, ReactNode, useReducer } from 'react';
 
 // Simplified Energy Reducer Actions for shared pages
-type EnergyAction = { type: 'SET_DATA'; payload: EnergyKuchen; shouldSave?: boolean } | { type: 'SET_LOADING'; payload: boolean };
+type EnergyAction = { type: 'SET_DATA'; payload: EnergyPie; shouldSave?: boolean } | { type: 'SET_LOADING'; payload: boolean };
 
 interface EnergyState {
-  data: EnergyKuchen;
+  data: EnergyPie;
   isLoading: boolean;
   lastSaved: string | null;
 }
 
-function createDefaultData(): EnergyKuchen {
-  const now = new Date().toISOString();
-
+function createDefaultData(): EnergyPie {
   return {
     version: '1.0',
-    lastModified: now,
     positive: {
-      id: 'positive',
-      type: 'positive',
       activities: [],
     },
     negative: {
-      id: 'negative',
-      type: 'negative',
       activities: [],
     },
   };
@@ -57,7 +50,7 @@ interface EnergyContextType {
   state: EnergyState;
   dispatch: React.Dispatch<EnergyAction>;
   // Simplified interface - only what we need for shared pages
-  addActivity: (chartType: 'positive' | 'negative', activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  addActivity: (chartType: 'positive' | 'negative', activity: Omit<Activity, 'id'>) => void;
   updateActivity: (chartType: 'positive' | 'negative', activityId: string, updates: Partial<Activity>) => void;
   deleteActivity: (chartType: 'positive' | 'negative', activityId: string) => void;
   reorderActivities: (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => void;
