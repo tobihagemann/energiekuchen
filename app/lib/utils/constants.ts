@@ -3,11 +3,9 @@ export const BREAKPOINTS = {
   medium: 1280,
 } as const;
 
-export const TOUCH_TARGET_SIZE = '44px';
-
 // Energy level to color mapping using oklch values from color palette
 // Level 1 (lowest) to Level 9 (highest)
-export const ENERGY_LEVEL_COLORS = {
+const ENERGY_LEVEL_COLORS = {
   positive: [
     'oklch(0.962 0.044 156.743)', // green-100
     'oklch(0.925 0.084 155.995)', // green-200

@@ -5,12 +5,10 @@ A German-language web application that helps users visualize and balance their p
 ## Common Development Commands
 
 ```bash
-# Development
-npm run dev           # Start dev server at http://localhost:3000
-
 # Code Quality - Run these before committing
 npm run lint          # Run TypeScript + ESLint + Prettier checks
 npm run format        # Format code with Prettier + ESLint
+npm run knip          # Check for unused dependencies, exports, and types
 
 # Testing
 npm run test          # Run unit tests (Jest)
@@ -19,8 +17,7 @@ npm run test:e2e      # Run end-to-end tests (Playwright)
 npm run test:all      # Run all tests (unit + e2e)
 
 # Production Build
-npm run build         # Build for production (static export to out/)
-npm run prod          # Build and start production server
+npm run build         # Build for production
 ```
 
 ## High-Level Architecture
@@ -133,10 +130,7 @@ When fixing bugs:
 - Check if it's a UI issue (add E2E test)
 - Run `npm run test:all` before committing
 
-## Development Warnings
+## Development Notes
 
-- Do not run `npm run dev`, use tests to verify results
-
-## Development Memories
-
+- Use tests to verify results instead of running a development server
 - Run `npm run format` at the very end

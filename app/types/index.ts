@@ -6,7 +6,7 @@ export interface Activity {
   updatedAt: string;
 }
 
-export interface EnergyChart {
+interface EnergyChart {
   id: string;
   type: 'positive' | 'negative';
   activities: Activity[];

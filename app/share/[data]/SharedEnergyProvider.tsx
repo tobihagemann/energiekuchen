@@ -1,7 +1,7 @@
 'use client';
 
 import { Activity, EnergyKuchen } from '@/app/types';
-import React, { createContext, ReactNode, useContext, useReducer } from 'react';
+import React, { createContext, ReactNode, useReducer } from 'react';
 
 // Simplified Energy Reducer Actions for shared pages
 type EnergyAction = { type: 'SET_DATA'; payload: EnergyKuchen; shouldSave?: boolean } | { type: 'SET_LOADING'; payload: boolean };
@@ -130,13 +130,4 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
   };
 
   return <EnergyContext.Provider value={value}>{children}</EnergyContext.Provider>;
-}
-
-// Custom Hook
-export function useEnergy() {
-  const context = useContext(EnergyContext);
-  if (context === undefined) {
-    throw new Error('useEnergy must be used within an EnergyProvider');
-  }
-  return context;
 }

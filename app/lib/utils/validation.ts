@@ -1,6 +1,6 @@
 import { Activity, ValidationResult } from '@/app/types';
 
-export const VALIDATION_RULES = {
+const VALIDATION_RULES = {
   activity: {
     name: {
       minLength: 1,

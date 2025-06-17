@@ -38,6 +38,7 @@ npm run prod          # Build and start production server
 # Code Quality
 npm run lint          # Run TypeScript + ESLint + Prettier checks
 npm run format        # Format code with Prettier + ESLint
+npm run knip          # Check for unused dependencies, exports, and types
 
 # Testing
 npm run test          # Run unit tests
@@ -54,8 +55,7 @@ The application is deployed as a static site on Vercel at [energiekuchen.de](htt
 # Build for production
 npm run build
 
-# Output directory: out/
-# Deployment: Static files ready for any hosting platform
+# The built application is optimized for deployment on Vercel
 ```
 
 ## License
