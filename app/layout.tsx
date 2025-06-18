@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Energiekuchen - Visualisiere deine Energieverteilung',
   description: 'Ein visuelles Coaching-Tool zur Bewertung und Optimierung deiner Energiequellen und -verbraucher im täglichen Leben.',
   keywords: ['Energie', 'Coaching', 'Visualisierung', 'Balance', 'Wohlbefinden'],
-  authors: [{ name: 'Energiekuchen Team' }],
+  authors: [{ name: 'Tobias Hagemann' }],
 };
 
 export const viewport = {
