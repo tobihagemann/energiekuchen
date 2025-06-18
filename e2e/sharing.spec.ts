@@ -312,13 +312,33 @@ test.describe('Sharing Functionality', () => {
     // Navigate to an invalid share URL with fragment
     await page.goto('/share/#invalid-data-here');
 
-    // Should redirect to main page or show error message
-    // Wait for the charts section to be visible
-    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
+    // Should show error message for invalid data
+    await expect(page.locator('text=Energiekuchen konnte nicht geladen werden')).toBeVisible();
+    await expect(page.locator('text=Die geteilten Daten konnten nicht geladen werden')).toBeVisible();
 
-    // Should show empty state since invalid data
-    await expect(page.locator('[data-testid="empty-activities-positive"]')).toBeVisible();
-    await expect(page.locator('[data-testid="empty-activities-negative"]')).toBeVisible();
+    // Should show button to create own Energiekuchen
+    const createButton = page.locator('text=Eigenen Energiekuchen erstellen');
+    await expect(createButton).toBeVisible();
+
+    // Clicking the button should take us to the main page
+    await createButton.click();
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
+  });
+
+  test('should handle share URLs without data gracefully', async ({ page }) => {
+    // Navigate to share URL without fragment
+    await page.goto('/share/');
+
+    // Should show friendly message
+    await expect(page.locator('text=Ups, hier fehlt etwas!')).toBeVisible();
+    await expect(page.locator('text=Sieht so aus, als wäre der Energiekuchen verloren gegangen')).toBeVisible();
+
+    // Navigate to share URL with empty fragment
+    await page.goto('/share/#');
+
+    // Should show friendly message
+    await expect(page.locator('text=Ups, hier fehlt etwas!')).toBeVisible();
+    await expect(page.locator('text=Sieht so aus, als wäre der Energiekuchen verloren gegangen')).toBeVisible();
   });
 
   test('should preserve original data when viewing shared link', async ({ page }) => {
