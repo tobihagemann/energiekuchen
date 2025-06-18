@@ -86,6 +86,11 @@ export default function SharedEnergyChart() {
                 <Image src="/logo-32@2x.png" alt="Energiekuchen Logo" width={32} height={32} className="h-8 w-8" />
                 <h1 className="text-xl font-bold text-gray-900">Energiekuchen</h1>
               </Link>
+              <Link
+                href="/"
+                className="inline-flex items-center rounded-md bg-yellow-100 px-3 py-2 text-sm font-medium text-yellow-700 transition-colors hover:bg-yellow-200">
+                Eigenen erstellen
+              </Link>
             </div>
           </div>
         </header>
