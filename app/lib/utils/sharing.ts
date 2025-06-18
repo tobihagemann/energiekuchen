@@ -28,7 +28,7 @@ export class SharingManager {
 
       const jsonString = JSON.stringify(shareableData);
       const encoded = btoa(encodeURIComponent(jsonString));
-      const url = `${this.BASE_URL}/share/${encoded}`;
+      const url = `${this.BASE_URL}/share/#${encoded}`;
 
       if (url.length > MAX_URL_LENGTH) {
         throw new Error('Daten sind zu umfangreich zum Teilen');

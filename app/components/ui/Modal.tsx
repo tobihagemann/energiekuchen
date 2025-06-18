@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/app/lib/utils/cn';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import { ReactNode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from './Button';
@@ -72,9 +73,7 @@ export function Modal({ isOpen, onClose, title, titleIcon, children, size = 'md'
             </h3>
             <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0" data-testid="close-modal">
               <span className="sr-only">Schließen</span>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <XMarkIcon className="h-4 w-4" />
             </Button>
           </div>
         )}

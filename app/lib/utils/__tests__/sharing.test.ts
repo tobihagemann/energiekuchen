@@ -58,6 +58,7 @@ describe('SharingManager', () => {
       }))
     );
     expect(shareData.url).toContain('http://localhost');
+    expect(shareData.url).toContain('/share/#');
   });
 
   test('should handle URL length limits', async () => {

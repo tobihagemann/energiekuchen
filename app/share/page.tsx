@@ -5,44 +5,64 @@ import { EnergyChart } from '@/app/components/charts/EnergyChart';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { SharingManager } from '@/app/lib/utils/sharing';
 import { EnergyPie } from '@/app/types';
+import { ExclamationTriangleIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function SharedEnergyChart() {
-  const params = useParams();
   const router = useRouter();
   const { dispatch } = useEnergy();
   const [data, setData] = useState<EnergyPie | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadSharedData = () => {
       try {
-        if (!params.data || typeof params.data !== 'string') {
-          throw new Error('Ungültige Sharing-Daten');
+        // Get the fragment from the URL
+        const hash = window.location.hash;
+        if (!hash || hash.length <= 1) {
+          throw new Error('Keine Sharing-Daten gefunden');
         }
 
-        // URL parameters are automatically URL-decoded by Next.js router,
-        // but if they contain URL-encoded characters, we need to decode them again
-        const urlDecodedData = decodeURIComponent(params.data);
-        const decodedData = SharingManager.decodeShareData(urlDecodedData);
+        // Remove the # character
+        const encodedData = hash.substring(1);
+
+        // Decode the share data
+        const decodedData = SharingManager.decodeShareData(encodedData);
 
         setData(decodedData);
         // Set the data in the context so charts can use it
         dispatch({ type: 'SET_DATA', payload: decodedData, shouldSave: false });
+        setError(null);
       } catch (err) {
         console.error('Failed to decode shared data:', err);
-        router.push('/');
-        return;
+        // Check if it's because there's no data vs invalid data
+        const hash = window.location.hash;
+        if (!hash || hash.length <= 1) {
+          setError('empty'); // Special marker for empty state
+        } else {
+          setError('Die geteilten Daten konnten nicht geladen werden. Der Link ist möglicherweise ungültig oder beschädigt.');
+        }
+        setData(null);
       } finally {
         setIsLoading(false);
       }
     };
 
+    // Load data on mount and when hash changes
     loadSharedData();
-  }, [params, router, dispatch]);
+
+    // Listen for hash changes
+    const handleHashChange = () => {
+      loadSharedData();
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [router, dispatch]);
 
   if (isLoading) {
     return (
@@ -55,8 +75,56 @@ export default function SharedEnergyChart() {
     );
   }
 
-  if (!data) {
-    return null; // This shouldn't be reached due to redirect in catch block
+  if (error || !data) {
+    return (
+      <div className="flex flex-1 flex-col">
+        {/* Header */}
+        <header className="border-b border-gray-200 bg-white shadow-sm">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex h-16 items-center justify-between">
+              <Link href="/" className="flex items-center space-x-3">
+                <Image src="/logo-32@2x.png" alt="Energiekuchen Logo" width={32} height={32} className="h-8 w-8" />
+                <h1 className="text-xl font-bold text-gray-900">Energiekuchen</h1>
+              </Link>
+              <Link
+                href="/"
+                className="inline-flex items-center rounded-md bg-yellow-100 px-3 py-2 text-sm font-medium text-yellow-700 transition-colors hover:bg-yellow-200">
+                Eigenen erstellen
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex flex-1 items-center justify-center px-4">
+          <div className="text-center">
+            {error === 'empty' ? (
+              <>
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100">
+                  <LightBulbIcon className="h-8 w-8 text-yellow-600" />
+                </div>
+                <h2 className="mb-2 text-xl font-semibold text-gray-900">Ups, hier fehlt etwas!</h2>
+                <p className="mb-6 text-gray-600">
+                  Sieht so aus, als wäre der Energiekuchen verloren gegangen. Aber keine Sorge, du kannst direkt deinen eigenen erstellen!
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                  <ExclamationTriangleIcon className="h-8 w-8 text-red-600" />
+                </div>
+                <h2 className="mb-2 text-xl font-semibold text-gray-900">Energiekuchen konnte nicht geladen werden</h2>
+                <p className="mb-6 text-gray-600">{error}</p>
+              </>
+            )}
+            <Link
+              href="/"
+              className="inline-flex items-center rounded-md bg-yellow-400 px-6 py-3 font-medium text-gray-900 transition-colors hover:bg-yellow-500">
+              Eigenen Energiekuchen erstellen
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
