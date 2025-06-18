@@ -60,4 +60,4 @@ npm run build
 
 ## License
 
-This project is private and not yet licensed for public use.
+Distributed under the MIT license. See the LICENSE file for more info.
