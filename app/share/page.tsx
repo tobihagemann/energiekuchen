@@ -7,11 +7,10 @@ import { SharingManager } from '@/app/lib/utils/sharing';
 import { EnergyPie } from '@/app/types';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function SharedEnergyChart() {
-  const params = useParams();
   const router = useRouter();
   const { dispatch } = useEnergy();
   const [data, setData] = useState<EnergyPie | null>(null);
@@ -20,14 +19,17 @@ export default function SharedEnergyChart() {
   useEffect(() => {
     const loadSharedData = () => {
       try {
-        if (!params.data || typeof params.data !== 'string') {
-          throw new Error('Ungültige Sharing-Daten');
+        // Get the fragment from the URL
+        const hash = window.location.hash;
+        if (!hash || hash.length <= 1) {
+          throw new Error('Keine Sharing-Daten gefunden');
         }
 
-        // URL parameters are automatically URL-decoded by Next.js router,
-        // but if they contain URL-encoded characters, we need to decode them again
-        const urlDecodedData = decodeURIComponent(params.data);
-        const decodedData = SharingManager.decodeShareData(urlDecodedData);
+        // Remove the # character
+        const encodedData = hash.substring(1);
+
+        // Decode the share data
+        const decodedData = SharingManager.decodeShareData(encodedData);
 
         setData(decodedData);
         // Set the data in the context so charts can use it
@@ -41,8 +43,17 @@ export default function SharedEnergyChart() {
       }
     };
 
+    // Load data on mount and when hash changes
     loadSharedData();
-  }, [params, router, dispatch]);
+
+    // Listen for hash changes
+    const handleHashChange = () => {
+      loadSharedData();
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [router, dispatch]);
 
   if (isLoading) {
     return (

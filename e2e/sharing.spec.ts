@@ -182,7 +182,7 @@ test.describe('Sharing Functionality', () => {
     const shareUrl = page.locator('[data-testid="share-url"], input[readonly]').first();
     if (await shareUrl.isVisible()) {
       const url = (await shareUrl.inputValue()) || (await shareUrl.textContent());
-      expect(url).toContain('/share/');
+      expect(url).toContain('/share/#');
       expect(url).toMatch(/^https?:\/\//); // Should be a valid URL
     }
   });
@@ -309,8 +309,8 @@ test.describe('Sharing Functionality', () => {
   });
 
   test('should handle invalid share URLs gracefully', async ({ page }) => {
-    // Navigate to an invalid share URL
-    await page.goto('/share/invalid-data-here');
+    // Navigate to an invalid share URL with fragment
+    await page.goto('/share/#invalid-data-here');
 
     // Should redirect to main page or show error message
     // Wait for the charts section to be visible
@@ -332,13 +332,16 @@ test.describe('Sharing Functionality', () => {
     // Create a mock share URL and navigate to it
     // (In a real test, you might create this by getting it from the share modal)
     const mockShareData = btoa(
-      JSON.stringify({
-        positive: { activities: [{ id: '1', name: 'Shared Activity', value: 3, color: '#10b981' }] },
-        negative: { activities: [] },
-      })
+      encodeURIComponent(
+        JSON.stringify({
+          version: '1.0',
+          positive: { activities: [{ id: '1', name: 'Shared Activity', value: 3 }] },
+          negative: { activities: [] },
+        })
+      )
     );
 
-    await page.goto(`/share/${mockShareData}`);
+    await page.goto(`/share/#${mockShareData}`);
     // On share pages, wait for activity list to be visible
     await expect(page.locator('[data-testid="activity-list-positive"]')).toBeVisible();
 
