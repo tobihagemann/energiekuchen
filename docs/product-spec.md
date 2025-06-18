@@ -22,7 +22,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 - **Notifications:** react-hot-toast für Benutzer-Feedback
 - **State Management:** React useState/useReducer
 - **Persistierung:** Browser localStorage für lokale Datenspeicherung
-- **Sharing:** URL-basierte Datenübertragung mit Base64-encoded JSON
+- **Sharing:** URL-basierte Datenübertragung mit Base64-encoded JSON im Fragment
 - **Sprache:** Deutsch (einzige unterstützte Sprache)
 
 ### Browser-Unterstützung
@@ -109,8 +109,9 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 #### 3.1 URL-basiertes Teilen
 
-- Generierung einer einzigartigen URL mit Base64-encoded Daten
-- Format: `energiekuchen.de/share/{base64EncodedData}`
+- Generierung einer einzigartigen URL mit Base64-encoded Daten im URL-Fragment
+- Format: `energiekuchen.de/share/#{base64EncodedData}`
+- Daten werden im Fragment gespeichert für erhöhte Privatsphäre (nicht an Server gesendet)
 - Maximale URL-Länge beachten (2048 Zeichen)
 - Komprimierung der Daten falls notwendig
 
@@ -119,6 +120,12 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 - **Kopieren-Button:** URL in Zwischenablage kopieren
 - **Social Media:** Vorgefertigte Texte für WhatsApp und E-Mail
 - **Export-Funktion:** JSON-Datei Download im gleichen Modal
+
+#### 3.3 Fehlerbehandlung
+
+- **Ungültige Daten:** Zeigt Fehlermeldung mit Verweis auf Fehlerbehebung
+- **Fehlende Daten:** Zeigt freundliche Meldung, dass kein Energiekuchen vorhanden ist
+- **Rückführung:** Button zur Erstellung eines eigenen Energiekuchens
 
 ### 4. Benutzeroberfläche
 
@@ -192,6 +199,7 @@ Alle Farben folgen dem Tailwind CSS 4 Standard mit oklch-Farbformat (siehe `docs
 - **Keine Server-Kommunikation:** Alle Daten bleiben lokal
 - **XSS-Schutz:** Input-Sanitization
 - **URL-Sicherheit:** Validation von geteilten Daten
+- **Fragment-basiertes Sharing:** Geteilte Daten werden nie an Server übertragen
 
 ## User Stories
 
@@ -234,7 +242,7 @@ Alle Farben folgen dem Tailwind CSS 4 Standard mit oklch-Farbformat (siehe `docs
 ### Seiten-Struktur
 
 - **/** - Hauptanwendung
-- **/share/[data]** - Geteilte Energiekuchen
+- **/share/** - Geteilte Energiekuchen (liest Daten aus URL-Fragment)
 - **/datenschutz** - Datenschutzerklärung
 - **/impressum** - Impressum
 
@@ -276,7 +284,7 @@ interface EnergyPie {
   /types          # TypeScript-Definitionen
   /datenschutz    # Datenschutz-Seite
   /impressum      # Impressum-Seite
-  /share/[data]   # Dynamische Sharing-Route
+  /share          # Statische Sharing-Seite (Fragment-basiert)
   page.tsx        # Hauptanwendung (Dashboard)
   layout.tsx      # Root-Layout
 ```
