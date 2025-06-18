@@ -22,7 +22,7 @@ export default function ImpressumPage() {
           <div className="space-y-8 rounded-lg bg-white p-6 shadow-sm">
             {/* Responsible Person */}
             <section>
-              <h2 className="mb-4 text-xl font-semibold text-gray-900">Verantwortlich für den Inhalt nach § 5 TMG</h2>
+              <h2 className="mb-4 text-xl font-semibold text-gray-900">Angaben gemäß § 5 DDG</h2>
               <div className="text-gray-600">
                 <p>
                   Tobias Hagemann

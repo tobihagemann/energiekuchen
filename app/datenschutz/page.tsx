@@ -33,7 +33,7 @@ export default function PrivacyPage() {
                   Identifikationsdaten erfasst.
                 </p>
                 <p>
-                  <strong>Gespeicherte Daten:</strong> Nur die von dir eingegebenen Aktivitäten, deren Bewertungen und Farben werden gespeichert.
+                  <strong>Gespeicherte Daten:</strong> Nur die von dir eingegebenen Aktivitäten und deren Bewertungen werden gespeichert.
                 </p>
               </div>
             </section>
@@ -47,7 +47,7 @@ export default function PrivacyPage() {
                   Links enthalten deine kompletten Daten und sollten nur mit vertrauenswürdigen Personen geteilt werden.
                 </p>
                 <p>
-                  <strong>Export/Import:</strong> Die Export-Funktion erstellt eine JSON-Datei mit deinen Daten, die du selbst verwalten und speichern kannst.
+                  <strong>Export-Funktion:</strong> Die Export-Funktion erstellt eine JSON-Datei mit deinen Daten, die du selbst verwalten und speichern kannst.
                 </p>
                 <p>
                   <strong>Keine automatische Übertragung:</strong> Daten werden nur dann geteilt, wenn du dies explizit durch Nutzung der Teilen- oder
