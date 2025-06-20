@@ -32,7 +32,7 @@ export function ChartLegend({ activities, chartType, onActivityClick, className 
                 <div className="flex items-center text-xs text-gray-500">
                   {Array.from({ length: activity.value }, (_, i) => (
                     <span key={i} className="inline-block">
-                      {chartType === 'positive' ? <PlusCircleIcon className="h-3 w-3" /> : <MinusCircleIcon className="h-3 w-3" />}
+                      {chartType === 'positive' ? <PlusCircleIcon className="h-4 w-4" /> : <MinusCircleIcon className="h-4 w-4" />}
                     </span>
                   ))}
                 </div>

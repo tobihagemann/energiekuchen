@@ -13,7 +13,7 @@ describe('useChartData', () => {
     {
       id: '1',
       name: 'Activity 1',
-      value: 6,
+      value: 3,
     },
     {
       id: '2',
@@ -41,7 +41,7 @@ describe('useChartData', () => {
 
     expect(result.current.activities).toEqual(mockActivities);
     expect(result.current.chartData.labels).toEqual(['Activity 1', 'Activity 2']);
-    expect(result.current.chartData.datasets[0].data).toEqual([6, 4]);
+    expect(result.current.chartData.datasets[0].data).toEqual([3, 4]);
     // backgroundColor should now be based on energy levels, not the removed color property
   });
 
@@ -148,7 +148,7 @@ describe('useChartData', () => {
     const { result } = renderHook(() => useChartData('positive', null));
 
     expect(result.current.chartData.labels).toEqual(['Activity 1']);
-    expect(result.current.chartData.datasets[0].data).toEqual([6]);
+    expect(result.current.chartData.datasets[0].data).toEqual([3]);
   });
 
   it("should memoize chart data when activities don't change", () => {
@@ -204,7 +204,7 @@ describe('useChartData', () => {
       {
         id: '3',
         name: 'New Activity',
-        value: 9,
+        value: 5,
       },
     ];
 
@@ -254,8 +254,8 @@ describe('useChartData', () => {
     const editingActivity = { chartType: 'positive' as const, activityId: '1' };
     const { result: result2 } = renderHook(() => useChartData('positive', editingActivity));
     const dataset2 = result2.current.chartData.datasets[0];
-    // First activity (level 6) should have darkened border (10% darker), second should be white
-    expect(dataset2.borderColor[0]).toBe('oklch(from oklch(0.627 0.194 149.214) calc(l - 0.1) c h)'); // green-600 darkened
+    // First activity (level 3) should have darkened border (10% darker), second should be white
+    expect(dataset2.borderColor[0]).toBe('oklch(from oklch(0.723 0.219 149.579) calc(l - 0.1) c h)'); // green-500 darkened
     expect(dataset2.borderColor[1]).toBe('#fff');
 
     // Test with different chart type
@@ -281,16 +281,16 @@ describe('useChartData', () => {
     const editingActivity = { chartType: 'positive' as const, activityId: '1' };
     const { result } = renderHook(() => useChartData('positive', editingActivity));
     // Level 1 activity should get darkened border
-    expect(result.current.chartData.datasets[0].borderColor[0]).toBe('oklch(from oklch(0.962 0.044 156.743) calc(l - 0.1) c h)'); // green-100 darkened
+    expect(result.current.chartData.datasets[0].borderColor[0]).toBe('oklch(from oklch(0.871 0.15 154.449) calc(l - 0.1) c h)'); // green-300 darkened
     // Hover background should be lightened
-    expect(result.current.chartData.datasets[0].hoverBackgroundColor[0]).toBe('oklch(from oklch(0.962 0.044 156.743) calc(l + 0.1) c h)'); // green-100 lightened
+    expect(result.current.chartData.datasets[0].hoverBackgroundColor[0]).toBe('oklch(from oklch(0.871 0.15 154.449) calc(l + 0.1) c h)'); // green-300 lightened
 
-    // Test with level 9 activity
-    const level9Activity = [{ id: '2', name: 'High Energy', value: 9 }];
+    // Test with level 5 activity
+    const level5Activity = [{ id: '2', name: 'High Energy', value: 5 }];
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
-          positive: { activities: level9Activity },
+          positive: { activities: level5Activity },
           negative: { activities: [] },
         },
       },
@@ -299,7 +299,7 @@ describe('useChartData', () => {
 
     const editingActivity2 = { chartType: 'positive' as const, activityId: '2' };
     const { result: result2 } = renderHook(() => useChartData('positive', editingActivity2));
-    // Level 9 activity should get darkened border
-    expect(result2.current.chartData.datasets[0].borderColor[0]).toBe('oklch(from oklch(0.393 0.095 152.535) calc(l - 0.1) c h)'); // green-900 darkened
+    // Level 5 activity should get darkened border
+    expect(result2.current.chartData.datasets[0].borderColor[0]).toBe('oklch(from oklch(0.527 0.154 150.069) calc(l - 0.1) c h)'); // green-700 darkened
   });
 });

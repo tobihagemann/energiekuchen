@@ -81,7 +81,7 @@ The app uses two main contexts:
 interface Activity {
   id: string;
   name: string; // 1-50 chars, German characters
-  value: number; // 1-9 energy level
+  value: number; // 1-5 energy level
   // Note: color is computed from value and chart type, not stored
 }
 ```
@@ -89,7 +89,7 @@ interface Activity {
 ### Validation Rules
 
 - Maximum 20 activities per chart (positive/negative)
-- Activity values must be integers 1-9 (energy levels)
+- Activity values must be integers 1-5 (energy levels)
 - URL sharing limited to 2048 characters
 - All user-facing text must be in German
 
