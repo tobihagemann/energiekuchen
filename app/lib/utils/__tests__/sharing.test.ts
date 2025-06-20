@@ -94,7 +94,7 @@ describe('SharingManager', () => {
     const originalError = console.error;
     console.error = jest.fn();
 
-    const invalidJson = btoa(encodeURIComponent('invalid json'));
+    const invalidJson = btoa('invalid json');
     expect(() => SharingManager.decodeShareData(invalidJson)).toThrow();
 
     console.error = originalError;
@@ -129,7 +129,7 @@ describe('SharingManager', () => {
       },
     });
 
-    const encoded = btoa(encodeURIComponent(jsonString));
+    const encoded = btoa(jsonString);
     const decoded = SharingManager.decodeShareData(encoded);
 
     // Activities should only have id, name, and value

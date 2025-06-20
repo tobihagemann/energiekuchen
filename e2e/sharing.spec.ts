@@ -352,13 +352,11 @@ test.describe('Sharing Functionality', () => {
     // Create a mock share URL and navigate to it
     // (In a real test, you might create this by getting it from the share modal)
     const mockShareData = btoa(
-      encodeURIComponent(
-        JSON.stringify({
-          version: '1.0',
-          positive: { activities: [{ id: '1', name: 'Shared Activity', value: 3 }] },
-          negative: { activities: [] },
-        })
-      )
+      JSON.stringify({
+        version: '1.0',
+        positive: { activities: [{ id: '1', name: 'Shared Activity', value: 3 }] },
+        negative: { activities: [] },
+      })
     );
 
     await page.goto(`/share/#${mockShareData}`);
