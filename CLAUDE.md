@@ -5,19 +5,22 @@ A German-language web application that helps users visualize and balance their p
 ## Common Development Commands
 
 ```bash
-# Code Quality - Run these before committing
-npm run lint          # Run TypeScript + ESLint + Prettier checks
-npm run format        # Format code with Prettier + ESLint
-npm run knip          # Check for unused dependencies, exports, and types
+# Development
+npm run dev -- -p 3001 # Start dev server (default port is 3000, use 3001 or higher to avoid conflicts)
+
+# Code Quality
+npm run lint           # Run TypeScript + ESLint + Prettier checks
+npm run format         # Format code with Prettier + ESLint
+npm run knip           # Check for unused dependencies, exports, and types
 
 # Testing
-npm run test          # Run unit tests (Jest)
-npm run test:coverage # Run tests with coverage report
-npm run test:e2e      # Run end-to-end tests (Playwright)
-npm run test:all      # Run all tests (unit + e2e)
+npm run test           # Run unit tests (Jest)
+npm run test:coverage  # Run tests with coverage report
+npm run test:e2e       # Run end-to-end tests (Playwright)
+npm run test:all       # Run all tests (unit + e2e)
 
 # Production Build
-npm run build         # Build for production
+npm run build          # Build for production
 ```
 
 ## High-Level Architecture
@@ -57,6 +60,7 @@ The app uses two main contexts:
    - Manages data validation and constraints
 
 2. **UIContext**: Manages UI state
+
    - Modal visibility states
    - Currently editing activity
    - Form state management
@@ -128,9 +132,10 @@ When fixing bugs:
 
 - Check if it's a business logic issue (add unit test)
 - Check if it's a UI issue (add E2E test)
-- Run `npm run test:all` before committing
+- Run `npm run test:all`
 
-## Development Notes
+In general:
 
+- While troubleshooting, you can use a development server and puppeteer to interact with it
 - Use tests to verify results instead of running a development server
 - Run `npm run format` at the very end

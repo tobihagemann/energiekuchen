@@ -103,11 +103,7 @@ export function Slider({
 
   return (
     <div className={cn('w-full', className)}>
-      {label && (
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          {label}: {value}
-        </label>
-      )}
+      {label && <label className="mb-2 block text-sm font-medium text-gray-700">{label}</label>}
       <div
         ref={sliderRef}
         className={cn('relative h-6 cursor-pointer touch-none rounded-full bg-gray-200', disabled && 'cursor-not-allowed opacity-50')}

@@ -5,7 +5,7 @@ import { getColorForLevel } from '@/app/lib/utils/constants';
 import { Activity } from '@/app/types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Bars3Icon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, MinusCircleIcon, PencilIcon, PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 interface SortableActivityItemProps {
   activity: Activity;
@@ -40,8 +40,12 @@ export function SortableActivityItem({ activity, chartType, isEditing, onEdit, o
           <div className="truncate text-sm font-medium text-gray-900" data-testid={`activity-name-${activity.id}`}>
             {activity.name}
           </div>
-          <div className="text-xs text-gray-500" data-testid={`activity-value-${activity.id}`}>
-            Energieniveau: {activity.value}
+          <div className="flex items-center text-xs text-gray-500" data-testid={`activity-value-${activity.id}`}>
+            {Array.from({ length: activity.value }, (_, i) => (
+              <span key={i} className="inline-block">
+                {chartType === 'positive' ? <PlusCircleIcon className="h-3 w-3" /> : <MinusCircleIcon className="h-3 w-3" />}
+              </span>
+            ))}
           </div>
         </div>
       </div>
