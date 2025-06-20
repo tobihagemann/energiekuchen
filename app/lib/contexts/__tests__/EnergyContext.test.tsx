@@ -125,7 +125,7 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.addActivity('negative', {
         name: 'Stress',
-        value: 7,
+        value: 4,
       });
       result.current.addActivity('negative', {
         name: 'Müdigkeit',
@@ -548,7 +548,7 @@ describe('EnergyContext', () => {
       negative: {
         id: 'negative',
         type: 'negative' as const,
-        activities: [{ id: '2', name: 'Imported Negative', value: 6 }],
+        activities: [{ id: '2', name: 'Imported Negative', value: 3 }],
         size: 'medium' as const,
       },
     };
@@ -616,12 +616,12 @@ describe('EnergyContext', () => {
           version: '1.0',
           positive: {
             activities: [
-              { id: 'activity-1', name: 'Existing Sport', value: 7 },
+              { id: 'activity-1', name: 'Existing Sport', value: 4 },
               { id: 'activity-2', name: 'Existing Reading', value: 5 },
             ],
           },
           negative: {
-            activities: [{ id: 'activity-3', name: 'Existing Stress', value: 8 }],
+            activities: [{ id: 'activity-3', name: 'Existing Stress', value: 5 }],
           },
         },
       });
@@ -631,8 +631,8 @@ describe('EnergyContext', () => {
       version: '1.0',
       positive: {
         activities: [
-          { id: 'activity-1', name: 'Duplicate Sport', value: 9 }, // Same ID as existing
-          { id: 'activity-4', name: 'New Meditation', value: 6 }, // New ID
+          { id: 'activity-1', name: 'Duplicate Sport', value: 5 }, // Same ID as existing
+          { id: 'activity-4', name: 'New Meditation', value: 3 }, // New ID
         ],
       },
       negative: {

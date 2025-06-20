@@ -27,10 +27,10 @@ export function EnergyChart({ chartType, className, onActivityClick }: EnergyCha
   const chartSize = isSmall ? 280 : isMedium ? 360 : 440;
 
   // Determine label color based on activity value
-  // Values 1-4 use lighter backgrounds (100-400), need dark text
-  // Values 5-9 use darker backgrounds (500-900), need white text
+  // Values 1-2 use lighter backgrounds (300-400), need dark text
+  // Values 3-5 use darker backgrounds (500-700), need white text
   const getLabelColor = (value: number): string => {
-    if (value >= 5) {
+    if (value >= 3) {
       return '#fff'; // white for dark backgrounds
     }
     // Dark green for positive, dark red for negative (using oklch)

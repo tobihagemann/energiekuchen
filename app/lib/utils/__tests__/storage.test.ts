@@ -332,7 +332,7 @@ describe('StorageManager', () => {
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidValue))).toThrow('Energieniveau muss zwischen 1 und 9 liegen');
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidValue))).toThrow('Energieniveau muss zwischen 1 und 5 liegen');
 
     console.error = originalError;
   });
@@ -349,13 +349,13 @@ describe('StorageManager', () => {
           {
             id: '1',
             name: 'Test Activity',
-            value: 10, // Invalid: above maximum
+            value: 6, // Invalid: above maximum
           },
         ],
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidValue))).toThrow('Energieniveau muss zwischen 1 und 9 liegen');
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidValue))).toThrow('Energieniveau muss zwischen 1 und 5 liegen');
 
     console.error = originalError;
   });
@@ -378,7 +378,7 @@ describe('StorageManager', () => {
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithNegativeValue))).toThrow('Energieniveau muss zwischen 1 und 9 liegen');
+    expect(() => StorageManager.import(JSON.stringify(dataWithNegativeValue))).toThrow('Energieniveau muss zwischen 1 und 5 liegen');
 
     console.error = originalError;
   });
@@ -395,7 +395,7 @@ describe('StorageManager', () => {
           {
             id: '1',
             name: 'Test Activity',
-            value: 5.5, // Invalid: not an integer
+            value: 3.5, // Invalid: not an integer
           },
         ],
       },
@@ -406,20 +406,20 @@ describe('StorageManager', () => {
     console.error = originalError;
   });
 
-  test('should accept valid activities with values 1-9', () => {
+  test('should accept valid activities with values 1-5', () => {
     const validData = {
       version: '1.0',
       positive: {
         activities: [
           { id: '1', name: 'Activity 1', value: 1 },
           { id: '2', name: 'Activity 2', value: 5 },
-          { id: '3', name: 'Activity 3', value: 9 },
+          { id: '3', name: 'Activity 3', value: 5 },
         ],
       },
       negative: {
         activities: [
           { id: '4', name: 'Activity 4', value: 3 },
-          { id: '5', name: 'Activity 5', value: 7 },
+          { id: '5', name: 'Activity 5', value: 4 },
         ],
       },
     };
@@ -428,6 +428,6 @@ describe('StorageManager', () => {
     expect(result.positive.activities).toHaveLength(3);
     expect(result.negative.activities).toHaveLength(2);
     expect(result.positive.activities[0].value).toBe(1);
-    expect(result.positive.activities[2].value).toBe(9);
+    expect(result.positive.activities[2].value).toBe(5);
   });
 });

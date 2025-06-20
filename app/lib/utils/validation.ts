@@ -9,7 +9,7 @@ const VALIDATION_RULES = {
     },
     level: {
       min: 1,
-      max: 9,
+      max: 5,
       type: 'integer',
     },
   },
@@ -35,7 +35,7 @@ export function validateActivity(activity: Partial<Activity>): ValidationResult 
   }
 
   if (!activity.value || activity.value < VALIDATION_RULES.activity.level.min || activity.value > VALIDATION_RULES.activity.level.max) {
-    errors.push('Energieniveau muss zwischen 1 und 9 liegen');
+    errors.push('Energieniveau muss zwischen 1 und 5 liegen');
   }
 
   return {
@@ -89,7 +89,7 @@ export function validateActivityValue(value: number): ValidationResult {
   const errors: string[] = [];
 
   if (value < VALIDATION_RULES.activity.level.min || value > VALIDATION_RULES.activity.level.max) {
-    errors.push('Energieniveau muss zwischen 1 und 9 liegen');
+    errors.push('Energieniveau muss zwischen 1 und 5 liegen');
   }
 
   if (!Number.isInteger(value)) {

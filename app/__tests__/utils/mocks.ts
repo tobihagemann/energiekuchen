@@ -5,7 +5,7 @@ export function createMockActivity(overrides?: Partial<Activity>): Activity {
   return {
     id: uuidv4(),
     name: 'Test Activity',
-    value: 5,
+    value: 3,
     ...overrides,
   };
 }
