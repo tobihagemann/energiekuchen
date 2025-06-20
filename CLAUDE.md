@@ -5,19 +5,22 @@ A German-language web application that helps users visualize and balance their p
 ## Common Development Commands
 
 ```bash
-# Code Quality - Run these before committing
-npm run lint          # Run TypeScript + ESLint + Prettier checks
-npm run format        # Format code with Prettier + ESLint
-npm run knip          # Check for unused dependencies, exports, and types
+# Development
+npm run dev -- -p 3001 # Start dev server (default port is 3000, use 3001 or higher to avoid conflicts)
+
+# Code Quality
+npm run lint           # Run TypeScript + ESLint + Prettier checks
+npm run format         # Format code with Prettier + ESLint
+npm run knip           # Check for unused dependencies, exports, and types
 
 # Testing
-npm run test          # Run unit tests (Jest)
-npm run test:coverage # Run tests with coverage report
-npm run test:e2e      # Run end-to-end tests (Playwright)
-npm run test:all      # Run all tests (unit + e2e)
+npm run test           # Run unit tests (Jest)
+npm run test:coverage  # Run tests with coverage report
+npm run test:e2e       # Run end-to-end tests (Playwright)
+npm run test:all       # Run all tests (unit + e2e)
 
 # Production Build
-npm run build         # Build for production
+npm run build          # Build for production
 ```
 
 ## High-Level Architecture
@@ -51,7 +54,6 @@ npm run build         # Build for production
 The app uses two main contexts:
 
 1. **EnergyContext**: Manages chart data and persistence
-
    - Handles all activity CRUD operations
    - Auto-syncs with localStorage on state changes
    - Manages data validation and constraints
@@ -133,4 +135,5 @@ When fixing bugs:
 ## Development Notes
 
 - Use tests to verify results instead of running a development server
+- While debugging, you can use a development server and puppeteer to interact with it
 - Run `npm run format` at the very end
