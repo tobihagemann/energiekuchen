@@ -54,11 +54,13 @@ npm run build          # Build for production
 The app uses two main contexts:
 
 1. **EnergyContext**: Manages chart data and persistence
+
    - Handles all activity CRUD operations
    - Auto-syncs with localStorage on state changes
    - Manages data validation and constraints
 
 2. **UIContext**: Manages UI state
+
    - Modal visibility states
    - Currently editing activity
    - Form state management
@@ -130,10 +132,10 @@ When fixing bugs:
 
 - Check if it's a business logic issue (add unit test)
 - Check if it's a UI issue (add E2E test)
-- Run `npm run test:all` before committing
+- Run `npm run test:all`
 
-## Development Notes
+In general:
 
+- While troubleshooting, you can use a development server and puppeteer to interact with it
 - Use tests to verify results instead of running a development server
-- While debugging, you can use a development server and puppeteer to interact with it
 - Run `npm run format` at the very end

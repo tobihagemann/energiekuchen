@@ -1,6 +1,6 @@
 'use client';
 
-import { PencilIcon } from '@heroicons/react/24/outline';
+import { MinusCircleIcon, PencilIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
@@ -111,8 +111,19 @@ export function EditActivityModal() {
           </div>
 
           <div>
+            <div className="mb-2">
+              <div className="flex items-center gap-1 text-sm font-medium text-gray-700">
+                <span>Energieniveau:</span>
+                <div className="flex items-center">
+                  {Array.from({ length: formData.value }, (_, i) => (
+                    <span key={i} className="inline-block">
+                      {chartType === 'positive' ? <PlusCircleIcon className="h-4 w-4" /> : <MinusCircleIcon className="h-4 w-4" />}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
             <Slider
-              label="Energieniveau"
               value={formData.value}
               onChange={handleValueChange}
               min={CHART_DEFAULTS.minLevel}
