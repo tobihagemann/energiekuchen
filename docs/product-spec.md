@@ -81,7 +81,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
   "positive": {
     "activities": [
       {
-        "id": "uuid",
+        "id": "550e8400-e29b-41d4-a716-446655440000",
         "name": "Sport",
         "value": 3
       }
@@ -90,7 +90,7 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
   "negative": {
     "activities": [
       {
-        "id": "uuid",
+        "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
         "name": "Überstunden",
         "value": 3
       }
@@ -252,7 +252,7 @@ Alle Farben folgen dem Tailwind CSS 4 Standard mit oklch-Farbformat (siehe `docs
 
 ```typescript
 interface Activity {
-  id: string;
+  id: string; // UUID v4
   name: string;
   value: number; // 1-5 (Energielevel)
 }
@@ -293,7 +293,7 @@ interface EnergyPie {
 
 ### Unit Tests
 
-- Utility-Funktionen (Storage, Sharing, Calculations)
+- Utility-Funktionen (Storage, Sharing)
 - Komponenten-Logic (Activity CRUD)
 - Data Validation
 
