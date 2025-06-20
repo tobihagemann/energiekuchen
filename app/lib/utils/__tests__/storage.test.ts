@@ -127,6 +127,8 @@ describe('StorageManager', () => {
 
     const loaded = StorageManager.load();
     expect(loaded).toBeNull();
+    // Verify localStorage was cleared
+    expect(localStorage.getItem('energiekuchen-data')).toBeNull();
 
     console.error = originalError;
   });
@@ -429,5 +431,101 @@ describe('StorageManager', () => {
     expect(result.negative.activities).toHaveLength(2);
     expect(result.positive.activities[0].value).toBe(1);
     expect(result.positive.activities[2].value).toBe(5);
+  });
+
+  test('should clear localStorage when loading data with invalid activity value', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const invalidData = {
+      version: '1.0',
+      positive: {
+        activities: [
+          { id: '1', name: 'Test Activity', value: 10 }, // Invalid value
+        ],
+      },
+      negative: {
+        activities: [],
+      },
+    };
+
+    localStorage.setItem('energiekuchen-data', JSON.stringify(invalidData));
+    const loaded = StorageManager.load();
+    expect(loaded).toBeNull();
+    // Verify localStorage was cleared
+    expect(localStorage.getItem('energiekuchen-data')).toBeNull();
+
+    console.error = originalError;
+  });
+
+  test('should clear localStorage when loading data with missing activity name', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const invalidData = {
+      version: '1.0',
+      positive: {
+        activities: [
+          { id: '1', name: '', value: 3 }, // Empty name
+        ],
+      },
+      negative: {
+        activities: [],
+      },
+    };
+
+    localStorage.setItem('energiekuchen-data', JSON.stringify(invalidData));
+    const loaded = StorageManager.load();
+    expect(loaded).toBeNull();
+    // Verify localStorage was cleared
+    expect(localStorage.getItem('energiekuchen-data')).toBeNull();
+
+    console.error = originalError;
+  });
+
+  test('should clear localStorage when loading data with non-integer value', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const invalidData = {
+      version: '1.0',
+      positive: {
+        activities: [
+          { id: '1', name: 'Test', value: 3.5 }, // Non-integer value
+        ],
+      },
+      negative: {
+        activities: [],
+      },
+    };
+
+    localStorage.setItem('energiekuchen-data', JSON.stringify(invalidData));
+    const loaded = StorageManager.load();
+    expect(loaded).toBeNull();
+    // Verify localStorage was cleared
+    expect(localStorage.getItem('energiekuchen-data')).toBeNull();
+
+    console.error = originalError;
+  });
+
+  test('should successfully load valid data from localStorage', () => {
+    const validData = {
+      version: '1.0',
+      positive: {
+        activities: [{ id: '1', name: 'Activity 1', value: 3 }],
+      },
+      negative: {
+        activities: [{ id: '2', name: 'Activity 2', value: 4 }],
+      },
+    };
+
+    localStorage.setItem('energiekuchen-data', JSON.stringify(validData));
+    const loaded = StorageManager.load();
+    expect(loaded).toEqual(validData);
+    // Verify localStorage was NOT cleared
+    expect(localStorage.getItem('energiekuchen-data')).not.toBeNull();
   });
 });

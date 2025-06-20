@@ -20,26 +20,16 @@ export class StorageManager {
         return null;
       }
 
-      const parsed = JSON.parse(serialized) as EnergyPie;
-
-      // Migration: Remove color and timestamp properties from activities if they exist
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const migrateActivities = (activities: any[]): any[] => {
-        return activities.map(activity => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { color, createdAt, updatedAt, ...rest } = activity;
-          return rest;
-        });
-      };
-
-      if (parsed.positive?.activities) {
-        parsed.positive.activities = migrateActivities(parsed.positive.activities);
+      // Use the same validation logic as import
+      try {
+        const validated = importData(serialized);
+        return validated;
+      } catch (validationError) {
+        console.error('Validation failed when loading from localStorage:', validationError);
+        // Clear invalid data from localStorage
+        this.clear();
+        return null;
       }
-      if (parsed.negative?.activities) {
-        parsed.negative.activities = migrateActivities(parsed.negative.activities);
-      }
-
-      return parsed;
     } catch (error) {
       console.error('Failed to load data from localStorage:', error);
       return null;
