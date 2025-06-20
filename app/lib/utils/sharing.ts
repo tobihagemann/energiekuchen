@@ -27,7 +27,7 @@ export class SharingManager {
       };
 
       const jsonString = JSON.stringify(shareableData);
-      const encoded = btoa(encodeURIComponent(jsonString));
+      const encoded = btoa(jsonString);
       const url = `${this.BASE_URL}/share/#${encoded}`;
 
       if (url.length > MAX_URL_LENGTH) {
@@ -46,7 +46,7 @@ export class SharingManager {
 
   static decodeShareData(encoded: string): EnergyPie {
     try {
-      const jsonString = decodeURIComponent(atob(encoded));
+      const jsonString = atob(encoded);
       const data = JSON.parse(jsonString);
 
       // Add missing fields for full EnergyPie object
