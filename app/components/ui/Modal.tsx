@@ -64,7 +64,17 @@ export function Modal({ isOpen, onClose, title, titleIcon, children, size = 'md'
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? 'modal-title' : undefined}
-        className={cn('relative flex max-h-[90vh] w-full flex-col rounded-lg bg-white shadow-xl transition-all', sizes[size], className)}>
+        className={cn(
+          'relative flex w-full flex-col rounded-lg bg-white shadow-xl transition-all',
+          // Default max-height with fallback
+          'max-h-[90vh]',
+          // Use dynamic viewport height for browsers that support it
+          'supports-[height:100dvh]:max-h-[90dvh]',
+          // Additional constraint for mobile to account for browser UI
+          'max-h-[calc(100vh-2rem)] supports-[height:100dvh]:max-h-[calc(100dvh-2rem)]',
+          sizes[size],
+          className
+        )}>
         {title && (
           <div className="flex shrink-0 items-center justify-between border-b border-gray-200 p-4 sm:px-6">
             <h3 id="modal-title" className="flex items-center gap-2 text-lg font-semibold text-gray-900">
