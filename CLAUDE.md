@@ -51,13 +51,11 @@ npm run build         # Build for production
 The app uses two main contexts:
 
 1. **EnergyContext**: Manages chart data and persistence
-
    - Handles all activity CRUD operations
    - Auto-syncs with localStorage on state changes
    - Manages data validation and constraints
 
 2. **UIContext**: Manages UI state
-
    - Modal visibility states
    - Currently editing activity
    - Form state management
