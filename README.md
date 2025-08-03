@@ -49,13 +49,13 @@ npm run test:all      # Run all tests
 
 ## Deployment
 
-The application is deployed as a static site on Vercel at [energiekuchen.de](https://energiekuchen.de).
+The application is deployed as a static site on GitHub Pages at [energiekuchen.de](https://energiekuchen.de).
 
 ```bash
 # Build for production
 npm run build
 
-# The built application is optimized for deployment on Vercel
+# The built application creates static files in the 'out' directory
 ```
 
 ## License
