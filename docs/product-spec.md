@@ -313,8 +313,9 @@ interface EnergyPie {
 
 ### Produktionsumgebung
 
-- **Hosting:** Vercel
+- **Hosting:** GitHub Pages
 - **Domain:** energiekuchen.de
+- **DNS:** Cloudflare
 
 ## Risiken & Mitigation
 

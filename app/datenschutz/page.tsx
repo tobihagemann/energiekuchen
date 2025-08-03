@@ -85,8 +85,20 @@ export default function PrivacyPage() {
                   Chart.js, etc.), die keine Daten sammeln.
                 </p>
                 <p>
-                  <strong>Hosting:</strong> Die App wird über Vercel gehostet. Vercel kann Standard-Serverlogs erstellen, die IP-Adressen und Zugriffsdaten
-                  enthalten können.
+                  <strong>Hosting:</strong> Die App wird über GitHub Pages gehostet. GitHub Pages kann Standard-Serverlogs erstellen, die IP-Adressen und
+                  Zugriffsdaten enthalten können.
+                </p>
+                <p>
+                  <strong>DNS & CDN:</strong> Die Domain wird über Cloudflare bereitgestellt. Cloudflare kann Zugriffsdaten wie IP-Adressen, Browsertyp und
+                  Zugriffszeiten für Sicherheits- und Performance-Zwecke verarbeiten. Weitere Informationen finden Sie in der{' '}
+                  <a
+                    href="https://www.cloudflare.com/privacypolicy/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-yellow-600 hover:text-yellow-700">
+                    Cloudflare Datenschutzerklärung
+                  </a>
+                  .
                 </p>
               </div>
             </section>
@@ -165,7 +177,7 @@ export default function PrivacyPage() {
           </div>
 
           <div className="mt-8 text-center">
-            <p className="text-sm text-gray-500">Stand: Juni 2025</p>
+            <p className="text-sm text-gray-500">Stand: August 2025</p>
           </div>
         </div>
       </main>
