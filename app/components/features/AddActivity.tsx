@@ -33,7 +33,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
 
     const newActivity = {
       name: positiveName.trim(),
-      value: 1,
+      value: 3,
     };
 
     const validation = validateActivity(newActivity);
@@ -65,7 +65,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
 
     const newActivity = {
       name: negativeName.trim(),
-      value: -1,
+      value: -3,
     };
 
     const validation = validateActivity(newActivity);
