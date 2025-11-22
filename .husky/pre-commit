@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Load nvm if available
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# Run linting
+npm run lint
+
+# Run knip to find unused code
+npm run knip
