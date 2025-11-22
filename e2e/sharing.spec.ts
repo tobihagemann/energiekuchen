@@ -1,27 +1,8 @@
 import { expect, Page, test } from '@playwright/test';
 
-// Helper function to dismiss any open toasts to prevent them from blocking interactions
-async function dismissToasts(page: Page) {
-  try {
-    // Wait for any toasts to be visible and then dismiss them
-    const toastContainer = page.locator('#_rht_toaster');
-    if (await toastContainer.isVisible()) {
-      // Click anywhere on the page to dismiss toasts
-      await page.click('body', { position: { x: 10, y: 10 } });
-      // Wait for toasts to fade out
-      await page.waitForTimeout(100);
-    }
-  } catch {
-    // Ignore errors if toasts aren't present
-  }
-}
-
 // Helper function to safely close modal with multiple strategies
 async function closeModal(page: Page) {
   try {
-    // First dismiss any toasts that might be blocking
-    await dismissToasts(page);
-
     // Try multiple selectors for close button
     const closeSelectors = [
       '[data-testid="close-modal"]',
@@ -113,13 +94,16 @@ test.describe('Sharing Functionality', () => {
     // Grant clipboard permissions
     await page.context().grantPermissions(['clipboard-write', 'clipboard-read']);
 
+    // Wait for share URL to be generated
+    await expect(page.locator('[data-testid="share-modal"] .animate-spin')).not.toBeVisible({ timeout: 10000 });
+
     // Click copy button
-    const copyButton = page.locator('[data-testid="copy-share-url"], button:has-text("Kopieren")').first();
+    const copyButton = page.locator('button:has([class*="ClipboardIcon"])').first();
     if (await copyButton.isVisible()) {
       await copyButton.click();
 
-      // Verify success feedback
-      await expect(page.locator('text=Kopiert, text=Link kopiert')).toBeVisible();
+      // Verify icon changes to checkmark
+      await expect(page.locator('button:has([class*="CheckIcon"])')).toBeVisible();
     }
   });
 

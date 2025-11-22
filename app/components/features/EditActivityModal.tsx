@@ -2,7 +2,6 @@
 
 import { MinusCircleIcon, PencilIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import toast from 'react-hot-toast';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
 import { validateActivity } from '../../lib/utils/validation';
@@ -69,10 +68,11 @@ export function EditActivityModal() {
 
     try {
       await updateActivity(uiState.editingActivity.chartType, activity.id, formData);
-      toast.success('Aktivität aktualisiert');
       handleClose();
-    } catch {
-      toast.error('Fehler beim Speichern der Aktivität');
+    } catch (error) {
+      console.error('Error updating activity:', error);
+      setErrors(['Fehler beim Speichern der Aktivität']);
+      setIsSubmitting(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -130,7 +130,7 @@ export function EditActivityModal() {
           </div>
 
           {errors.length > 0 && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3" data-testid="form-errors">
+            <div role="alert" aria-live="polite" className="rounded-md border border-red-200 bg-red-50 p-3" data-testid="form-errors">
               <div className="text-sm text-red-800">
                 {errors.map((error, index) => (
                   <div key={index}>{error}</div>

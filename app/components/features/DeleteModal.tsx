@@ -2,7 +2,6 @@
 
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
 import { Button } from '../ui/Button';
@@ -14,7 +13,6 @@ export function DeleteModal() {
 
   const handleClearAll = useCallback(() => {
     dispatch({ type: 'CLEAR_ALL_DATA' });
-    toast.success('Alle Daten wurden gelöscht');
     closeDeleteModal();
   }, [dispatch, closeDeleteModal]);
 

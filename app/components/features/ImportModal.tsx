@@ -2,7 +2,6 @@
 
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import React, { useRef, useState } from 'react';
-import { toast } from 'react-hot-toast';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
 import { importData } from '../../lib/utils/storage';
@@ -37,7 +36,6 @@ export function ImportModal() {
     if (!importContent.trim()) {
       const errorMsg = 'Bitte Daten zum Importieren eingeben oder Datei auswählen';
       setImportError(errorMsg);
-      toast.error(errorMsg);
       return;
     }
 
@@ -55,14 +53,12 @@ export function ImportModal() {
         },
       });
 
-      toast.success('Daten erfolgreich importiert!');
       setImportContent('');
       closeImportModal();
     } catch (error) {
       console.error('Import error:', error);
       const errorMsg = error instanceof Error ? error.message : 'Fehler beim Importieren der Daten. Bitte überprüfe das Format.';
       setImportError(errorMsg);
-      toast.error(errorMsg);
     } finally {
       setIsImporting(false);
     }

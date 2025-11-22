@@ -7,7 +7,6 @@ import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { validateActivity } from '@/app/lib/utils/validation';
 import { MinusCircleIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 import { useRef, useState } from 'react';
-import toast from 'react-hot-toast';
 
 interface AddActivityProps {
   chartType: 'current' | 'desired';
@@ -20,6 +19,8 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
   const [negativeName, setNegativeName] = useState('');
   const [isSubmittingPositive, setIsSubmittingPositive] = useState(false);
   const [isSubmittingNegative, setIsSubmittingNegative] = useState(false);
+  const [positiveError, setPositiveError] = useState('');
+  const [negativeError, setNegativeError] = useState('');
   const positiveInputRef = useRef<HTMLInputElement>(null);
   const negativeInputRef = useRef<HTMLInputElement>(null);
 
@@ -28,6 +29,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
 
   const handleSubmitPositive = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPositiveError('');
 
     if (!positiveName.trim()) return;
 
@@ -38,7 +40,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
 
     const validation = validateActivity(newActivity);
     if (!validation.isValid) {
-      toast.error(validation.errors[0]);
+      setPositiveError(validation.errors[0]);
       return;
     }
 
@@ -46,13 +48,13 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
 
     try {
       addActivity(chartType, newActivity);
-      toast.success('Aktivität hinzugefügt');
       setPositiveName('');
       setTimeout(() => {
         positiveInputRef.current?.focus();
       }, 0);
-    } catch {
-      toast.error('Fehler beim Hinzufügen der Aktivität');
+    } catch (error) {
+      console.error('Error adding positive activity:', error);
+      setPositiveError('Fehler beim Hinzufügen der Aktivität');
     } finally {
       setIsSubmittingPositive(false);
     }
@@ -60,6 +62,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
 
   const handleSubmitNegative = async (e: React.FormEvent) => {
     e.preventDefault();
+    setNegativeError('');
 
     if (!negativeName.trim()) return;
 
@@ -70,7 +73,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
 
     const validation = validateActivity(newActivity);
     if (!validation.isValid) {
-      toast.error(validation.errors[0]);
+      setNegativeError(validation.errors[0]);
       return;
     }
 
@@ -78,13 +81,13 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
 
     try {
       addActivity(chartType, newActivity);
-      toast.success('Aktivität hinzugefügt');
       setNegativeName('');
       setTimeout(() => {
         negativeInputRef.current?.focus();
       }, 0);
-    } catch {
-      toast.error('Fehler beim Hinzufügen der Aktivität');
+    } catch (error) {
+      console.error('Error adding negative activity:', error);
+      setNegativeError('Fehler beim Hinzufügen der Aktivität');
     } finally {
       setIsSubmittingNegative(false);
     }
@@ -116,6 +119,15 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
               <PlusCircleIcon className="h-4 w-4" />
             </Button>
           </InputGroup>
+          {positiveError && (
+            <div
+              role="alert"
+              aria-live="polite"
+              className="mt-2 rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700"
+              data-testid={`quick-add-error-positive-${chartType}`}>
+              {positiveError}
+            </div>
+          )}
         </form>
 
         {/* Negative activities form */}
@@ -141,6 +153,15 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
               <MinusCircleIcon className="h-4 w-4" />
             </Button>
           </InputGroup>
+          {negativeError && (
+            <div
+              role="alert"
+              aria-live="polite"
+              className="mt-2 rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700"
+              data-testid={`quick-add-error-negative-${chartType}`}>
+              {negativeError}
+            </div>
+          )}
         </form>
       </div>
     </div>

@@ -11,7 +11,6 @@ import { exportData } from '@/app/lib/utils/storage';
 import { ShareData } from '@/app/types/storage';
 import { CheckIcon, ClipboardIcon, ShareIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
 
 export function ShareModal() {
   const { state } = useEnergy();
@@ -19,6 +18,8 @@ export function ShareModal() {
   const [shareData, setShareData] = useState<ShareData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState('');
+  const [exportError, setExportError] = useState('');
 
   const generateShareData = useCallback(async () => {
     setIsGenerating(true);
@@ -26,8 +27,8 @@ export function ShareModal() {
       const data = await SharingManager.generateShareData(state.data);
       setShareData(data);
     } catch (error) {
-      toast.error('Fehler beim Erstellen der Sharing-Daten');
       console.error('Share generation error:', error);
+      setShareData(null);
     } finally {
       setIsGenerating(false);
     }
@@ -44,20 +45,22 @@ export function ShareModal() {
     if (!uiState.isShareModalOpen) {
       setShareData(null);
       setCopied(false);
+      setCopyError('');
+      setExportError('');
     }
   }, [uiState.isShareModalOpen]);
 
   const handleCopyUrl = async () => {
     if (!shareData) return;
 
+    setCopyError('');
     try {
       await SharingManager.copyToClipboard(shareData.url);
       setCopied(true);
-      toast.success('Link kopiert!');
-
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error('Fehler beim Kopieren des Links');
+    } catch (error) {
+      console.error('Copy error:', error);
+      setCopyError('Fehler beim Kopieren des Links');
     }
   };
 
@@ -65,9 +68,12 @@ export function ShareModal() {
     closeShareModal();
     setShareData(null);
     setCopied(false);
+    setCopyError('');
+    setExportError('');
   };
 
   const handleExport = () => {
+    setExportError('');
     try {
       const dataToExport = exportData(state.data);
       const blob = new Blob([dataToExport], { type: 'application/json' });
@@ -82,10 +88,9 @@ export function ShareModal() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast.success('Daten erfolgreich exportiert!');
     } catch (error) {
       console.error('Export error:', error);
-      toast.error('Fehler beim Exportieren der Daten');
+      setExportError('Fehler beim Exportieren der Daten');
     }
   };
 
@@ -112,6 +117,15 @@ export function ShareModal() {
                     {copied ? <CheckIcon className="h-4 w-4" /> : <ClipboardIcon className="h-4 w-4" />}
                   </Button>
                 </InputGroup>
+                {copyError && (
+                  <div
+                    role="alert"
+                    aria-live="polite"
+                    className="mt-2 rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700"
+                    data-testid="copy-error">
+                    {copyError}
+                  </div>
+                )}
               </div>
 
               {/* Quick share options */}
@@ -171,6 +185,12 @@ export function ShareModal() {
           <Button onClick={handleExport} variant="secondary" className="w-full" data-testid="export-button">
             Daten exportieren
           </Button>
+
+          {exportError && (
+            <div role="alert" aria-live="polite" className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700" data-testid="export-error">
+              {exportError}
+            </div>
+          )}
 
           <div className="rounded-md bg-blue-50 p-3">
             <p className="text-sm text-blue-800">
