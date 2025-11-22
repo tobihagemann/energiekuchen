@@ -346,4 +346,185 @@ test.describe('Import & Export Functionality', () => {
     // Verify all data is deleted
     await expect(page.locator('[data-testid="activity-list-current"]')).not.toContainText('Test Activity');
   });
+
+  test('should migrate v1.0 format data with positive/negative to current chart', async ({ page }) => {
+    // Prepare v1.0 test data with positive and negative activities
+    const v1Data = {
+      version: '1.0',
+      positive: {
+        activities: [
+          { id: '1', name: 'V1 Positive Activity', value: 3 },
+          { id: '2', name: 'Another Positive', value: 5 },
+        ],
+      },
+      negative: {
+        activities: [
+          { id: '3', name: 'V1 Negative Activity', value: 2 },
+          { id: '4', name: 'Another Negative', value: 4 },
+        ],
+      },
+    };
+
+    // Open import modal
+    await openImportModal(page);
+
+    // Import the v1.0 data
+    const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
+    if (await textArea.isVisible()) {
+      await textArea.fill(JSON.stringify(v1Data));
+      await page.locator('[data-testid="import-submit"]').click();
+    }
+
+    // Close modal
+    const closeButton = page.locator('[data-testid="close-modal"], button:has-text("Schließen")').first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    }
+
+    // Verify all activities appear in current chart
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('V1 Positive Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Another Positive');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('V1 Negative Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Another Negative');
+
+    // Verify desired chart is empty (no activities added)
+    const desiredList = page.locator('[data-testid="activity-list-desired"]');
+    const desiredText = await desiredList.textContent();
+    expect(desiredText).not.toContain('V1 Positive Activity');
+    expect(desiredText).not.toContain('V1 Negative Activity');
+  });
+
+  test('should migrate v1.0 format with only positive activities', async ({ page }) => {
+    const v1Data = {
+      version: '1.0',
+      positive: {
+        activities: [{ id: '1', name: 'Only Positive', value: 4 }],
+      },
+      negative: {
+        activities: [],
+      },
+    };
+
+    await openImportModal(page);
+
+    const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
+    if (await textArea.isVisible()) {
+      await textArea.fill(JSON.stringify(v1Data));
+      await page.locator('[data-testid="import-submit"]').click();
+    }
+
+    const closeButton = page.locator('[data-testid="close-modal"], button:has-text("Schließen")').first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    }
+
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Only Positive');
+  });
+
+  test('should migrate v1.0 format with only negative activities', async ({ page }) => {
+    const v1Data = {
+      version: '1.0',
+      positive: {
+        activities: [],
+      },
+      negative: {
+        activities: [{ id: '1', name: 'Only Negative', value: 3 }],
+      },
+    };
+
+    await openImportModal(page);
+
+    const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
+    if (await textArea.isVisible()) {
+      await textArea.fill(JSON.stringify(v1Data));
+      await page.locator('[data-testid="import-submit"]').click();
+    }
+
+    const closeButton = page.locator('[data-testid="close-modal"], button:has-text("Schließen")').first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    }
+
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Only Negative');
+  });
+
+  test('should merge v1.0 data with existing activities', async ({ page }) => {
+    // Add existing data
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Existing Current Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+
+    await page.locator('[data-testid="quick-add-input-positive-desired"]').fill('Existing Desired Activity');
+    await page.locator('[data-testid="quick-add-button-positive-desired"]').click();
+
+    // Import v1.0 data (should merge into current, leave desired untouched)
+    const v1Data = {
+      version: '1.0',
+      positive: {
+        activities: [{ id: '1', name: 'V1 Imported', value: 3 }],
+      },
+      negative: {
+        activities: [],
+      },
+    };
+
+    await openImportModal(page);
+
+    const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
+    if (await textArea.isVisible()) {
+      await textArea.fill(JSON.stringify(v1Data));
+      await page.locator('[data-testid="import-submit"]').click();
+    }
+
+    const closeButton = page.locator('[data-testid="close-modal"], button:has-text("Schließen")').first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    }
+
+    // Verify both existing and imported are in current
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Existing Current Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('V1 Imported');
+
+    // Verify desired still has existing activity
+    await expect(page.locator('[data-testid="activity-list-desired"]')).toContainText('Existing Desired Activity');
+  });
+
+  test('should replace existing data when importing v1.0 with replace option', async ({ page }) => {
+    // Add existing data
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Old Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+
+    // Import v1.0 data with replace option
+    const v1Data = {
+      version: '1.0',
+      positive: {
+        activities: [{ id: '1', name: 'V1 Replacement', value: 2 }],
+      },
+      negative: {
+        activities: [],
+      },
+    };
+
+    await openImportModal(page);
+
+    // Check replace option
+    const replaceOption = page.locator('[data-testid="import-replace-option"], input[type="checkbox"]').first();
+    if (await replaceOption.isVisible()) {
+      await replaceOption.check();
+    }
+
+    const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
+    if (await textArea.isVisible()) {
+      await textArea.fill(JSON.stringify(v1Data));
+      await page.locator('[data-testid="import-submit"]').click();
+    }
+
+    const closeButton = page.locator('[data-testid="close-modal"], button:has-text("Schließen")').first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    }
+
+    // Verify only new data is present
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('V1 Replacement');
+    await expect(page.locator('[data-testid="activity-list-current"]')).not.toContainText('Old Activity');
+  });
 });

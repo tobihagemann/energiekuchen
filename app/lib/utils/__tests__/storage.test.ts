@@ -559,47 +559,102 @@ describe('StorageManager', () => {
     expect(localStorage.getItem('energiekuchen-data')).not.toBeNull();
   });
 
-  test('should reject old data format with positive/negative properties', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
+  test('should migrate v1.0 format with positive/negative to v2.0 current/desired', () => {
     const oldFormatData = {
       version: '1.0',
       positive: {
-        activities: [{ id: '1', name: 'Old Activity', value: 3 }],
+        activities: [{ id: '1', name: 'Energy Giving', value: 3 }],
       },
       negative: {
-        activities: [{ id: '2', name: 'Another Old Activity', value: 2 }],
+        activities: [{ id: '2', name: 'Energy Draining', value: 2 }],
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(oldFormatData))).toThrow('Alte Datenformat-Version (v1.0) wird nicht mehr unterstützt.');
+    const result = StorageManager.import(JSON.stringify(oldFormatData));
 
-    console.error = originalError;
+    // Should have migrated version
+    expect(result.version).toBe('2.0');
+
+    // Should have merged both into current chart
+    expect(result.current.activities).toHaveLength(2);
+
+    // Positive activity should have positive value
+    expect(result.current.activities[0].name).toBe('Energy Giving');
+    expect(result.current.activities[0].value).toBe(3);
+
+    // Negative activity should have negative value
+    expect(result.current.activities[1].name).toBe('Energy Draining');
+    expect(result.current.activities[1].value).toBe(-2);
+
+    // Desired chart should be empty
+    expect(result.desired.activities).toHaveLength(0);
   });
 
-  test('should clear localStorage when loading old format data', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
+  test('should migrate v1.0 format with only positive activities', () => {
     const oldFormatData = {
       version: '1.0',
       positive: {
-        activities: [{ id: '1', name: 'Old Activity', value: 3 }],
+        activities: [
+          { id: '1', name: 'Activity 1', value: 1 },
+          { id: '2', name: 'Activity 2', value: 5 },
+        ],
       },
       negative: {
         activities: [],
       },
     };
 
+    const result = StorageManager.import(JSON.stringify(oldFormatData));
+
+    expect(result.version).toBe('2.0');
+    expect(result.current.activities).toHaveLength(2);
+    expect(result.current.activities[0].value).toBe(1);
+    expect(result.current.activities[1].value).toBe(5);
+    expect(result.desired.activities).toHaveLength(0);
+  });
+
+  test('should migrate v1.0 format with only negative activities', () => {
+    const oldFormatData = {
+      version: '1.0',
+      positive: {
+        activities: [],
+      },
+      negative: {
+        activities: [
+          { id: '1', name: 'Activity 1', value: 1 },
+          { id: '2', name: 'Activity 2', value: 4 },
+        ],
+      },
+    };
+
+    const result = StorageManager.import(JSON.stringify(oldFormatData));
+
+    expect(result.version).toBe('2.0');
+    expect(result.current.activities).toHaveLength(2);
+    expect(result.current.activities[0].value).toBe(-1);
+    expect(result.current.activities[1].value).toBe(-4);
+    expect(result.desired.activities).toHaveLength(0);
+  });
+
+  test('should successfully load and migrate v1.0 format from localStorage', () => {
+    const oldFormatData = {
+      version: '1.0',
+      positive: {
+        activities: [{ id: '1', name: 'Old Activity', value: 3 }],
+      },
+      negative: {
+        activities: [{ id: '2', name: 'Another Activity', value: 2 }],
+      },
+    };
+
     localStorage.setItem('energiekuchen-data', JSON.stringify(oldFormatData));
     const loaded = StorageManager.load();
-    expect(loaded).toBeNull();
-    // Verify localStorage was cleared
-    expect(localStorage.getItem('energiekuchen-data')).toBeNull();
 
-    console.error = originalError;
+    expect(loaded).not.toBeNull();
+    expect(loaded?.version).toBe('2.0');
+    expect(loaded?.current.activities).toHaveLength(2);
+    expect(loaded?.current.activities[0].value).toBe(3);
+    expect(loaded?.current.activities[1].value).toBe(-2);
+    expect(loaded?.desired.activities).toHaveLength(0);
   });
 });
