@@ -1,9 +1,10 @@
 'use client';
 
 import { TrashIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
+import { useEnterKeySubmit } from '../../lib/hooks/useEnterKeySubmit';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 
@@ -16,22 +17,7 @@ export function DeleteModal() {
     closeDeleteModal();
   }, [dispatch, closeDeleteModal]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && uiState.isDeleteModalOpen) {
-        e.preventDefault();
-        handleClearAll();
-      }
-    };
-
-    if (uiState.isDeleteModalOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [uiState.isDeleteModalOpen, handleClearAll]);
+  useEnterKeySubmit(uiState.isDeleteModalOpen, handleClearAll);
 
   return (
     <Modal isOpen={uiState.isDeleteModalOpen} onClose={closeDeleteModal} title="Energiekuchen löschen" titleIcon={<TrashIcon className="h-5 w-5" />} size="sm">

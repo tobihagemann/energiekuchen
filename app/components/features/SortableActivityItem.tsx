@@ -1,11 +1,12 @@
 'use client';
 
+import { ActivityColorBadge } from '@/app/components/ui/ActivityColorBadge';
+import { ActivityValueIndicator } from '@/app/components/ui/ActivityValueIndicator';
 import { Button } from '@/app/components/ui/Button';
-import { getColorForLevel } from '@/app/lib/utils/constants';
 import { Activity } from '@/app/types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Bars3Icon, MinusCircleIcon, PencilIcon, PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 interface SortableActivityItemProps {
   activity: Activity;
@@ -22,9 +23,6 @@ export function SortableActivityItem({ activity, isEditing, onEdit, onDelete }: 
     transition,
   };
 
-  const absValue = Math.abs(activity.value);
-  const isPositive = activity.value > 0;
-
   return (
     <div
       ref={setNodeRef}
@@ -37,18 +35,12 @@ export function SortableActivityItem({ activity, isEditing, onEdit, onDelete }: 
             <Bars3Icon className="h-4 w-4" />
           </button>
         )}
-        <div className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: getColorForLevel(activity.value) }} />
+        <ActivityColorBadge value={activity.value} />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium text-gray-900" data-testid={`activity-name-${activity.id}`}>
             {activity.name}
           </div>
-          <div className="flex items-center text-xs text-gray-500" data-testid={`activity-value-${activity.id}`}>
-            {Array.from({ length: absValue }, (_, i) => (
-              <span key={i} className="inline-block">
-                {isPositive ? <PlusCircleIcon className="h-4 w-4" /> : <MinusCircleIcon className="h-4 w-4" />}
-              </span>
-            ))}
-          </div>
+          <ActivityValueIndicator value={activity.value} className="text-xs text-gray-500" data-testid={`activity-value-${activity.id}`} />
         </div>
       </div>
 

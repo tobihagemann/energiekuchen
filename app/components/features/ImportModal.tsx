@@ -6,6 +6,7 @@ import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
 import { importData } from '../../lib/utils/storage';
 import { Button } from '../ui/Button';
+import { ErrorMessage } from '../ui/ErrorMessage';
 import { Modal } from '../ui/Modal';
 
 export function ImportModal() {
@@ -72,18 +73,7 @@ export function ImportModal() {
     <Modal isOpen={uiState.isImportModalOpen} onClose={closeImportModal} title={modalTitle} titleIcon={<ArrowDownTrayIcon className="h-5 w-5" />} size="md">
       <div className="space-y-4 sm:space-y-6" data-testid="import-modal">
         {/* Error Display */}
-        {importError && (
-          <div>
-            <div
-              id="import-error"
-              data-testid="import-error"
-              className="error rounded-md border border-red-200 bg-red-50 p-3 text-red-700"
-              role="alert"
-              aria-live="polite">
-              {importError}
-            </div>
-          </div>
-        )}
+        <ErrorMessage error={importError} testId="import-error" />
 
         {/* Import Section */}
         <div>

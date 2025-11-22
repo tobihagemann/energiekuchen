@@ -2,6 +2,7 @@
 
 import { ChartLegend } from '@/app/components/charts/ChartLegend';
 import { EnergyChart } from '@/app/components/charts/EnergyChart';
+import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { SharingManager } from '@/app/lib/utils/sharing';
 import { EnergyPie } from '@/app/types';
@@ -65,14 +66,7 @@ export default function SharedEnergyChart() {
   }, [router, dispatch]);
 
   if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-yellow-400"></div>
-          <p className="mt-4 text-gray-600">Energiekuchen wird geladen...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner size="lg" message="Energiekuchen wird geladen..." className="flex-1" />;
   }
 
   if (error || !data) {

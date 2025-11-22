@@ -1,8 +1,10 @@
 'use client';
 
 import { Button } from '@/app/components/ui/Button';
+import { ErrorMessage } from '@/app/components/ui/ErrorMessage';
 import { Input } from '@/app/components/ui/Input';
 import { InputGroup } from '@/app/components/ui/InputGroup';
+import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
 import { Modal } from '@/app/components/ui/Modal';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
@@ -102,10 +104,7 @@ export function ShareModal() {
           <div className="text-gray-600">Teile deinen Energiekuchen mit anderen, damit sie deine Energieverteilung einsehen können.</div>
 
           {isGenerating ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-yellow-400" role="status"></div>
-              <span className="ml-2 text-sm text-gray-600">Erstelle Sharing-Link...</span>
-            </div>
+            <LoadingSpinner size="md" message="Erstelle Sharing-Link..." className="py-8" />
           ) : shareData ? (
             <>
               {/* URL Input */}
@@ -117,15 +116,7 @@ export function ShareModal() {
                     {copied ? <CheckIcon className="h-4 w-4" /> : <ClipboardIcon className="h-4 w-4" />}
                   </Button>
                 </InputGroup>
-                {copyError && (
-                  <div
-                    role="alert"
-                    aria-live="polite"
-                    className="mt-2 rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700"
-                    data-testid="copy-error">
-                    {copyError}
-                  </div>
-                )}
+                <ErrorMessage error={copyError} testId="copy-error" className="mt-2 p-2" />
               </div>
 
               {/* Quick share options */}
@@ -186,11 +177,7 @@ export function ShareModal() {
             Daten exportieren
           </Button>
 
-          {exportError && (
-            <div role="alert" aria-live="polite" className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700" data-testid="export-error">
-              {exportError}
-            </div>
-          )}
+          <ErrorMessage error={exportError} testId="export-error" className="p-2" />
 
           <div className="rounded-md bg-blue-50 p-3">
             <p className="text-sm text-blue-800">

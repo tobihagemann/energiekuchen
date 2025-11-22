@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/app/components/ui/Button';
+import { ErrorMessage } from '@/app/components/ui/ErrorMessage';
 import { Input } from '@/app/components/ui/Input';
 import { InputGroup } from '@/app/components/ui/InputGroup';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
@@ -120,15 +121,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
               <PlusCircleIcon className="h-4 w-4" />
             </Button>
           </InputGroup>
-          {positiveError && (
-            <div
-              role="alert"
-              aria-live="polite"
-              className="mt-2 rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700"
-              data-testid={`quick-add-error-positive-${chartType}`}>
-              {positiveError}
-            </div>
-          )}
+          <ErrorMessage error={positiveError} testId={`quick-add-error-positive-${chartType}`} className="mt-2 p-2" />
         </form>
 
         {/* Negative activities form */}
@@ -154,15 +147,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
               <MinusCircleIcon className="h-4 w-4" />
             </Button>
           </InputGroup>
-          {negativeError && (
-            <div
-              role="alert"
-              aria-live="polite"
-              className="mt-2 rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700"
-              data-testid={`quick-add-error-negative-${chartType}`}>
-              {negativeError}
-            </div>
-          )}
+          <ErrorMessage error={negativeError} testId={`quick-add-error-negative-${chartType}`} className="mt-2 p-2" />
         </form>
       </div>
     </div>

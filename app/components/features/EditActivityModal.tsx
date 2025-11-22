@@ -1,11 +1,13 @@
 'use client';
 
-import { MinusCircleIcon, PencilIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+import { PencilIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
 import { validateActivity } from '../../lib/utils/validation';
+import { ActivityValueIndicator } from '../ui/ActivityValueIndicator';
 import { Button } from '../ui/Button';
+import { ErrorMessage } from '../ui/ErrorMessage';
 import { Input } from '../ui/Input';
 import { Modal } from '../ui/Modal';
 import { Slider } from '../ui/Slider';
@@ -92,9 +94,6 @@ export function EditActivityModal() {
   const chartType = uiState.editingActivity.chartType;
   const placeholder = chartType === 'current' ? 'z.B. Sport, Überstunden, schwierige Gespräche' : 'z.B. Entspannung, Zeit mit Freunden, Hobby';
 
-  const absValue = Math.abs(formData.value);
-  const isPositive = formData.value > 0;
-
   return (
     <Modal isOpen={uiState.isEditModalOpen} onClose={handleClose} title="Aktivität bearbeiten" titleIcon={<PencilIcon className="h-5 w-5" />} size="md">
       <div data-testid="edit-activity-modal">
@@ -116,28 +115,13 @@ export function EditActivityModal() {
             <div className="mb-2">
               <div className="flex items-center gap-1 text-sm font-medium text-gray-700">
                 <span>Energieniveau:</span>
-                <div className="flex items-center">
-                  {formData.value !== 0 &&
-                    Array.from({ length: absValue }, (_, i) => (
-                      <span key={i} className="inline-block">
-                        {isPositive ? <PlusCircleIcon className="h-4 w-4" /> : <MinusCircleIcon className="h-4 w-4" />}
-                      </span>
-                    ))}
-                </div>
+                <ActivityValueIndicator value={formData.value} />
               </div>
             </div>
             <Slider value={formData.value} onChange={handleValueChange} min={-5} max={5} step={1} data-testid="activity-value-slider" />
           </div>
 
-          {errors.length > 0 && (
-            <div role="alert" aria-live="polite" className="rounded-md border border-red-200 bg-red-50 p-3" data-testid="form-errors">
-              <div className="text-sm text-red-800">
-                {errors.map((error, index) => (
-                  <div key={index}>{error}</div>
-                ))}
-              </div>
-            </div>
-          )}
+          <ErrorMessage error={errors} testId="form-errors" />
 
           <div className="flex">
             <Button type="submit" isLoading={isSubmitting} className="flex-1" data-testid="submit-activity-button">

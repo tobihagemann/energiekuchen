@@ -1,10 +1,12 @@
 'use client';
 
 import { TrashIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
+import { useEnterKeySubmit } from '../../lib/hooks/useEnterKeySubmit';
 import { Button } from '../ui/Button';
+import { ErrorMessage } from '../ui/ErrorMessage';
 import { Modal } from '../ui/Modal';
 
 export function DeleteActivityModal() {
@@ -36,22 +38,7 @@ export function DeleteActivityModal() {
   }, [uiState.deleteConfirmation, activity, deleteActivity, handleClose]);
 
   // Handle Enter key to confirm deletion
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && uiState.deleteConfirmation) {
-        e.preventDefault();
-        handleDelete();
-      }
-    };
-
-    if (uiState.deleteConfirmation) {
-      document.addEventListener('keydown', handleKeyDown);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [uiState.deleteConfirmation, handleDelete]);
+  useEnterKeySubmit(!!uiState.deleteConfirmation, handleDelete);
 
   if (!uiState.deleteConfirmation || !activity) {
     return null;
@@ -63,11 +50,7 @@ export function DeleteActivityModal() {
         <p className="text-gray-600">
           Möchtest du die Aktivität „<strong>{activity.name}</strong>“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
         </p>
-        {error && (
-          <div role="alert" aria-live="polite" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700" data-testid="delete-error">
-            {error}
-          </div>
-        )}
+        <ErrorMessage error={error} testId="delete-error" />
         <div className="flex">
           <Button variant="danger" onClick={handleDelete} className="flex-1" data-testid="confirm-delete-activity-button">
             Löschen

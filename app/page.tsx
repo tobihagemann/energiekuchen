@@ -8,6 +8,7 @@ import { EditActivityModal } from '@/app/components/features/EditActivityModal';
 import { ImportModal } from '@/app/components/features/ImportModal';
 import { ShareModal } from '@/app/components/features/ShareModal';
 import { Header } from '@/app/components/layout/Header';
+import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
@@ -29,14 +30,7 @@ export default function Dashboard() {
   };
 
   if (state.isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center" data-testid="loading-spinner">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-yellow-400"></div>
-          <p className="mt-4 text-gray-600">Energiekuchen wird geladen...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner size="lg" message="Energiekuchen wird geladen..." className="flex-1" data-testid="loading-spinner" />;
   }
 
   return (

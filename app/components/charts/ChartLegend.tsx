@@ -1,9 +1,9 @@
 'use client';
 
+import { ActivityColorBadge } from '@/app/components/ui/ActivityColorBadge';
+import { ActivityValueIndicator } from '@/app/components/ui/ActivityValueIndicator';
 import { cn } from '@/app/lib/utils/cn';
-import { getColorForLevel } from '@/app/lib/utils/constants';
 import { Activity } from '@/app/types';
-import { MinusCircleIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 
 interface ChartLegendProps {
   activities: Activity[];
@@ -18,31 +18,20 @@ export function ChartLegend({ activities, onActivityClick, className }: ChartLeg
 
   return (
     <div className={cn('space-y-2', className)}>
-      {activities.map(activity => {
-        const absValue = Math.abs(activity.value);
-        const isPositive = activity.value > 0;
-
-        return (
-          <div
-            key={activity.id}
-            className={cn('flex items-center justify-between rounded p-2 transition-colors hover:bg-gray-50', onActivityClick && 'cursor-pointer')}
-            onClick={() => onActivityClick?.(activity.id)}>
-            <div className="flex min-w-0 flex-1 items-center space-x-3">
-              <div className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: getColorForLevel(activity.value) }} />
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-gray-900">{activity.name}</div>
-                <div className="flex items-center text-xs text-gray-500">
-                  {Array.from({ length: absValue }, (_, i) => (
-                    <span key={i} className="inline-block">
-                      {isPositive ? <PlusCircleIcon className="h-4 w-4" /> : <MinusCircleIcon className="h-4 w-4" />}
-                    </span>
-                  ))}
-                </div>
-              </div>
+      {activities.map(activity => (
+        <div
+          key={activity.id}
+          className={cn('flex items-center justify-between rounded p-2 transition-colors hover:bg-gray-50', onActivityClick && 'cursor-pointer')}
+          onClick={() => onActivityClick?.(activity.id)}>
+          <div className="flex min-w-0 flex-1 items-center space-x-3">
+            <ActivityColorBadge value={activity.value} />
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-medium text-gray-900">{activity.name}</div>
+              <ActivityValueIndicator value={activity.value} className="text-xs text-gray-500" />
             </div>
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 }
