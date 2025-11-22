@@ -11,6 +11,7 @@ type EnergyAction =
   | { type: 'UPDATE_ACTIVITY'; payload: { chartType: 'current' | 'desired'; activityId: string; updates: Partial<Activity> } }
   | { type: 'DELETE_ACTIVITY'; payload: { chartType: 'current' | 'desired'; activityId: string } }
   | { type: 'REORDER_ACTIVITIES'; payload: { chartType: 'current' | 'desired'; fromIndex: number; toIndex: number } }
+  | { type: 'COPY_ACTIVITIES_FROM_CURRENT' }
   | { type: 'RESET_DATA' }
   | { type: 'IMPORT_DATA'; payload: { data: EnergyPie; replaceExisting: boolean } }
   | { type: 'CLEAR_ALL_DATA' }
@@ -137,6 +138,31 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       };
     }
 
+    case 'COPY_ACTIVITIES_FROM_CURRENT': {
+      const now = new Date().toISOString();
+      const currentActivities = state.data.current.activities;
+
+      // Copy activities from current to desired with new IDs
+      const copiedActivities: Activity[] = currentActivities.map(activity => ({
+        ...activity,
+        id: crypto.randomUUID(),
+      }));
+
+      const updatedData = {
+        ...state.data,
+        desired: {
+          ...state.data.desired,
+          activities: copiedActivities,
+        },
+      };
+
+      return {
+        ...state,
+        data: updatedData,
+        lastSaved: now,
+      };
+    }
+
     case 'RESET_DATA': {
       return {
         ...state,
@@ -202,6 +228,7 @@ interface EnergyContextType {
   updateActivity: (chartType: 'current' | 'desired', activityId: string, updates: Partial<Activity>) => void;
   deleteActivity: (chartType: 'current' | 'desired', activityId: string) => void;
   reorderActivities: (chartType: 'current' | 'desired', fromIndex: number, toIndex: number) => void;
+  copyActivitiesFromCurrent: () => void;
   resetData: () => void;
   saveData: () => void;
   loadData: () => void;
@@ -267,6 +294,10 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'REORDER_ACTIVITIES', payload: { chartType, fromIndex, toIndex } });
   };
 
+  const copyActivitiesFromCurrent = () => {
+    dispatch({ type: 'COPY_ACTIVITIES_FROM_CURRENT' });
+  };
+
   const resetData = () => {
     dispatch({ type: 'RESET_DATA' });
   };
@@ -298,6 +329,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     updateActivity,
     deleteActivity,
     reorderActivities,
+    copyActivitiesFromCurrent,
     resetData,
     saveData,
     loadData,

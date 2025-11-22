@@ -697,4 +697,109 @@ describe('EnergyContext', () => {
     // State should remain unchanged
     expect(result.current.state).toEqual(initialState);
   });
+
+  test('should copy activities from current to desired chart', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add activities to current chart
+    act(() => {
+      result.current.addActivity('current', { name: 'Sport', value: 5 });
+      result.current.addActivity('current', { name: 'Lesen', value: 3 });
+      result.current.addActivity('current', { name: 'Arbeit', value: -4 });
+    });
+
+    expect(result.current.state.data.current.activities).toHaveLength(3);
+    expect(result.current.state.data.desired.activities).toHaveLength(0);
+
+    // Copy activities from current to desired
+    act(() => {
+      result.current.copyActivitiesFromCurrent();
+    });
+
+    // Should have copied all activities to desired chart
+    expect(result.current.state.data.desired.activities).toHaveLength(3);
+    expect(result.current.state.data.desired.activities[0].name).toBe('Sport');
+    expect(result.current.state.data.desired.activities[0].value).toBe(5);
+    expect(result.current.state.data.desired.activities[1].name).toBe('Lesen');
+    expect(result.current.state.data.desired.activities[1].value).toBe(3);
+    expect(result.current.state.data.desired.activities[2].name).toBe('Arbeit');
+    expect(result.current.state.data.desired.activities[2].value).toBe(-4);
+
+    // Verify that IDs are different (new IDs generated)
+    expect(result.current.state.data.desired.activities[0].id).not.toBe(result.current.state.data.current.activities[0].id);
+    expect(result.current.state.data.desired.activities[1].id).not.toBe(result.current.state.data.current.activities[1].id);
+    expect(result.current.state.data.desired.activities[2].id).not.toBe(result.current.state.data.current.activities[2].id);
+  });
+
+  test('should copy activities from current to desired even when desired has existing activities', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add activities to both charts
+    act(() => {
+      result.current.addActivity('current', { name: 'Sport', value: 5 });
+      result.current.addActivity('desired', { name: 'Existing', value: 2 });
+    });
+
+    expect(result.current.state.data.current.activities).toHaveLength(1);
+    expect(result.current.state.data.desired.activities).toHaveLength(1);
+
+    // Copy activities from current to desired (should replace)
+    act(() => {
+      result.current.copyActivitiesFromCurrent();
+    });
+
+    // Should have replaced desired activities with current activities
+    expect(result.current.state.data.desired.activities).toHaveLength(1);
+    expect(result.current.state.data.desired.activities[0].name).toBe('Sport');
+    expect(result.current.state.data.desired.activities[0].value).toBe(5);
+  });
+
+  test('should handle copy when current chart is empty', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add activity to desired chart only
+    act(() => {
+      result.current.addActivity('desired', { name: 'Existing', value: 3 });
+    });
+
+    expect(result.current.state.data.current.activities).toHaveLength(0);
+    expect(result.current.state.data.desired.activities).toHaveLength(1);
+
+    // Copy from empty current chart
+    act(() => {
+      result.current.copyActivitiesFromCurrent();
+    });
+
+    // Desired should now be empty
+    expect(result.current.state.data.desired.activities).toHaveLength(0);
+  });
+
+  test('should generate unique IDs when copying activities', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add multiple activities to current chart
+    act(() => {
+      result.current.addActivity('current', { name: 'Activity 1', value: 5 });
+      result.current.addActivity('current', { name: 'Activity 2', value: 3 });
+      result.current.addActivity('current', { name: 'Activity 3', value: -2 });
+    });
+
+    // Copy activities
+    act(() => {
+      result.current.copyActivitiesFromCurrent();
+    });
+
+    // All IDs should be unique
+    const currentIds = result.current.state.data.current.activities.map(a => a.id);
+    const desiredIds = result.current.state.data.desired.activities.map(a => a.id);
+
+    // No ID from desired should match any ID from current
+    for (const desiredId of desiredIds) {
+      expect(currentIds).not.toContain(desiredId);
+    }
+
+    // All desired IDs should be unique
+    const uniqueDesiredIds = new Set(desiredIds);
+    expect(uniqueDesiredIds.size).toBe(desiredIds.length);
+  });
 });
