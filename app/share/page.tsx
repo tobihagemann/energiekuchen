@@ -2,6 +2,7 @@
 
 import { ChartLegend } from '@/app/components/charts/ChartLegend';
 import { EnergyChart } from '@/app/components/charts/EnergyChart';
+import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { SharingManager } from '@/app/lib/utils/sharing';
 import { EnergyPie } from '@/app/types';
@@ -65,14 +66,7 @@ export default function SharedEnergyChart() {
   }, [router, dispatch]);
 
   if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-yellow-400"></div>
-          <p className="mt-4 text-gray-600">Energiekuchen wird geladen...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner size="lg" message="Energiekuchen wird geladen..." className="flex-1" />;
   }
 
   if (error || !data) {
@@ -150,43 +144,43 @@ export default function SharedEnergyChart() {
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           {/* Charts Section */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            {/* Positive Energy Chart */}
+            {/* Current State Chart */}
             <div className="rounded-lg bg-white p-6 shadow-sm">
-              <EnergyChart chartType="positive" className="mb-6" />
+              <EnergyChart chartType="current" className="mb-6" />
 
-              <div data-testid="activity-list-positive">
-                {data.positive.activities.length > 0 ? (
+              <div data-testid="activity-list-current">
+                {data.current.activities.length > 0 ? (
                   <>
                     <h3 className="mb-3 text-lg font-medium text-gray-900">
                       Aktivitäten
-                      <span className="ml-2 text-sm font-normal text-gray-500">({data.positive.activities.length})</span>
+                      <span className="ml-2 text-sm font-normal text-gray-500">({data.current.activities.length})</span>
                     </h3>
-                    <ChartLegend activities={data.positive.activities} chartType="positive" />
+                    <ChartLegend activities={data.current.activities} />
                   </>
                 ) : (
                   <div className="py-4 text-center text-gray-500">
-                    <div className="text-sm">Keine Energiequellen vorhanden</div>
+                    <div className="text-sm">Keine Aktivitäten vorhanden</div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Negative Energy Chart */}
+            {/* Desired State Chart */}
             <div className="rounded-lg bg-white p-6 shadow-sm">
-              <EnergyChart chartType="negative" className="mb-6" />
+              <EnergyChart chartType="desired" className="mb-6" />
 
-              <div data-testid="activity-list-negative">
-                {data.negative.activities.length > 0 ? (
+              <div data-testid="activity-list-desired">
+                {data.desired.activities.length > 0 ? (
                   <>
                     <h3 className="mb-3 text-lg font-medium text-gray-900">
                       Aktivitäten
-                      <span className="ml-2 text-sm font-normal text-gray-500">({data.negative.activities.length})</span>
+                      <span className="ml-2 text-sm font-normal text-gray-500">({data.desired.activities.length})</span>
                     </h3>
-                    <ChartLegend activities={data.negative.activities} chartType="negative" />
+                    <ChartLegend activities={data.desired.activities} />
                   </>
                 ) : (
                   <div className="py-4 text-center text-gray-500">
-                    <div className="text-sm">Keine Energieverbraucher vorhanden</div>
+                    <div className="text-sm">Keine Aktivitäten vorhanden</div>
                   </div>
                 )}
               </div>

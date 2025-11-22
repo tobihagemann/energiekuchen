@@ -6,10 +6,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "INPUT=$(cat); FILE=$(echo \"$INPUT\" | grep -o '\"file_path\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4); if [[ \"$FILE\" =~ \\.(ts|tsx|js|jsx|json|css)$ ]]; then cd /Users/saibot/Developer/github.com/tobihagemann/energiekuchen && npx prettier --write \"$FILE\" >/dev/null 2>&1; fi"
-          },
-          {
-            "type": "command",
             "command": "INPUT=$(cat); FILE=$(echo \"$INPUT\" | grep -o '\"file_path\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4); if [[ \"$FILE\" =~ app/lib/.*\\.(ts|tsx)$ ]] && [[ ! \"$FILE\" =~ (__tests__|test\\.ts|cn\\.ts) ]]; then echo \"📝 Remember to update unit tests for changes in: $FILE\" >&2; echo \"   Test location: $(echo \"$FILE\" | sed 's|app/lib/|app/lib/__tests__/|' | sed 's|/\\([^/]*\\)\\.(ts\\|tsx)$|/\\1.test.ts|')\" >&2; exit 2; fi"
           },
           {

@@ -22,17 +22,12 @@ const ENERGY_LEVEL_COLORS = {
   ],
 } as const;
 
-export const CHART_DEFAULTS = {
-  maxActivities: 20,
-  minLevel: 1,
-  maxLevel: 5,
-  defaultLevel: 3,
-  animationDuration: 300,
-} as const;
-
 // Helper function to get color for energy level
-export function getColorForLevel(level: number, type: 'positive' | 'negative'): string {
-  const clampedLevel = Math.max(1, Math.min(5, level));
+// Positive values (1-5) use green colors, negative values (-1 to -5) use red colors
+export function getColorForLevel(level: number): string {
+  const absLevel = Math.abs(level);
+  const clampedLevel = Math.max(1, Math.min(5, absLevel));
+  const type = level > 0 ? 'positive' : 'negative';
   return ENERGY_LEVEL_COLORS[type][clampedLevel - 1];
 }
 

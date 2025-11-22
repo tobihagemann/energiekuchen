@@ -1,4 +1,5 @@
-import { EnergyPie } from '@/app/types';
+import { Activity, EnergyPie } from '@/app/types';
+import { UnknownActivity, UnknownData, V1Data } from '@/app/types/migration';
 import { STORAGE_KEY } from './constants';
 import { validateActivityValue } from './validation';
 
@@ -61,60 +62,87 @@ export function exportData(data: EnergyPie): string {
   return JSON.stringify(data, null, 2);
 }
 
+function migrateV1ToV2(data: V1Data): EnergyPie {
+  // Migrate v1.0 format (positive/negative) to v2.0 format (current/desired)
+  const positiveActivities = data.positive?.activities || [];
+  const negativeActivities = data.negative?.activities || [];
+
+  // Convert positive activities (1-5) to current activities with positive values (+1 to +5)
+  const migratedPositive = positiveActivities.map(activity => ({
+    ...activity,
+    value: Math.abs(activity.value), // Ensure positive
+  }));
+
+  // Convert negative activities (1-5) to current activities with negative values (-1 to -5)
+  const migratedNegative = negativeActivities.map(activity => ({
+    ...activity,
+    value: -Math.abs(activity.value), // Ensure negative
+  }));
+
+  // Merge both into current chart, leave desired empty
+  return {
+    version: '2.0',
+    current: {
+      activities: [...migratedPositive, ...migratedNegative],
+    },
+    desired: {
+      activities: [],
+    },
+  };
+}
+
 export function importData(jsonString: string): EnergyPie {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data = JSON.parse(jsonString) as any;
+    const data = JSON.parse(jsonString) as UnknownData;
 
-    // Basic validation - we need at least positive or negative data
-    if (!data.positive && !data.negative) {
+    // Check for old version format (v1.0 with positive/negative) and migrate it
+    if (data.positive || data.negative) {
+      const migratedData = migrateV1ToV2(data as V1Data);
+      // Continue processing with migrated data
+      return importData(JSON.stringify(migratedData));
+    }
+
+    // Basic validation - we need at least current or desired data
+    if (!data.current && !data.desired) {
       throw new Error('Ungültiges Datenformat - keine Aktivitätsdaten gefunden');
     }
 
     // Validate activities have required fields
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const validateActivities = (activities: any[]): any[] => {
+    const validateActivities = (activities: unknown[]) => {
       if (!Array.isArray(activities)) return [];
 
-      return activities
-        .map(activity => {
-          // Migration: Remove color and timestamp properties if they exist
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { color, createdAt, updatedAt, ...activityWithoutLegacyFields } = activity;
+      return activities.filter(activity => {
+        const act = activity as UnknownActivity;
+        // Check required fields
+        if (!act.name || typeof act.name !== 'string') {
+          throw new Error('Aktivität muss einen Namen haben');
+        }
+        if (act.value === undefined || typeof act.value !== 'number') {
+          throw new Error('Aktivität muss ein Energieniveau haben');
+        }
 
-          return activityWithoutLegacyFields;
-        })
-        .filter(activity => {
-          // Check required fields
-          if (!activity.name || typeof activity.name !== 'string') {
-            throw new Error('Aktivität muss einen Namen haben');
-          }
-          if (activity.value === undefined || typeof activity.value !== 'number') {
-            throw new Error('Aktivität muss ein Energieniveau haben');
-          }
+        // Validate that value is within the allowed range
+        const valueValidation = validateActivityValue(act.value);
+        if (!valueValidation.isValid) {
+          throw new Error(valueValidation.errors[0]);
+        }
 
-          // Validate that value is within the allowed range
-          const valueValidation = validateActivityValue(activity.value);
-          if (!valueValidation.isValid) {
-            throw new Error(valueValidation.errors[0]);
-          }
-
-          return true;
-        });
+        return true;
+      });
     };
 
     // Validate and process activities
-    const positiveActivities = data.positive?.activities ? validateActivities(data.positive.activities) : [];
-    const negativeActivities = data.negative?.activities ? validateActivities(data.negative.activities) : [];
+    const currentActivities = (data.current?.activities ? validateActivities(data.current.activities) : []) as Activity[];
+    const desiredActivities = (data.desired?.activities ? validateActivities(data.desired.activities) : []) as Activity[];
 
     // Create a complete data structure with defaults
     const result: EnergyPie = {
-      version: data.version || '1.0',
-      positive: {
-        activities: positiveActivities,
+      version: data.version || '2.0',
+      current: {
+        activities: currentActivities,
       },
-      negative: {
-        activities: negativeActivities,
+      desired: {
+        activities: desiredActivities,
       },
     };
 

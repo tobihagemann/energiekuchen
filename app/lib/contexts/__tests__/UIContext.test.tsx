@@ -98,7 +98,7 @@ describe('UIContext', () => {
   it('should set editing activity', () => {
     const { result } = renderHook(() => useUI(), { wrapper });
 
-    const editingActivity = { chartType: 'positive' as const, activityId: '123' };
+    const editingActivity = { chartType: 'current' as const, activityId: '123' };
 
     act(() => {
       result.current.setEditingActivity(editingActivity);

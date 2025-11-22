@@ -1,6 +1,6 @@
 # Energiekuchen - Personal Energy Management Visualization
 
-A German-language web application that helps users visualize and balance their personal energy through interactive pie charts. Users create dual charts comparing energy sources (positive activities) against energy drains (negative activities).
+A German-language web application that helps users visualize and balance their personal energy through interactive pie charts. Users create dual charts comparing their current energy state (Ist-Zustand) against their desired energy state (Wunsch-Zustand). Each chart can contain both energy-giving (positive) and energy-draining (negative) activities.
 
 ## Common Development Commands
 
@@ -76,15 +76,19 @@ The app uses two main contexts:
 interface Activity {
   id: string;
   name: string; // 1-50 chars, German characters
-  value: number; // 1-5 energy level
-  // Note: color is computed from value and chart type, not stored
+  value: number; // -5 to +5 energy level (excluding 0)
+  // Note: color is computed from value sign (positive = green, negative = red), not stored
+  // Chart size is based on absolute value
 }
 ```
 
 ### Validation Rules
 
-- Maximum 20 activities per chart (positive/negative)
-- Activity values must be integers 1-5 (energy levels)
+- Maximum 20 activities per chart (current/desired state)
+- Activity values must be integers from -5 to +5 (excluding 0)
+  - Positive values (+1 to +5): Energy-giving activities (green)
+  - Negative values (-5 to -1): Energy-draining activities (red)
+  - Zero (0) is selectable in UI but not saveable (validation error)
 - URL sharing limited to 2048 characters
 - All user-facing text must be in German
 

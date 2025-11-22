@@ -1,16 +1,18 @@
 'use client';
 
 import { TrashIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect } from 'react';
-import toast from 'react-hot-toast';
+import { useCallback, useState } from 'react';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
+import { useEnterKeySubmit } from '../../lib/hooks/useEnterKeySubmit';
 import { Button } from '../ui/Button';
+import { ErrorMessage } from '../ui/ErrorMessage';
 import { Modal } from '../ui/Modal';
 
 export function DeleteActivityModal() {
   const { state: energyState, deleteActivity } = useEnergy();
   const { state: uiState, setDeleteConfirmation } = useUI();
+  const [error, setError] = useState('');
 
   // Get the activity to delete based on deleteConfirmation state
   const activity = uiState.deleteConfirmation
@@ -19,37 +21,24 @@ export function DeleteActivityModal() {
 
   const handleClose = useCallback(() => {
     setDeleteConfirmation(null);
+    setError('');
   }, [setDeleteConfirmation]);
 
   const handleDelete = useCallback(() => {
     if (uiState.deleteConfirmation && activity) {
+      setError('');
       try {
         deleteActivity(uiState.deleteConfirmation.chartType, uiState.deleteConfirmation.activityId);
-        toast.success('Aktivität gelöscht');
         handleClose();
-      } catch {
-        toast.error('Fehler beim Löschen der Aktivität');
+      } catch (error) {
+        console.error('Error deleting activity:', error);
+        setError('Fehler beim Löschen der Aktivität');
       }
     }
   }, [uiState.deleteConfirmation, activity, deleteActivity, handleClose]);
 
   // Handle Enter key to confirm deletion
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && uiState.deleteConfirmation) {
-        e.preventDefault();
-        handleDelete();
-      }
-    };
-
-    if (uiState.deleteConfirmation) {
-      document.addEventListener('keydown', handleKeyDown);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [uiState.deleteConfirmation, handleDelete]);
+  useEnterKeySubmit(!!uiState.deleteConfirmation, handleDelete);
 
   if (!uiState.deleteConfirmation || !activity) {
     return null;
@@ -61,6 +50,7 @@ export function DeleteActivityModal() {
         <p className="text-gray-600">
           Möchtest du die Aktivität „<strong>{activity.name}</strong>“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
         </p>
+        <ErrorMessage error={error} testId="delete-error" />
         <div className="flex">
           <Button variant="danger" onClick={handleDelete} className="flex-1" data-testid="confirm-delete-activity-button">
             Löschen

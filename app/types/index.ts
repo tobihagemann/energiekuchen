@@ -1,7 +1,7 @@
 export interface Activity {
   id: string;
   name: string;
-  value: number; // 1-9 energy level
+  value: number; // -5 to +5 energy level (excluding 0)
 }
 
 interface EnergyChart {
@@ -10,11 +10,14 @@ interface EnergyChart {
 
 export interface EnergyPie {
   version: string;
-  positive: EnergyChart;
-  negative: EnergyChart;
+  current: EnergyChart;
+  desired: EnergyChart;
 }
 
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];
 }
+
+// Re-export ChartType for convenience
+export type { ChartType } from './context';

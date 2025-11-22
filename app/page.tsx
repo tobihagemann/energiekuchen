@@ -8,15 +8,18 @@ import { EditActivityModal } from '@/app/components/features/EditActivityModal';
 import { ImportModal } from '@/app/components/features/ImportModal';
 import { ShareModal } from '@/app/components/features/ShareModal';
 import { Header } from '@/app/components/layout/Header';
+import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
+import { ChartType } from '@/app/types';
+
 export default function Dashboard() {
   const { state } = useEnergy();
   const { state: uiState, setEditingActivity, openEditModal } = useUI();
   const { isSmall } = useResponsive();
 
-  const handleActivityClick = (chartType: 'positive' | 'negative') => (activityId: string) => {
+  const handleActivityClick = (chartType: ChartType) => (activityId: string) => {
     // Toggle editing mode: deselect if clicking on the active segment
     if (uiState.editingActivity?.chartType === chartType && uiState.editingActivity?.activityId === activityId) {
       setEditingActivity(null);
@@ -27,14 +30,7 @@ export default function Dashboard() {
   };
 
   if (state.isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center" data-testid="loading-spinner">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-yellow-400"></div>
-          <p className="mt-4 text-gray-600">Energiekuchen wird geladen...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner size="lg" message="Energiekuchen wird geladen..." className="flex-1" data-testid="loading-spinner" />;
   }
 
   return (
@@ -45,18 +41,18 @@ export default function Dashboard() {
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           {/* Charts Section */}
           <div className={`grid gap-8 ${isSmall ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`} data-testid="charts-section">
-            {/* Positive Energy Chart */}
-            <div className="rounded-lg bg-white p-6 shadow-sm" data-testid="positive-energy-section">
-              <EnergyChart chartType="positive" onActivityClick={handleActivityClick('positive')} className="mb-6" />
+            {/* Current State Chart */}
+            <div className="rounded-lg bg-white p-6 shadow-sm" data-testid="current-state-section">
+              <EnergyChart chartType="current" onActivityClick={handleActivityClick('current')} className="mb-6" />
 
-              <ActivityList chartType="positive" activities={state.data.positive.activities} />
+              <ActivityList chartType="current" activities={state.data.current.activities} />
             </div>
 
-            {/* Negative Energy Chart */}
-            <div className="rounded-lg bg-white p-6 shadow-sm" data-testid="negative-energy-section">
-              <EnergyChart chartType="negative" onActivityClick={handleActivityClick('negative')} className="mb-6" />
+            {/* Desired State Chart */}
+            <div className="rounded-lg bg-white p-6 shadow-sm" data-testid="desired-state-section">
+              <EnergyChart chartType="desired" onActivityClick={handleActivityClick('desired')} className="mb-6" />
 
-              <ActivityList chartType="negative" activities={state.data.negative.activities} />
+              <ActivityList chartType="desired" activities={state.data.desired.activities} />
             </div>
           </div>
         </div>

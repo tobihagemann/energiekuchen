@@ -1,13 +1,13 @@
 'use client';
 
-import { MinusCircleIcon, PencilIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+import { PencilIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import toast from 'react-hot-toast';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
-import { CHART_DEFAULTS, getColorForLevel } from '../../lib/utils/constants';
 import { validateActivity } from '../../lib/utils/validation';
+import { ActivityValueIndicator } from '../ui/ActivityValueIndicator';
 import { Button } from '../ui/Button';
+import { ErrorMessage } from '../ui/ErrorMessage';
 import { Input } from '../ui/Input';
 import { Modal } from '../ui/Modal';
 import { Slider } from '../ui/Slider';
@@ -25,7 +25,7 @@ export function EditActivityModal() {
 
   const [formData, setFormData] = useState({
     name: activity?.name || '',
-    value: activity?.value || CHART_DEFAULTS.defaultLevel,
+    value: activity?.value || 1,
   });
 
   const [errors, setErrors] = useState<string[]>([]);
@@ -50,7 +50,7 @@ export function EditActivityModal() {
   const handleClose = useCallback(() => {
     closeEditModal();
     setEditingActivity(null);
-    setFormData({ name: '', value: CHART_DEFAULTS.defaultLevel });
+    setFormData({ name: '', value: 1 });
     setErrors([]);
   }, [closeEditModal, setEditingActivity]);
 
@@ -70,10 +70,11 @@ export function EditActivityModal() {
 
     try {
       await updateActivity(uiState.editingActivity.chartType, activity.id, formData);
-      toast.success('Aktivität aktualisiert');
       handleClose();
-    } catch {
-      toast.error('Fehler beim Speichern der Aktivität');
+    } catch (error) {
+      console.error('Error updating activity:', error);
+      setErrors(['Fehler beim Speichern der Aktivität']);
+      setIsSubmitting(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -91,7 +92,7 @@ export function EditActivityModal() {
   }
 
   const chartType = uiState.editingActivity.chartType;
-  const placeholder = chartType === 'positive' ? 'z.B. Sport, Entspannung, Zeit mit Freunden' : 'z.B. Überstunden, Stress, schwierige Gespräche';
+  const placeholder = chartType === 'current' ? 'z.B. Sport, Überstunden, schwierige Gespräche' : 'z.B. Entspannung, Zeit mit Freunden, Hobby';
 
   return (
     <Modal isOpen={uiState.isEditModalOpen} onClose={handleClose} title="Aktivität bearbeiten" titleIcon={<PencilIcon className="h-5 w-5" />} size="md">
@@ -114,35 +115,13 @@ export function EditActivityModal() {
             <div className="mb-2">
               <div className="flex items-center gap-1 text-sm font-medium text-gray-700">
                 <span>Energieniveau:</span>
-                <div className="flex items-center">
-                  {Array.from({ length: formData.value }, (_, i) => (
-                    <span key={i} className="inline-block">
-                      {chartType === 'positive' ? <PlusCircleIcon className="h-4 w-4" /> : <MinusCircleIcon className="h-4 w-4" />}
-                    </span>
-                  ))}
-                </div>
+                <ActivityValueIndicator value={formData.value} />
               </div>
             </div>
-            <Slider
-              value={formData.value}
-              onChange={handleValueChange}
-              min={CHART_DEFAULTS.minLevel}
-              max={CHART_DEFAULTS.maxLevel}
-              step={1}
-              data-testid="activity-value-slider"
-              fillColor={getColorForLevel(formData.value, chartType)}
-            />
+            <Slider value={formData.value} onChange={handleValueChange} min={-5} max={5} step={1} data-testid="activity-value-slider" />
           </div>
 
-          {errors.length > 0 && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3" data-testid="form-errors">
-              <div className="text-sm text-red-800">
-                {errors.map((error, index) => (
-                  <div key={index}>{error}</div>
-                ))}
-              </div>
-            </div>
-          )}
+          <ErrorMessage error={errors} testId="form-errors" />
 
           <div className="flex">
             <Button type="submit" isLoading={isSubmitting} className="flex-1" data-testid="submit-activity-button">

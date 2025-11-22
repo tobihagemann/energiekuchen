@@ -8,7 +8,7 @@ const VALIDATION_RULES = {
       pattern: /^[a-zA-ZäöüÄÖÜß0-9\s\-_.,!?]+$/,
     },
     level: {
-      min: 1,
+      min: -5,
       max: 5,
       type: 'integer',
     },
@@ -34,8 +34,17 @@ export function validateActivity(activity: Partial<Activity>): ValidationResult 
     errors.push('Aktivitätsname enthält ungültige Zeichen');
   }
 
-  if (!activity.value || activity.value < VALIDATION_RULES.activity.level.min || activity.value > VALIDATION_RULES.activity.level.max) {
-    errors.push('Energieniveau muss zwischen 1 und 5 liegen');
+  if (
+    activity.value === undefined ||
+    activity.value === null ||
+    activity.value < VALIDATION_RULES.activity.level.min ||
+    activity.value > VALIDATION_RULES.activity.level.max
+  ) {
+    errors.push('Energieniveau muss zwischen -5 und +5 liegen');
+  }
+
+  if (activity.value === 0) {
+    errors.push('Energieniveau darf nicht 0 sein');
   }
 
   return {
@@ -89,7 +98,11 @@ export function validateActivityValue(value: number): ValidationResult {
   const errors: string[] = [];
 
   if (value < VALIDATION_RULES.activity.level.min || value > VALIDATION_RULES.activity.level.max) {
-    errors.push('Energieniveau muss zwischen 1 und 5 liegen');
+    errors.push('Energieniveau muss zwischen -5 und +5 liegen');
+  }
+
+  if (value === 0) {
+    errors.push('Energieniveau darf nicht 0 sein');
   }
 
   if (!Number.isInteger(value)) {

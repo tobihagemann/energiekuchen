@@ -26,10 +26,10 @@ describe('useChartData', () => {
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
-          positive: {
+          current: {
             activities: mockActivities,
           },
-          negative: {
+          desired: {
             activities: [],
           },
         },
@@ -37,7 +37,7 @@ describe('useChartData', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const { result } = renderHook(() => useChartData('positive', null));
+    const { result } = renderHook(() => useChartData('current', null));
 
     expect(result.current.activities).toEqual(mockActivities);
     expect(result.current.chartData.labels).toEqual(['Activity 1', 'Activity 2']);
@@ -49,10 +49,10 @@ describe('useChartData', () => {
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
-          positive: {
+          current: {
             activities: [],
           },
-          negative: {
+          desired: {
             activities: mockActivities,
           },
         },
@@ -60,7 +60,7 @@ describe('useChartData', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const { result } = renderHook(() => useChartData('negative', null));
+    const { result } = renderHook(() => useChartData('desired', null));
 
     expect(result.current.activities).toEqual(mockActivities);
     expect(result.current.chartData.labels).toEqual(['Activity 1', 'Activity 2']);
@@ -70,10 +70,10 @@ describe('useChartData', () => {
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
-          positive: {
+          current: {
             activities: [],
           },
-          negative: {
+          desired: {
             activities: [],
           },
         },
@@ -81,35 +81,35 @@ describe('useChartData', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    // Test positive chart empty state
-    const { result: positiveResult } = renderHook(() => useChartData('positive', null));
+    // Test current chart empty state
+    const { result: currentResult } = renderHook(() => useChartData('current', null));
 
-    expect(positiveResult.current.activities).toEqual([]);
-    expect(positiveResult.current.chartData.labels).toEqual(['Keine Aktivitäten']);
-    expect(positiveResult.current.chartData.datasets[0].data).toEqual([1]);
-    expect(positiveResult.current.chartData.datasets[0].backgroundColor).toEqual(['oklch(0.962 0.044 156.743)']); // green-100
-    expect(positiveResult.current.chartData.datasets[0].hoverBackgroundColor).toEqual(['oklch(from oklch(0.962 0.044 156.743) calc(l + 0.1) c h)']); // 10% lighter
-    expect(positiveResult.current.chartData.datasets[0].hoverBorderColor).toEqual(['#fff']); // white on hover
+    expect(currentResult.current.activities).toEqual([]);
+    expect(currentResult.current.chartData.labels).toEqual(['Keine Aktivitäten']);
+    expect(currentResult.current.chartData.datasets[0].data).toEqual([1]);
+    expect(currentResult.current.chartData.datasets[0].backgroundColor).toEqual(['oklch(0.967 0.003 264.542)']); // gray-100
+    expect(currentResult.current.chartData.datasets[0].hoverBackgroundColor).toEqual(['oklch(0.985 0.002 247.839)']); // gray-50
+    expect(currentResult.current.chartData.datasets[0].hoverBorderColor).toEqual(['#fff']); // white on hover
 
-    // Test negative chart empty state
-    const { result: negativeResult } = renderHook(() => useChartData('negative', null));
+    // Test desired chart empty state (same as current)
+    const { result: desiredResult } = renderHook(() => useChartData('desired', null));
 
-    expect(negativeResult.current.activities).toEqual([]);
-    expect(negativeResult.current.chartData.labels).toEqual(['Keine Aktivitäten']);
-    expect(negativeResult.current.chartData.datasets[0].data).toEqual([1]);
-    expect(negativeResult.current.chartData.datasets[0].backgroundColor).toEqual(['oklch(0.936 0.032 17.717)']); // red-100
-    expect(negativeResult.current.chartData.datasets[0].hoverBackgroundColor).toEqual(['oklch(from oklch(0.936 0.032 17.717) calc(l + 0.1) c h)']); // 10% lighter
-    expect(negativeResult.current.chartData.datasets[0].hoverBorderColor).toEqual(['#fff']); // white on hover
+    expect(desiredResult.current.activities).toEqual([]);
+    expect(desiredResult.current.chartData.labels).toEqual(['Keine Aktivitäten']);
+    expect(desiredResult.current.chartData.datasets[0].data).toEqual([1]);
+    expect(desiredResult.current.chartData.datasets[0].backgroundColor).toEqual(['oklch(0.967 0.003 264.542)']); // gray-100
+    expect(desiredResult.current.chartData.datasets[0].hoverBackgroundColor).toEqual(['oklch(0.985 0.002 247.839)']); // gray-50
+    expect(desiredResult.current.chartData.datasets[0].hoverBorderColor).toEqual(['#fff']); // white on hover
   });
 
   it('should include hover effects in chart data', () => {
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
-          positive: {
+          current: {
             activities: mockActivities,
           },
-          negative: {
+          desired: {
             activities: [],
           },
         },
@@ -117,7 +117,7 @@ describe('useChartData', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const { result } = renderHook(() => useChartData('positive', null));
+    const { result } = renderHook(() => useChartData('current', null));
 
     const dataset = result.current.chartData.datasets[0];
     expect(dataset.borderWidth).toBe(2);
@@ -134,10 +134,10 @@ describe('useChartData', () => {
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
-          positive: {
+          current: {
             activities: singleActivity,
           },
-          negative: {
+          desired: {
             activities: [],
           },
         },
@@ -145,7 +145,7 @@ describe('useChartData', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const { result } = renderHook(() => useChartData('positive', null));
+    const { result } = renderHook(() => useChartData('current', null));
 
     expect(result.current.chartData.labels).toEqual(['Activity 1']);
     expect(result.current.chartData.datasets[0].data).toEqual([3]);
@@ -155,10 +155,10 @@ describe('useChartData', () => {
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
-          positive: {
+          current: {
             activities: mockActivities,
           },
-          negative: {
+          desired: {
             activities: [],
           },
         },
@@ -166,7 +166,7 @@ describe('useChartData', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const { result, rerender } = renderHook(() => useChartData('positive', null));
+    const { result, rerender } = renderHook(() => useChartData('current', null));
 
     const firstChartData = result.current.chartData;
 
@@ -178,16 +178,16 @@ describe('useChartData', () => {
   });
 
   it('should update chart data when activities change', () => {
-    const { result, rerender } = renderHook(() => useChartData('positive', null));
+    const { result, rerender } = renderHook(() => useChartData('current', null));
 
     // First render with mock activities
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
-          positive: {
+          current: {
             activities: mockActivities,
           },
-          negative: {
+          desired: {
             activities: [],
           },
         },
@@ -211,10 +211,10 @@ describe('useChartData', () => {
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
-          positive: {
+          current: {
             activities: newActivities,
           },
-          negative: {
+          desired: {
             activities: [],
           },
         },
@@ -234,10 +234,10 @@ describe('useChartData', () => {
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
-          positive: {
+          current: {
             activities: mockActivities,
           },
-          negative: {
+          desired: {
             activities: [],
           },
         },
@@ -246,21 +246,21 @@ describe('useChartData', () => {
     } as any);
 
     // Test with no editing activity
-    const { result: result1 } = renderHook(() => useChartData('positive', null));
+    const { result: result1 } = renderHook(() => useChartData('current', null));
     const dataset1 = result1.current.chartData.datasets[0];
     expect(dataset1.borderColor).toEqual(['#fff', '#fff']); // All white borders
 
     // Test with editing activity
-    const editingActivity = { chartType: 'positive' as const, activityId: '1' };
-    const { result: result2 } = renderHook(() => useChartData('positive', editingActivity));
+    const editingActivity = { chartType: 'current' as const, activityId: '1' };
+    const { result: result2 } = renderHook(() => useChartData('current', editingActivity));
     const dataset2 = result2.current.chartData.datasets[0];
     // First activity (level 3) should have darkened border (10% darker), second should be white
     expect(dataset2.borderColor[0]).toBe('oklch(from oklch(0.723 0.219 149.579) calc(l - 0.1) c h)'); // green-500 darkened
     expect(dataset2.borderColor[1]).toBe('#fff');
 
     // Test with different chart type
-    const editingActivityNegative = { chartType: 'negative' as const, activityId: '1' };
-    const { result: result3 } = renderHook(() => useChartData('positive', editingActivityNegative));
+    const editingActivityNegative = { chartType: 'desired' as const, activityId: '1' };
+    const { result: result3 } = renderHook(() => useChartData('current', editingActivityNegative));
     const dataset3 = result3.current.chartData.datasets[0];
     expect(dataset3.borderColor).toEqual(['#fff', '#fff']); // All white borders since editing is on different chart
   });
@@ -271,15 +271,15 @@ describe('useChartData', () => {
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
-          positive: { activities: level1Activity },
-          negative: { activities: [] },
+          current: { activities: level1Activity },
+          desired: { activities: [] },
         },
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const editingActivity = { chartType: 'positive' as const, activityId: '1' };
-    const { result } = renderHook(() => useChartData('positive', editingActivity));
+    const editingActivity = { chartType: 'current' as const, activityId: '1' };
+    const { result } = renderHook(() => useChartData('current', editingActivity));
     // Level 1 activity should get darkened border
     expect(result.current.chartData.datasets[0].borderColor[0]).toBe('oklch(from oklch(0.871 0.15 154.449) calc(l - 0.1) c h)'); // green-300 darkened
     // Hover background should be lightened
@@ -290,15 +290,15 @@ describe('useChartData', () => {
     mockUseEnergy.mockReturnValue({
       state: {
         data: {
-          positive: { activities: level5Activity },
-          negative: { activities: [] },
+          current: { activities: level5Activity },
+          desired: { activities: [] },
         },
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const editingActivity2 = { chartType: 'positive' as const, activityId: '2' };
-    const { result: result2 } = renderHook(() => useChartData('positive', editingActivity2));
+    const editingActivity2 = { chartType: 'current' as const, activityId: '2' };
+    const { result: result2 } = renderHook(() => useChartData('current', editingActivity2));
     // Level 5 activity should get darkened border
     expect(result2.current.chartData.datasets[0].borderColor[0]).toBe('oklch(from oklch(0.527 0.154 150.069) calc(l - 0.1) c h)'); // green-700 darkened
   });

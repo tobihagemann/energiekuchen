@@ -1,80 +1,5 @@
 import { expect, Page, test } from '@playwright/test';
 
-// Helper function to set slider value by clicking at the appropriate position
-async function setSliderValue(page: Page, testId: string, value: number, min = 1, max = 100) {
-  const slider = page.locator(`[data-testid="${testId}"]`);
-  await expect(slider).toBeVisible();
-
-  let attempts = 0;
-  const maxAttempts = 5;
-
-  while (attempts < maxAttempts) {
-    // Calculate percentage position (value between min and max)
-    const percentage = (value - min) / (max - min);
-
-    // Get slider bounds
-    const sliderBounds = await slider.boundingBox();
-    if (sliderBounds) {
-      const targetX = sliderBounds.x + sliderBounds.width * percentage;
-      const targetY = sliderBounds.y + sliderBounds.height / 2;
-
-      // Check if this is mobile by checking viewport width
-      const isMobile = await page.evaluate(() => window.innerWidth < 768);
-
-      if (isMobile) {
-        // For mobile, use touch events and mouse events
-        await page.touchscreen.tap(targetX, targetY);
-        // Also try mouse events as backup
-        await page.mouse.click(targetX, targetY);
-      } else {
-        // For desktop, use mouse click
-        await page.mouse.click(targetX, targetY);
-      }
-
-      // Wait for the slider to update
-      await page.waitForTimeout(150);
-
-      // Try to get the current value from the slider label
-      let actualValue = null;
-      try {
-        const labelElement = slider.locator('..').locator('label');
-        if (await labelElement.isVisible()) {
-          const labelText = await labelElement.textContent();
-          const match = labelText?.match(/:\s*(\d+)/);
-          if (match) {
-            actualValue = parseInt(match[1], 10);
-          }
-        }
-      } catch {
-        // If we can't read the label, continue
-      }
-
-      // Check if the value was set correctly (allow small tolerance)
-      if (actualValue && Math.abs(actualValue - value) <= 2) {
-        break; // Value set correctly
-      }
-
-      // If value is still off and we have more attempts, try with slight adjustment
-      if (actualValue && attempts < maxAttempts - 1) {
-        const offset = value > actualValue ? 10 : -10;
-        const adjustedX = Math.max(sliderBounds.x, Math.min(sliderBounds.x + sliderBounds.width, targetX + offset));
-
-        if (isMobile) {
-          await page.touchscreen.tap(adjustedX, targetY);
-          await page.mouse.click(adjustedX, targetY);
-        } else {
-          await page.mouse.click(adjustedX, targetY);
-        }
-      }
-    }
-
-    attempts++;
-    if (attempts < maxAttempts) {
-      await page.waitForTimeout(100);
-    }
-  }
-}
-
 // Helper function to close any open modal
 async function closeModal(page: Page) {
   // Try multiple ways to close modal
@@ -117,11 +42,11 @@ test.describe('Import & Export Functionality', () => {
 
   test('should export energy data as JSON', async ({ page }) => {
     // Add some activities to export using the new inline form
-    await page.locator('[data-testid="quick-add-input-positive"]').fill('Morning Jog');
-    await page.locator('[data-testid="quick-add-button-positive"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Morning Jog');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
-    await page.locator('[data-testid="quick-add-input-negative"]').fill('Email Overload');
-    await page.locator('[data-testid="quick-add-button-negative"]').click();
+    await page.locator('[data-testid="quick-add-input-negative-desired"]').fill('Email Overload');
+    await page.locator('[data-testid="quick-add-button-negative-desired"]').click();
 
     // Open share modal
     await page.locator('[data-testid="share-button"]').click();
@@ -145,12 +70,12 @@ test.describe('Import & Export Functionality', () => {
       const content = fs.readFileSync(path, 'utf8');
       const data = JSON.parse(content);
 
-      expect(data).toHaveProperty('positive');
-      expect(data).toHaveProperty('negative');
-      expect(data.positive.activities).toHaveLength(1);
-      expect(data.negative.activities).toHaveLength(1);
-      expect(data.positive.activities[0].name).toBe('Morning Jog');
-      expect(data.negative.activities[0].name).toBe('Email Overload');
+      expect(data).toHaveProperty('current');
+      expect(data).toHaveProperty('desired');
+      expect(data.current.activities).toHaveLength(1);
+      expect(data.desired.activities).toHaveLength(1);
+      expect(data.current.activities[0].name).toBe('Morning Jog');
+      expect(data.desired.activities[0].name).toBe('Email Overload');
     }
 
     // Close modal
@@ -168,14 +93,14 @@ test.describe('Import & Export Functionality', () => {
   test('should import valid JSON data', async ({ page }) => {
     // Prepare test data
     const testData = {
-      positive: {
+      current: {
         activities: [
-          { id: '1', name: 'Imported Yoga', value: 3, color: '#10b981' },
-          { id: '2', name: 'Imported Reading', value: 2, color: '#06b6d4' },
+          { id: '1', name: 'Imported Yoga', value: 3 },
+          { id: '2', name: 'Imported Reading', value: 2 },
         ],
       },
-      negative: {
-        activities: [{ id: '3', name: 'Imported Stress', value: 3, color: '#ef4444' }],
+      desired: {
+        activities: [{ id: '3', name: 'Imported Stress', value: -2 }],
       },
     };
 
@@ -214,9 +139,9 @@ test.describe('Import & Export Functionality', () => {
     }
 
     // Verify imported data appears
-    await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Imported Yoga');
-    await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Imported Reading');
-    await expect(page.locator('[data-testid="activities-list-negative"]')).toContainText('Imported Stress');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Imported Yoga');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Imported Reading');
+    await expect(page.locator('[data-testid="activity-list-desired"]')).toContainText('Imported Stress');
 
     // Energy calculations removed - focusing on import functionality only
   });
@@ -244,7 +169,7 @@ test.describe('Import & Export Functionality', () => {
 
     // Try to import JSON with missing required fields
     const invalidData = {
-      positive: {
+      current: {
         activities: [
           { name: 'Missing ID and Value' }, // Missing required fields
         ],
@@ -264,18 +189,18 @@ test.describe('Import & Export Functionality', () => {
 
   test('should merge with existing data when importing', async ({ page }) => {
     // Add existing data using the new inline form
-    await page.locator('[data-testid="quick-add-input-positive"]').fill('Existing Activity');
-    await page.locator('[data-testid="quick-add-button-positive"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Existing Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Verify existing data
-    await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Existing Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Existing Activity');
 
     // Import additional data
     const importData = {
-      positive: {
-        activities: [{ id: '1', name: 'Imported Activity', value: 2, color: '#10b981' }],
+      current: {
+        activities: [{ id: '2', name: 'Imported Activity', value: 3 }],
       },
-      negative: {
+      desired: {
         activities: [],
       },
     };
@@ -296,8 +221,8 @@ test.describe('Import & Export Functionality', () => {
     }
 
     // Verify both existing and imported data are present
-    await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Existing Activity');
-    await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Imported Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Existing Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Imported Activity');
   });
 
   test('should reject import data with invalid energy values', async ({ page }) => {
@@ -306,11 +231,11 @@ test.describe('Import & Export Functionality', () => {
 
     // Try to import JSON with invalid energy values
     const invalidData = {
-      positive: {
+      current: {
         activities: [
-          { id: '1', name: 'Too Low', value: 0 }, // Invalid: below minimum
+          { id: '1', name: 'Zero Value', value: 0 }, // Invalid: zero not allowed
           { id: '2', name: 'Too High', value: 10 }, // Invalid: above maximum
-          { id: '3', name: 'Negative', value: -5 }, // Invalid: negative value
+          { id: '3', name: 'Too Low', value: -6 }, // Invalid: below minimum
           { id: '4', name: 'Decimal', value: 5.5 }, // Invalid: not an integer
         ],
       },
@@ -324,21 +249,21 @@ test.describe('Import & Export Functionality', () => {
 
       // Should show validation error about energy level
       await expect(page.locator('[data-testid="import-error"]')).toBeVisible();
-      await expect(page.locator('[data-testid="import-error"]')).toContainText(/Energieniveau|zwischen 1 und 9|ganze Zahl/i);
+      await expect(page.locator('[data-testid="import-error"]')).toContainText(/Energieniveau|zwischen -5 und \+5|ganze Zahl|darf nicht 0 sein/i);
     }
   });
 
   test('should replace existing data when importing with replace option', async ({ page }) => {
     // Add existing data using the new inline form
-    await page.locator('[data-testid="quick-add-input-positive"]').fill('Old Activity');
-    await page.locator('[data-testid="quick-add-button-positive"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Old Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Import data with replace option
     const importData = {
-      positive: {
-        activities: [{ id: '1', name: 'New Activity', value: 3, color: '#10b981' }],
+      current: {
+        activities: [{ id: '1', name: 'New Activity', value: 3 }],
       },
-      negative: {
+      desired: {
         activities: [],
       },
     };
@@ -365,8 +290,8 @@ test.describe('Import & Export Functionality', () => {
     }
 
     // Verify only new data is present
-    await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('New Activity');
-    await expect(page.locator('[data-testid="activity-list-positive"]')).not.toContainText('Old Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('New Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).not.toContainText('Old Activity');
   });
 
   test('should close import modal', async ({ page }) => {
@@ -389,19 +314,19 @@ test.describe('Import & Export Functionality', () => {
 
   test('should preserve data format during export/import cycle', async ({ page }) => {
     // Create activities using the new inline form (with default values)
-    await page.locator('[data-testid="quick-add-input-positive"]').fill('Activity A');
-    await page.locator('[data-testid="quick-add-button-positive"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Activity A');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
-    await page.locator('[data-testid="quick-add-input-positive"]').fill('Activity B');
-    await page.locator('[data-testid="quick-add-button-positive"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Activity B');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
-    await page.locator('[data-testid="quick-add-input-negative"]').fill('Negative Activity');
-    await page.locator('[data-testid="quick-add-button-negative"]').click();
+    await page.locator('[data-testid="quick-add-input-negative-desired"]').fill('Negative Activity');
+    await page.locator('[data-testid="quick-add-button-negative-desired"]').click();
 
     // Verify that activities were created and energy totals are displayed
-    await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Activity A');
-    await expect(page.locator('[data-testid="activity-list-positive"]')).toContainText('Activity B');
-    await expect(page.locator('[data-testid="activity-list-negative"]')).toContainText('Negative Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Activity A');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Activity B');
+    await expect(page.locator('[data-testid="activity-list-desired"]')).toContainText('Negative Activity');
 
     // Focus on verifying data preservation during export/import
     // Energy balance calculations removed
@@ -409,8 +334,8 @@ test.describe('Import & Export Functionality', () => {
 
   test('should delete all data', async ({ page }) => {
     // Add some test data
-    await page.locator('[data-testid="quick-add-input-positive"]').fill('Test Activity');
-    await page.locator('[data-testid="quick-add-button-positive"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Test Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Open delete modal
     await openDeleteModal(page);
@@ -419,6 +344,187 @@ test.describe('Import & Export Functionality', () => {
     await page.locator('button:has-text("Daten löschen")').click();
 
     // Verify all data is deleted
-    await expect(page.locator('[data-testid="activity-list-positive"]')).not.toContainText('Test Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).not.toContainText('Test Activity');
+  });
+
+  test('should migrate v1.0 format data with positive/negative to current chart', async ({ page }) => {
+    // Prepare v1.0 test data with positive and negative activities
+    const v1Data = {
+      version: '1.0',
+      positive: {
+        activities: [
+          { id: '1', name: 'V1 Positive Activity', value: 3 },
+          { id: '2', name: 'Another Positive', value: 5 },
+        ],
+      },
+      negative: {
+        activities: [
+          { id: '3', name: 'V1 Negative Activity', value: 2 },
+          { id: '4', name: 'Another Negative', value: 4 },
+        ],
+      },
+    };
+
+    // Open import modal
+    await openImportModal(page);
+
+    // Import the v1.0 data
+    const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
+    if (await textArea.isVisible()) {
+      await textArea.fill(JSON.stringify(v1Data));
+      await page.locator('[data-testid="import-submit"]').click();
+    }
+
+    // Close modal
+    const closeButton = page.locator('[data-testid="close-modal"], button:has-text("Schließen")').first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    }
+
+    // Verify all activities appear in current chart
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('V1 Positive Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Another Positive');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('V1 Negative Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Another Negative');
+
+    // Verify desired chart is empty (no activities added)
+    const desiredList = page.locator('[data-testid="activity-list-desired"]');
+    const desiredText = await desiredList.textContent();
+    expect(desiredText).not.toContain('V1 Positive Activity');
+    expect(desiredText).not.toContain('V1 Negative Activity');
+  });
+
+  test('should migrate v1.0 format with only positive activities', async ({ page }) => {
+    const v1Data = {
+      version: '1.0',
+      positive: {
+        activities: [{ id: '1', name: 'Only Positive', value: 4 }],
+      },
+      negative: {
+        activities: [],
+      },
+    };
+
+    await openImportModal(page);
+
+    const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
+    if (await textArea.isVisible()) {
+      await textArea.fill(JSON.stringify(v1Data));
+      await page.locator('[data-testid="import-submit"]').click();
+    }
+
+    const closeButton = page.locator('[data-testid="close-modal"], button:has-text("Schließen")').first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    }
+
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Only Positive');
+  });
+
+  test('should migrate v1.0 format with only negative activities', async ({ page }) => {
+    const v1Data = {
+      version: '1.0',
+      positive: {
+        activities: [],
+      },
+      negative: {
+        activities: [{ id: '1', name: 'Only Negative', value: 3 }],
+      },
+    };
+
+    await openImportModal(page);
+
+    const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
+    if (await textArea.isVisible()) {
+      await textArea.fill(JSON.stringify(v1Data));
+      await page.locator('[data-testid="import-submit"]').click();
+    }
+
+    const closeButton = page.locator('[data-testid="close-modal"], button:has-text("Schließen")').first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    }
+
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Only Negative');
+  });
+
+  test('should merge v1.0 data with existing activities', async ({ page }) => {
+    // Add existing data
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Existing Current Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+
+    await page.locator('[data-testid="quick-add-input-positive-desired"]').fill('Existing Desired Activity');
+    await page.locator('[data-testid="quick-add-button-positive-desired"]').click();
+
+    // Import v1.0 data (should merge into current, leave desired untouched)
+    const v1Data = {
+      version: '1.0',
+      positive: {
+        activities: [{ id: '1', name: 'V1 Imported', value: 3 }],
+      },
+      negative: {
+        activities: [],
+      },
+    };
+
+    await openImportModal(page);
+
+    const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
+    if (await textArea.isVisible()) {
+      await textArea.fill(JSON.stringify(v1Data));
+      await page.locator('[data-testid="import-submit"]').click();
+    }
+
+    const closeButton = page.locator('[data-testid="close-modal"], button:has-text("Schließen")').first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    }
+
+    // Verify both existing and imported are in current
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Existing Current Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('V1 Imported');
+
+    // Verify desired still has existing activity
+    await expect(page.locator('[data-testid="activity-list-desired"]')).toContainText('Existing Desired Activity');
+  });
+
+  test('should replace existing data when importing v1.0 with replace option', async ({ page }) => {
+    // Add existing data
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Old Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+
+    // Import v1.0 data with replace option
+    const v1Data = {
+      version: '1.0',
+      positive: {
+        activities: [{ id: '1', name: 'V1 Replacement', value: 2 }],
+      },
+      negative: {
+        activities: [],
+      },
+    };
+
+    await openImportModal(page);
+
+    // Check replace option
+    const replaceOption = page.locator('[data-testid="import-replace-option"], input[type="checkbox"]').first();
+    if (await replaceOption.isVisible()) {
+      await replaceOption.check();
+    }
+
+    const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
+    if (await textArea.isVisible()) {
+      await textArea.fill(JSON.stringify(v1Data));
+      await page.locator('[data-testid="import-submit"]').click();
+    }
+
+    const closeButton = page.locator('[data-testid="close-modal"], button:has-text("Schließen")').first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    }
+
+    // Verify only new data is present
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('V1 Replacement');
+    await expect(page.locator('[data-testid="activity-list-current"]')).not.toContainText('Old Activity');
   });
 });

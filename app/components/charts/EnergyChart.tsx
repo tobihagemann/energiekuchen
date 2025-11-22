@@ -4,6 +4,7 @@ import { useUI } from '@/app/lib/contexts/UIContext';
 import { useChartData } from '@/app/lib/hooks/useChartData';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
 import { cn } from '@/app/lib/utils/cn';
+import { ChartType } from '@/app/types';
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { useRef } from 'react';
@@ -12,7 +13,7 @@ import { Pie } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 interface EnergyChartProps {
-  chartType: 'positive' | 'negative';
+  chartType: ChartType;
   className?: string;
   onActivityClick?: (activityId: string) => void;
 }
@@ -26,15 +27,16 @@ export function EnergyChart({ chartType, className, onActivityClick }: EnergyCha
   // Fixed responsive chart sizes
   const chartSize = isSmall ? 280 : isMedium ? 360 : 440;
 
-  // Determine label color based on activity value
+  // Determine label color based on activity value (absolute value)
   // Values 1-2 use lighter backgrounds (300-400), need dark text
   // Values 3-5 use darker backgrounds (500-700), need white text
   const getLabelColor = (value: number): string => {
-    if (value >= 3) {
+    const absValue = Math.abs(value);
+    if (absValue >= 3) {
       return '#fff'; // white for dark backgrounds
     }
     // Dark green for positive, dark red for negative (using oklch)
-    return chartType === 'positive' ? 'oklch(0.393 0.095 152.535)' : 'oklch(0.396 0.141 25.723)'; // green-900 : red-900
+    return value > 0 ? 'oklch(0.393 0.095 152.535)' : 'oklch(0.396 0.141 25.723)'; // green-900 : red-900
   };
 
   const options = {
@@ -87,9 +89,9 @@ export function EnergyChart({ chartType, className, onActivityClick }: EnergyCha
     },
   };
 
-  const title = chartType === 'positive' ? 'Energiequellen' : 'Energieverbraucher';
-  const subtitle = chartType === 'positive' ? 'Aktivitäten, die dir Energie geben' : 'Aktivitäten, die dir Energie nehmen';
-  const icon = chartType === 'positive' ? '⚡' : '🔋';
+  const title = chartType === 'current' ? 'Ist-Zustand' : 'Wunsch-Zustand';
+  const subtitle = chartType === 'current' ? 'Deine aktuelle Energiesituation' : 'Deine gewünschte Energiesituation';
+  const icon = chartType === 'current' ? '📍' : '🎯';
 
   return (
     <div className={cn('flex flex-col items-center', className)}>

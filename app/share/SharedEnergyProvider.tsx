@@ -1,31 +1,23 @@
 'use client';
 
 import { Activity, EnergyPie } from '@/app/types';
+import { ChartType, EnergyState, SharedEnergyAction } from '@/app/types/context';
 import React, { createContext, ReactNode, useReducer } from 'react';
-
-// Simplified Energy Reducer Actions for shared pages
-type EnergyAction = { type: 'SET_DATA'; payload: EnergyPie; shouldSave?: boolean } | { type: 'SET_LOADING'; payload: boolean };
-
-interface EnergyState {
-  data: EnergyPie;
-  isLoading: boolean;
-  lastSaved: string | null;
-}
 
 function createDefaultData(): EnergyPie {
   return {
-    version: '1.0',
-    positive: {
+    version: '2.0',
+    current: {
       activities: [],
     },
-    negative: {
+    desired: {
       activities: [],
     },
   };
 }
 
 // Simplified Energy Reducer for shared pages
-function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
+function energyReducer(state: EnergyState, action: SharedEnergyAction): EnergyState {
   switch (action.type) {
     case 'SET_DATA':
       return {
@@ -46,14 +38,14 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
   }
 }
 
-interface EnergyContextType {
+interface SharedEnergyContextType {
   state: EnergyState;
-  dispatch: React.Dispatch<EnergyAction>;
+  dispatch: React.Dispatch<SharedEnergyAction>;
   // Simplified interface - only what we need for shared pages
-  addActivity: (chartType: 'positive' | 'negative', activity: Omit<Activity, 'id'>) => void;
-  updateActivity: (chartType: 'positive' | 'negative', activityId: string, updates: Partial<Activity>) => void;
-  deleteActivity: (chartType: 'positive' | 'negative', activityId: string) => void;
-  reorderActivities: (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => void;
+  addActivity: (chartType: ChartType, activity: Omit<Activity, 'id'>) => void;
+  updateActivity: (chartType: ChartType, activityId: string, updates: Partial<Activity>) => void;
+  deleteActivity: (chartType: ChartType, activityId: string) => void;
+  reorderActivities: (chartType: ChartType, fromIndex: number, toIndex: number) => void;
   resetData: () => void;
   saveData: () => void;
   loadData: () => void;
@@ -61,7 +53,7 @@ interface EnergyContextType {
   exportData: () => string;
 }
 
-const EnergyContext = createContext<EnergyContextType | undefined>(undefined);
+const EnergyContext = createContext<SharedEnergyContextType | undefined>(undefined);
 
 // Shared Provider Component (does not auto-load from localStorage)
 export function EnergyProvider({ children }: { children: ReactNode }) {
@@ -108,7 +100,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     return JSON.stringify(state.data);
   };
 
-  const value: EnergyContextType = {
+  const value: SharedEnergyContextType = {
     state,
     dispatch,
     addActivity,

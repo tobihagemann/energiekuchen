@@ -2,11 +2,11 @@
 
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import React, { useRef, useState } from 'react';
-import { toast } from 'react-hot-toast';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
 import { importData } from '../../lib/utils/storage';
 import { Button } from '../ui/Button';
+import { ErrorMessage } from '../ui/ErrorMessage';
 import { Modal } from '../ui/Modal';
 
 export function ImportModal() {
@@ -37,7 +37,6 @@ export function ImportModal() {
     if (!importContent.trim()) {
       const errorMsg = 'Bitte Daten zum Importieren eingeben oder Datei auswählen';
       setImportError(errorMsg);
-      toast.error(errorMsg);
       return;
     }
 
@@ -55,14 +54,12 @@ export function ImportModal() {
         },
       });
 
-      toast.success('Daten erfolgreich importiert!');
       setImportContent('');
       closeImportModal();
     } catch (error) {
       console.error('Import error:', error);
       const errorMsg = error instanceof Error ? error.message : 'Fehler beim Importieren der Daten. Bitte überprüfe das Format.';
       setImportError(errorMsg);
-      toast.error(errorMsg);
     } finally {
       setIsImporting(false);
     }
@@ -76,18 +73,7 @@ export function ImportModal() {
     <Modal isOpen={uiState.isImportModalOpen} onClose={closeImportModal} title={modalTitle} titleIcon={<ArrowDownTrayIcon className="h-5 w-5" />} size="md">
       <div className="space-y-4 sm:space-y-6" data-testid="import-modal">
         {/* Error Display */}
-        {importError && (
-          <div>
-            <div
-              id="import-error"
-              data-testid="import-error"
-              className="error rounded-md border border-red-200 bg-red-50 p-3 text-red-700"
-              role="alert"
-              aria-live="polite">
-              {importError}
-            </div>
-          </div>
-        )}
+        <ErrorMessage error={importError} testId="import-error" />
 
         {/* Import Section */}
         <div>
@@ -112,7 +98,7 @@ export function ImportModal() {
                   setImportError(''); // Clear error when content changes
                 }}
                 className="h-32 w-full resize-none rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder='{"version": "1.0", "positive": {...}, "negative": {...}}'
+                placeholder='{"version": "2.0", "current": {...}, "desired": {...}}'
                 data-testid="import-json-textarea"
               />
             </div>

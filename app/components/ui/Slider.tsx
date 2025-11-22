@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/app/lib/utils/cn';
+import { getColorForLevel } from '@/app/lib/utils/constants';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 interface SliderProps {
@@ -12,35 +13,50 @@ interface SliderProps {
   label?: string;
   className?: string;
   disabled?: boolean;
-  fillColor?: string;
   'data-testid'?: string;
 }
 
-export function Slider({
-  value,
-  onChange,
-  min = 0,
-  max = 100,
-  step = 1,
-  label,
-  className,
-  disabled = false,
-  fillColor = 'oklch(0.852 0.199 91.936)',
-  'data-testid': testId,
-}: SliderProps) {
+export function Slider({ value, onChange, min = -5, max = 5, step = 1, label, className, disabled = false, 'data-testid': testId }: SliderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const percentage = ((value - min) / (max - min)) * 100;
+  const centerPercentage = ((0 - min) / (max - min)) * 100; // Center point at value 0
 
   // Calculate thumb position to keep it within bounds
   // At 0%, thumb should be at left edge (0px)
   // At 100%, thumb should be at right edge minus thumb width (calc(100% - 24px))
   const thumbPosition = `calc(${percentage}% - ${(percentage / 100) * 24}px)`;
 
-  // Calculate fill width to align with thumb center
-  // Add half thumb width (12px) to the constrained position
-  const fillWidth = `calc(${percentage}% - ${(percentage / 100) * 24}px + 12px)`;
+  // Calculate bidirectional fill from center
+  // At 0: no fill
+  // Positive values: fill from center to right
+  // Negative values: fill from left to center
+  let fillLeft: string;
+  let fillWidth: string;
+  let fillColor: string | undefined;
+
+  if (value === 0) {
+    // No fill at 0
+    fillLeft = '0%';
+    fillWidth = '0%';
+    fillColor = undefined;
+  } else if (value > 0) {
+    // Positive: fill from center to thumb center
+    fillLeft = `calc(${centerPercentage}% - ${(centerPercentage / 100) * 24}px + 12px)`;
+    const thumbCenter = `calc(${percentage}% - ${(percentage / 100) * 24}px + 12px)`;
+    fillWidth = `calc(${thumbCenter} - ${fillLeft})`;
+    fillColor = getColorForLevel(value);
+  } else {
+    // Negative: fill from thumb center to center
+    fillLeft = `calc(${percentage}% - ${(percentage / 100) * 24}px + 12px)`;
+    const centerPoint = `calc(${centerPercentage}% - ${(centerPercentage / 100) * 24}px + 12px)`;
+    fillWidth = `calc(${centerPoint} - ${fillLeft})`;
+    fillColor = getColorForLevel(value);
+  }
+
+  // Ring color follows fill color, or yellow for neutral
+  const ringColor = fillColor || 'oklch(0.852 0.199 91.936)'; // yellow-400
 
   const updateValue = useCallback(
     (clientX: number) => {
@@ -110,12 +126,19 @@ export function Slider({
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         data-testid={testId}>
-        <div className="absolute top-0 left-0 h-full rounded-l-full" style={{ width: fillWidth, backgroundColor: fillColor }} />
+        <div
+          className="absolute top-0 h-full"
+          style={{
+            left: fillLeft,
+            width: fillWidth,
+            backgroundColor: fillColor,
+          }}
+        />
         <div
           className={cn('absolute top-1/2 h-6 w-6 -translate-y-1/2 transform rounded-full border-2 bg-white shadow-sm', isDragging && 'scale-110 shadow-md')}
           style={{
             left: thumbPosition,
-            borderColor: disabled ? 'oklch(0.872 0.01 258.338)' : fillColor,
+            borderColor: disabled ? 'oklch(0.872 0.01 258.338)' : ringColor, // gray-300
           }}
         />
       </div>

@@ -24,98 +24,98 @@ describe('EnergyContext', () => {
     jest.mocked(StorageManager.load).mockReturnValue(null);
     jest.mocked(StorageManager.import).mockImplementation((jsonString: string) => JSON.parse(jsonString));
   });
-  test('should add activity to positive chart', () => {
+  test('should add activity to current chart', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
     act(() => {
-      result.current.addActivity('positive', {
+      result.current.addActivity('current', {
         name: 'Sport',
         value: 5,
       });
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(1);
-    expect(result.current.state.data.positive.activities[0].name).toBe('Sport');
+    expect(result.current.state.data.current.activities).toHaveLength(1);
+    expect(result.current.state.data.current.activities[0].name).toBe('Sport');
   });
 
-  test('should add activity to negative chart', () => {
+  test('should add activity to desired chart', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
     act(() => {
-      result.current.addActivity('negative', {
-        name: 'Stress',
+      result.current.addActivity('desired', {
+        name: 'Mehr Sport',
         value: 3,
       });
     });
 
-    expect(result.current.state.data.negative.activities).toHaveLength(1);
-    expect(result.current.state.data.negative.activities[0].name).toBe('Stress');
+    expect(result.current.state.data.desired.activities).toHaveLength(1);
+    expect(result.current.state.data.desired.activities[0].name).toBe('Mehr Sport');
   });
 
   test('should update activity correctly', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
     act(() => {
-      result.current.addActivity('positive', {
+      result.current.addActivity('current', {
         name: 'Sport',
         value: 5,
       });
     });
 
-    const activityId = result.current.state.data.positive.activities[0].id;
+    const activityId = result.current.state.data.current.activities[0].id;
 
     act(() => {
-      result.current.updateActivity('positive', activityId, { name: 'Fitness' });
+      result.current.updateActivity('current', activityId, { name: 'Fitness' });
     });
 
-    expect(result.current.state.data.positive.activities[0].name).toBe('Fitness');
+    expect(result.current.state.data.current.activities[0].name).toBe('Fitness');
   });
 
   test('should delete activity correctly', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
     act(() => {
-      result.current.addActivity('positive', {
+      result.current.addActivity('current', {
         name: 'Sport',
         value: 5,
       });
     });
 
-    const activityId = result.current.state.data.positive.activities[0].id;
+    const activityId = result.current.state.data.current.activities[0].id;
 
     act(() => {
-      result.current.deleteActivity('positive', activityId);
+      result.current.deleteActivity('current', activityId);
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(0);
+    expect(result.current.state.data.current.activities).toHaveLength(0);
   });
 
   test('should reorder activities correctly', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
     act(() => {
-      result.current.addActivity('positive', {
+      result.current.addActivity('current', {
         name: 'Sport',
         value: 5,
       });
     });
 
     act(() => {
-      result.current.addActivity('positive', {
+      result.current.addActivity('current', {
         name: 'Lesen',
         value: 3,
       });
     });
 
-    expect(result.current.state.data.positive.activities[0].name).toBe('Sport');
-    expect(result.current.state.data.positive.activities[1].name).toBe('Lesen');
+    expect(result.current.state.data.current.activities[0].name).toBe('Sport');
+    expect(result.current.state.data.current.activities[1].name).toBe('Lesen');
 
     act(() => {
-      result.current.reorderActivities('positive', 0, 1);
+      result.current.reorderActivities('current', 0, 1);
     });
 
-    expect(result.current.state.data.positive.activities[0].name).toBe('Lesen');
-    expect(result.current.state.data.positive.activities[1].name).toBe('Sport');
+    expect(result.current.state.data.current.activities[0].name).toBe('Lesen');
+    expect(result.current.state.data.current.activities[1].name).toBe('Sport');
   });
 
   test('should reorder multiple activities correctly', () => {
@@ -123,74 +123,74 @@ describe('EnergyContext', () => {
 
     // Add three activities
     act(() => {
-      result.current.addActivity('negative', {
+      result.current.addActivity('desired', {
         name: 'Stress',
         value: 4,
       });
-      result.current.addActivity('negative', {
+      result.current.addActivity('desired', {
         name: 'Müdigkeit',
         value: 5,
       });
-      result.current.addActivity('negative', {
+      result.current.addActivity('desired', {
         name: 'Langeweile',
         value: 3,
       });
     });
 
     // Initial order
-    expect(result.current.state.data.negative.activities[0].name).toBe('Stress');
-    expect(result.current.state.data.negative.activities[1].name).toBe('Müdigkeit');
-    expect(result.current.state.data.negative.activities[2].name).toBe('Langeweile');
+    expect(result.current.state.data.desired.activities[0].name).toBe('Stress');
+    expect(result.current.state.data.desired.activities[1].name).toBe('Müdigkeit');
+    expect(result.current.state.data.desired.activities[2].name).toBe('Langeweile');
 
     // Move last item to first position
     act(() => {
-      result.current.reorderActivities('negative', 2, 0);
+      result.current.reorderActivities('desired', 2, 0);
     });
 
-    expect(result.current.state.data.negative.activities[0].name).toBe('Langeweile');
-    expect(result.current.state.data.negative.activities[1].name).toBe('Stress');
-    expect(result.current.state.data.negative.activities[2].name).toBe('Müdigkeit');
+    expect(result.current.state.data.desired.activities[0].name).toBe('Langeweile');
+    expect(result.current.state.data.desired.activities[1].name).toBe('Stress');
+    expect(result.current.state.data.desired.activities[2].name).toBe('Müdigkeit');
   });
 
   test('should handle reorder with same indices', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
     act(() => {
-      result.current.addActivity('positive', {
+      result.current.addActivity('current', {
         name: 'Sport',
         value: 5,
       });
     });
 
-    const initialActivities = [...result.current.state.data.positive.activities];
+    const initialActivities = [...result.current.state.data.current.activities];
 
     // Reorder with same from and to index
     act(() => {
-      result.current.reorderActivities('positive', 0, 0);
+      result.current.reorderActivities('current', 0, 0);
     });
 
     // Should remain unchanged
-    expect(result.current.state.data.positive.activities).toEqual(initialActivities);
+    expect(result.current.state.data.current.activities).toEqual(initialActivities);
   });
 
   test('should reset data correctly', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
     act(() => {
-      result.current.addActivity('positive', {
+      result.current.addActivity('current', {
         name: 'Sport',
         value: 5,
       });
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(1);
+    expect(result.current.state.data.current.activities).toHaveLength(1);
 
     act(() => {
       result.current.resetData();
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(0);
-    expect(result.current.state.data.negative.activities).toHaveLength(0);
+    expect(result.current.state.data.current.activities).toHaveLength(0);
+    expect(result.current.state.data.desired.activities).toHaveLength(0);
   });
 
   test('should import data correctly', () => {
@@ -198,10 +198,10 @@ describe('EnergyContext', () => {
 
     const importData = JSON.stringify({
       version: '1.0',
-      positive: {
+      current: {
         activities: [createMockActivity({ name: 'Imported Activity' })],
       },
-      negative: {
+      desired: {
         activities: [],
       },
     });
@@ -233,40 +233,25 @@ describe('EnergyContext', () => {
 
     // Add some activities first
     act(() => {
-      result.current.addActivity('positive', {
+      result.current.addActivity('current', {
         name: 'Sport',
         value: 5,
       });
-      result.current.addActivity('negative', {
+      result.current.addActivity('desired', {
         name: 'Stress',
         value: 3,
       });
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(1);
-    expect(result.current.state.data.negative.activities).toHaveLength(1);
+    expect(result.current.state.data.current.activities).toHaveLength(1);
+    expect(result.current.state.data.desired.activities).toHaveLength(1);
 
     act(() => {
       result.current.resetData();
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(0);
-    expect(result.current.state.data.negative.activities).toHaveLength(0);
-  });
-
-  test('should handle invalid chart type in addActivity', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // This should not crash, but may not add the activity
-    act(() => {
-      result.current.addActivity('invalid' as 'positive', {
-        name: 'Test',
-        value: 5,
-      });
-    });
-
-    expect(result.current.state.data.positive.activities).toHaveLength(0);
-    expect(result.current.state.data.negative.activities).toHaveLength(0);
+    expect(result.current.state.data.current.activities).toHaveLength(0);
+    expect(result.current.state.data.desired.activities).toHaveLength(0);
   });
 
   test('should handle updateActivity with non-existent activity ID', () => {
@@ -274,10 +259,10 @@ describe('EnergyContext', () => {
 
     // This should not crash
     act(() => {
-      result.current.updateActivity('positive', 'non-existent-id', { name: 'Updated' });
+      result.current.updateActivity('current', 'non-existent-id', { name: 'Updated' });
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(0);
+    expect(result.current.state.data.current.activities).toHaveLength(0);
   });
 
   test('should handle deleteActivity with non-existent activity ID', () => {
@@ -285,10 +270,10 @@ describe('EnergyContext', () => {
 
     // This should not crash
     act(() => {
-      result.current.deleteActivity('positive', 'non-existent-id');
+      result.current.deleteActivity('current', 'non-existent-id');
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(0);
+    expect(result.current.state.data.current.activities).toHaveLength(0);
   });
 
   test('should handle importData with invalid JSON', () => {
@@ -343,23 +328,23 @@ describe('EnergyContext', () => {
 
     // Add one activity
     act(() => {
-      result.current.addActivity('positive', { name: 'Test', value: 5 });
+      result.current.addActivity('current', { name: 'Test', value: 5 });
     });
 
     // Try to reorder with invalid indices - should not crash
     act(() => {
-      result.current.reorderActivities('positive', 0, 5); // destination index out of bounds
+      result.current.reorderActivities('current', 0, 5); // destination index out of bounds
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(1);
-    expect(result.current.state.data.positive.activities[0].name).toBe('Test');
+    expect(result.current.state.data.current.activities).toHaveLength(1);
+    expect(result.current.state.data.current.activities[0].name).toBe('Test');
   });
 
   test('should save data using saveData method', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
     act(() => {
-      result.current.addActivity('positive', {
+      result.current.addActivity('current', {
         name: 'Sport',
         value: 5,
       });
@@ -384,8 +369,8 @@ describe('EnergyContext', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
     // Should not crash and should be in default state
-    expect(result.current.state.data.positive.activities).toHaveLength(0);
-    expect(result.current.state.data.negative.activities).toHaveLength(0);
+    expect(result.current.state.data.current.activities).toHaveLength(0);
+    expect(result.current.state.data.desired.activities).toHaveLength(0);
 
     consoleSpy.mockRestore();
   });
@@ -393,10 +378,10 @@ describe('EnergyContext', () => {
   test('should load saved data on mount', () => {
     const mockData = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [createMockActivity({ name: 'Loaded Activity' })],
       },
-      negative: {
+      desired: {
         activities: [],
       },
     };
@@ -405,8 +390,8 @@ describe('EnergyContext', () => {
 
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(1);
-    expect(result.current.state.data.positive.activities[0].name).toBe('Loaded Activity');
+    expect(result.current.state.data.current.activities).toHaveLength(1);
+    expect(result.current.state.data.current.activities[0].name).toBe('Loaded Activity');
   });
 
   test('should handle loadData method', () => {
@@ -414,10 +399,10 @@ describe('EnergyContext', () => {
 
     const mockData = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [createMockActivity({ name: 'Manual Load' })],
       },
-      negative: {
+      desired: {
         activities: [],
       },
     };
@@ -428,8 +413,8 @@ describe('EnergyContext', () => {
       result.current.loadData();
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(1);
-    expect(result.current.state.data.positive.activities[0].name).toBe('Manual Load');
+    expect(result.current.state.data.current.activities).toHaveLength(1);
+    expect(result.current.state.data.current.activities[0].name).toBe('Manual Load');
   });
 
   test('should handle exportData method', () => {
@@ -466,7 +451,7 @@ describe('EnergyContext', () => {
 
     // Add initial activity
     act(() => {
-      result.current.addActivity('positive', {
+      result.current.addActivity('current', {
         name: 'Existing Activity',
         value: 3,
       });
@@ -475,15 +460,15 @@ describe('EnergyContext', () => {
     // Mock import data
     const importData = {
       version: '1.0',
-      positive: {
-        id: 'positive',
-        type: 'positive' as const,
+      current: {
+        id: 'current',
+        type: 'current' as const,
         activities: [createMockActivity({ name: 'Imported Activity' })],
         size: 'large' as const,
       },
-      negative: {
-        id: 'negative',
-        type: 'negative' as const,
+      desired: {
+        id: 'desired',
+        type: 'desired' as const,
         activities: [],
         size: 'small' as const,
       },
@@ -497,8 +482,8 @@ describe('EnergyContext', () => {
     });
 
     // importData method replaces all data, so only imported activity should be present
-    expect(result.current.state.data.positive.activities).toHaveLength(1);
-    expect(result.current.state.data.positive.activities[0].name).toBe('Imported Activity');
+    expect(result.current.state.data.current.activities).toHaveLength(1);
+    expect(result.current.state.data.current.activities[0].name).toBe('Imported Activity');
   });
 
   test('should handle clearAllData action', () => {
@@ -506,26 +491,26 @@ describe('EnergyContext', () => {
 
     // Add some activities
     act(() => {
-      result.current.addActivity('positive', {
+      result.current.addActivity('current', {
         name: 'Activity 1',
         value: 3,
       });
-      result.current.addActivity('negative', {
+      result.current.addActivity('desired', {
         name: 'Activity 2',
         value: 2,
       });
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(1);
-    expect(result.current.state.data.negative.activities).toHaveLength(1);
+    expect(result.current.state.data.current.activities).toHaveLength(1);
+    expect(result.current.state.data.desired.activities).toHaveLength(1);
 
     // Clear all data using the internal action (we'll access it via importing empty data)
     act(() => {
       result.current.resetData();
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(0);
-    expect(result.current.state.data.negative.activities).toHaveLength(0);
+    expect(result.current.state.data.current.activities).toHaveLength(0);
+    expect(result.current.state.data.desired.activities).toHaveLength(0);
   });
 
   test('should handle importData with merge mode (replaceExisting: false)', () => {
@@ -533,21 +518,21 @@ describe('EnergyContext', () => {
 
     // Add some initial activities
     act(() => {
-      result.current.addActivity('positive', { name: 'Existing Positive', value: 3 });
-      result.current.addActivity('negative', { name: 'Existing Negative', value: 4 });
+      result.current.addActivity('current', { name: 'Existing Positive', value: 3 });
+      result.current.addActivity('desired', { name: 'Existing Negative', value: 4 });
     });
 
     const importData = {
       version: '1.0',
-      positive: {
-        id: 'positive',
-        type: 'positive' as const,
+      current: {
+        id: 'current',
+        type: 'current' as const,
         activities: [{ id: '1', name: 'Imported Positive', value: 5 }],
         size: 'medium' as const,
       },
-      negative: {
-        id: 'negative',
-        type: 'negative' as const,
+      desired: {
+        id: 'desired',
+        type: 'desired' as const,
         activities: [{ id: '2', name: 'Imported Negative', value: 3 }],
         size: 'medium' as const,
       },
@@ -562,10 +547,10 @@ describe('EnergyContext', () => {
     });
 
     // Should have merged activities (existing + imported)
-    expect(result.current.state.data.positive.activities).toHaveLength(2);
-    expect(result.current.state.data.negative.activities).toHaveLength(2);
-    expect(result.current.state.data.positive.activities[0].name).toBe('Existing Positive');
-    expect(result.current.state.data.positive.activities[1].name).toBe('Imported Positive');
+    expect(result.current.state.data.current.activities).toHaveLength(2);
+    expect(result.current.state.data.desired.activities).toHaveLength(2);
+    expect(result.current.state.data.current.activities[0].name).toBe('Existing Positive');
+    expect(result.current.state.data.current.activities[1].name).toBe('Imported Positive');
   });
 
   test('should handle importData with replace mode (replaceExisting: true)', () => {
@@ -573,20 +558,20 @@ describe('EnergyContext', () => {
 
     // Add some initial activities
     act(() => {
-      result.current.addActivity('positive', { name: 'Existing Positive', value: 3 });
+      result.current.addActivity('current', { name: 'Existing Positive', value: 3 });
     });
 
     const importData = {
       version: '1.0',
-      positive: {
-        id: 'positive',
-        type: 'positive' as const,
+      current: {
+        id: 'current',
+        type: 'current' as const,
         activities: [{ id: '1', name: 'Imported Positive', value: 5 }],
         size: 'medium' as const,
       },
-      negative: {
-        id: 'negative',
-        type: 'negative' as const,
+      desired: {
+        id: 'desired',
+        type: 'desired' as const,
         activities: [],
         size: 'medium' as const,
       },
@@ -601,8 +586,8 @@ describe('EnergyContext', () => {
     });
 
     // Should have replaced activities (only imported)
-    expect(result.current.state.data.positive.activities).toHaveLength(1);
-    expect(result.current.state.data.positive.activities[0].name).toBe('Imported Positive');
+    expect(result.current.state.data.current.activities).toHaveLength(1);
+    expect(result.current.state.data.current.activities[0].name).toBe('Imported Positive');
   });
 
   test('should not add duplicate activities when importing with merge mode', () => {
@@ -614,13 +599,13 @@ describe('EnergyContext', () => {
         type: 'SET_DATA',
         payload: {
           version: '1.0',
-          positive: {
+          current: {
             activities: [
               { id: 'activity-1', name: 'Existing Sport', value: 4 },
               { id: 'activity-2', name: 'Existing Reading', value: 5 },
             ],
           },
-          negative: {
+          desired: {
             activities: [{ id: 'activity-3', name: 'Existing Stress', value: 5 }],
           },
         },
@@ -629,13 +614,13 @@ describe('EnergyContext', () => {
 
     const importData = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [
           { id: 'activity-1', name: 'Duplicate Sport', value: 5 }, // Same ID as existing
           { id: 'activity-4', name: 'New Meditation', value: 3 }, // New ID
         ],
       },
-      negative: {
+      desired: {
         activities: [
           { id: 'activity-3', name: 'Duplicate Stress', value: 3 }, // Same ID as existing
           { id: 'activity-5', name: 'New Commute', value: 4 }, // New ID
@@ -652,15 +637,15 @@ describe('EnergyContext', () => {
     });
 
     // Should have 3 positive activities (2 existing + 1 new, duplicate ignored)
-    expect(result.current.state.data.positive.activities).toHaveLength(3);
-    expect(result.current.state.data.positive.activities[0].name).toBe('Existing Sport');
-    expect(result.current.state.data.positive.activities[1].name).toBe('Existing Reading');
-    expect(result.current.state.data.positive.activities[2].name).toBe('New Meditation');
+    expect(result.current.state.data.current.activities).toHaveLength(3);
+    expect(result.current.state.data.current.activities[0].name).toBe('Existing Sport');
+    expect(result.current.state.data.current.activities[1].name).toBe('Existing Reading');
+    expect(result.current.state.data.current.activities[2].name).toBe('New Meditation');
 
     // Should have 2 negative activities (1 existing + 1 new, duplicate ignored)
-    expect(result.current.state.data.negative.activities).toHaveLength(2);
-    expect(result.current.state.data.negative.activities[0].name).toBe('Existing Stress');
-    expect(result.current.state.data.negative.activities[1].name).toBe('New Commute');
+    expect(result.current.state.data.desired.activities).toHaveLength(2);
+    expect(result.current.state.data.desired.activities[0].name).toBe('Existing Stress');
+    expect(result.current.state.data.desired.activities[1].name).toBe('New Commute');
   });
 
   test('should handle CLEAR_ALL_DATA action', () => {
@@ -668,18 +653,18 @@ describe('EnergyContext', () => {
 
     // Add some activities first
     act(() => {
-      result.current.addActivity('positive', { name: 'Test Activity', value: 5 });
+      result.current.addActivity('current', { name: 'Test Activity', value: 5 });
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(1);
+    expect(result.current.state.data.current.activities).toHaveLength(1);
 
     // Clear all data
     act(() => {
       result.current.dispatch({ type: 'CLEAR_ALL_DATA' });
     });
 
-    expect(result.current.state.data.positive.activities).toHaveLength(0);
-    expect(result.current.state.data.negative.activities).toHaveLength(0);
+    expect(result.current.state.data.current.activities).toHaveLength(0);
+    expect(result.current.state.data.desired.activities).toHaveLength(0);
     expect(result.current.state.lastSaved).toBeTruthy();
   });
 
@@ -696,5 +681,110 @@ describe('EnergyContext', () => {
 
     // State should remain unchanged
     expect(result.current.state).toEqual(initialState);
+  });
+
+  test('should copy activities from current to desired chart', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add activities to current chart
+    act(() => {
+      result.current.addActivity('current', { name: 'Sport', value: 5 });
+      result.current.addActivity('current', { name: 'Lesen', value: 3 });
+      result.current.addActivity('current', { name: 'Arbeit', value: -4 });
+    });
+
+    expect(result.current.state.data.current.activities).toHaveLength(3);
+    expect(result.current.state.data.desired.activities).toHaveLength(0);
+
+    // Copy activities from current to desired
+    act(() => {
+      result.current.copyActivitiesFromCurrent();
+    });
+
+    // Should have copied all activities to desired chart
+    expect(result.current.state.data.desired.activities).toHaveLength(3);
+    expect(result.current.state.data.desired.activities[0].name).toBe('Sport');
+    expect(result.current.state.data.desired.activities[0].value).toBe(5);
+    expect(result.current.state.data.desired.activities[1].name).toBe('Lesen');
+    expect(result.current.state.data.desired.activities[1].value).toBe(3);
+    expect(result.current.state.data.desired.activities[2].name).toBe('Arbeit');
+    expect(result.current.state.data.desired.activities[2].value).toBe(-4);
+
+    // Verify that IDs are different (new IDs generated)
+    expect(result.current.state.data.desired.activities[0].id).not.toBe(result.current.state.data.current.activities[0].id);
+    expect(result.current.state.data.desired.activities[1].id).not.toBe(result.current.state.data.current.activities[1].id);
+    expect(result.current.state.data.desired.activities[2].id).not.toBe(result.current.state.data.current.activities[2].id);
+  });
+
+  test('should copy activities from current to desired even when desired has existing activities', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add activities to both charts
+    act(() => {
+      result.current.addActivity('current', { name: 'Sport', value: 5 });
+      result.current.addActivity('desired', { name: 'Existing', value: 2 });
+    });
+
+    expect(result.current.state.data.current.activities).toHaveLength(1);
+    expect(result.current.state.data.desired.activities).toHaveLength(1);
+
+    // Copy activities from current to desired (should replace)
+    act(() => {
+      result.current.copyActivitiesFromCurrent();
+    });
+
+    // Should have replaced desired activities with current activities
+    expect(result.current.state.data.desired.activities).toHaveLength(1);
+    expect(result.current.state.data.desired.activities[0].name).toBe('Sport');
+    expect(result.current.state.data.desired.activities[0].value).toBe(5);
+  });
+
+  test('should handle copy when current chart is empty', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add activity to desired chart only
+    act(() => {
+      result.current.addActivity('desired', { name: 'Existing', value: 3 });
+    });
+
+    expect(result.current.state.data.current.activities).toHaveLength(0);
+    expect(result.current.state.data.desired.activities).toHaveLength(1);
+
+    // Copy from empty current chart
+    act(() => {
+      result.current.copyActivitiesFromCurrent();
+    });
+
+    // Desired should now be empty
+    expect(result.current.state.data.desired.activities).toHaveLength(0);
+  });
+
+  test('should generate unique IDs when copying activities', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+
+    // Add multiple activities to current chart
+    act(() => {
+      result.current.addActivity('current', { name: 'Activity 1', value: 5 });
+      result.current.addActivity('current', { name: 'Activity 2', value: 3 });
+      result.current.addActivity('current', { name: 'Activity 3', value: -2 });
+    });
+
+    // Copy activities
+    act(() => {
+      result.current.copyActivitiesFromCurrent();
+    });
+
+    // All IDs should be unique
+    const currentIds = result.current.state.data.current.activities.map(a => a.id);
+    const desiredIds = result.current.state.data.desired.activities.map(a => a.id);
+
+    // No ID from desired should match any ID from current
+    for (const desiredId of desiredIds) {
+      expect(currentIds).not.toContain(desiredId);
+    }
+
+    // All desired IDs should be unique
+    const uniqueDesiredIds = new Set(desiredIds);
+    expect(uniqueDesiredIds.size).toBe(desiredIds.length);
   });
 });

@@ -2,34 +2,16 @@
 
 import { StorageManager } from '@/app/lib/utils/storage';
 import { Activity, EnergyPie } from '@/app/types';
-import React, { createContext, ReactNode, useContext, useEffect, useReducer, useRef } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-
-// Energy Reducer Actions
-type EnergyAction =
-  | { type: 'SET_DATA'; payload: EnergyPie; shouldSave?: boolean }
-  | { type: 'ADD_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'> } }
-  | { type: 'UPDATE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string; updates: Partial<Activity> } }
-  | { type: 'DELETE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } }
-  | { type: 'REORDER_ACTIVITIES'; payload: { chartType: 'positive' | 'negative'; fromIndex: number; toIndex: number } }
-  | { type: 'RESET_DATA' }
-  | { type: 'IMPORT_DATA'; payload: { data: EnergyPie; replaceExisting: boolean } }
-  | { type: 'CLEAR_ALL_DATA' }
-  | { type: 'SET_LOADING'; payload: boolean };
-
-interface EnergyState {
-  data: EnergyPie;
-  isLoading: boolean;
-  lastSaved: string | null;
-}
+import { ChartType, EnergyAction, EnergyContextType, EnergyState } from '@/app/types/context';
+import { createContext, ReactNode, useContext, useEffect, useReducer, useRef } from 'react';
 
 function createDefaultData(): EnergyPie {
   return {
-    version: '1.0',
-    positive: {
+    version: '2.0',
+    current: {
       activities: [],
     },
-    negative: {
+    desired: {
       activities: [],
     },
   };
@@ -55,14 +37,9 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       };
 
     case 'ADD_ACTIVITY': {
-      // Validate chart type before processing
-      if (action.payload.chartType !== 'positive' && action.payload.chartType !== 'negative') {
-        return state;
-      }
-
       const now = new Date().toISOString();
       const newActivity: Activity = {
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         ...action.payload.activity,
       };
 
@@ -138,6 +115,31 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       };
     }
 
+    case 'COPY_ACTIVITIES_FROM_CURRENT': {
+      const now = new Date().toISOString();
+      const currentActivities = state.data.current.activities;
+
+      // Copy activities from current to desired with new IDs
+      const copiedActivities: Activity[] = currentActivities.map(activity => ({
+        ...activity,
+        id: crypto.randomUUID(),
+      }));
+
+      const updatedData = {
+        ...state.data,
+        desired: {
+          ...state.data.desired,
+          activities: copiedActivities,
+        },
+      };
+
+      return {
+        ...state,
+        data: updatedData,
+        lastSaved: now,
+      };
+    }
+
     case 'RESET_DATA': {
       return {
         ...state,
@@ -159,18 +161,18 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
         };
       } else {
         // Merge imported activities with existing activities, avoiding duplicates by ID
-        const existingPositiveIds = new Set(state.data.positive.activities.map(a => a.id));
-        const existingNegativeIds = new Set(state.data.negative.activities.map(a => a.id));
+        const existingCurrentIds = new Set(state.data.current.activities.map(a => a.id));
+        const existingDesiredIds = new Set(state.data.desired.activities.map(a => a.id));
 
         resultData = {
           ...importedData,
-          positive: {
-            ...importedData.positive,
-            activities: [...state.data.positive.activities, ...importedData.positive.activities.filter(a => !existingPositiveIds.has(a.id))],
+          current: {
+            ...importedData.current,
+            activities: [...state.data.current.activities, ...importedData.current.activities.filter(a => !existingCurrentIds.has(a.id))],
           },
-          negative: {
-            ...importedData.negative,
-            activities: [...state.data.negative.activities, ...importedData.negative.activities.filter(a => !existingNegativeIds.has(a.id))],
+          desired: {
+            ...importedData.desired,
+            activities: [...state.data.desired.activities, ...importedData.desired.activities.filter(a => !existingDesiredIds.has(a.id))],
           },
         };
       }
@@ -196,20 +198,6 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
 }
 
 // Context Definition
-interface EnergyContextType {
-  state: EnergyState;
-  dispatch: React.Dispatch<EnergyAction>;
-  addActivity: (chartType: 'positive' | 'negative', activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateActivity: (chartType: 'positive' | 'negative', activityId: string, updates: Partial<Activity>) => void;
-  deleteActivity: (chartType: 'positive' | 'negative', activityId: string) => void;
-  reorderActivities: (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => void;
-  resetData: () => void;
-  saveData: () => void;
-  loadData: () => void;
-  importData: (jsonString: string) => void;
-  exportData: () => string;
-}
-
 const EnergyContext = createContext<EnergyContextType | undefined>(undefined);
 
 // Provider Component
@@ -252,20 +240,24 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const addActivity = (chartType: 'positive' | 'negative', activity: Omit<Activity, 'id'>) => {
+  const addActivity = (chartType: ChartType, activity: Omit<Activity, 'id'>) => {
     dispatch({ type: 'ADD_ACTIVITY', payload: { chartType, activity } });
   };
 
-  const updateActivity = (chartType: 'positive' | 'negative', activityId: string, updates: Partial<Activity>) => {
+  const updateActivity = (chartType: ChartType, activityId: string, updates: Partial<Activity>) => {
     dispatch({ type: 'UPDATE_ACTIVITY', payload: { chartType, activityId, updates } });
   };
 
-  const deleteActivity = (chartType: 'positive' | 'negative', activityId: string) => {
+  const deleteActivity = (chartType: ChartType, activityId: string) => {
     dispatch({ type: 'DELETE_ACTIVITY', payload: { chartType, activityId } });
   };
 
-  const reorderActivities = (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => {
+  const reorderActivities = (chartType: ChartType, fromIndex: number, toIndex: number) => {
     dispatch({ type: 'REORDER_ACTIVITIES', payload: { chartType, fromIndex, toIndex } });
+  };
+
+  const copyActivitiesFromCurrent = () => {
+    dispatch({ type: 'COPY_ACTIVITIES_FROM_CURRENT' });
   };
 
   const resetData = () => {
@@ -299,6 +291,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     updateActivity,
     deleteActivity,
     reorderActivities,
+    copyActivitiesFromCurrent,
     resetData,
     saveData,
     loadData,

@@ -1,21 +1,21 @@
 'use client';
 
+import { ActivityColorBadge } from '@/app/components/ui/ActivityColorBadge';
+import { ActivityValueIndicator } from '@/app/components/ui/ActivityValueIndicator';
 import { Button } from '@/app/components/ui/Button';
-import { getColorForLevel } from '@/app/lib/utils/constants';
 import { Activity } from '@/app/types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Bars3Icon, MinusCircleIcon, PencilIcon, PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 interface SortableActivityItemProps {
   activity: Activity;
-  chartType: 'positive' | 'negative';
   isEditing: boolean;
   onEdit: (activityId: string) => void;
   onDelete: (activityId: string) => void;
 }
 
-export function SortableActivityItem({ activity, chartType, isEditing, onEdit, onDelete }: SortableActivityItemProps) {
+export function SortableActivityItem({ activity, isEditing, onEdit, onDelete }: SortableActivityItemProps) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: activity.id });
 
   const style = {
@@ -35,18 +35,12 @@ export function SortableActivityItem({ activity, chartType, isEditing, onEdit, o
             <Bars3Icon className="h-4 w-4" />
           </button>
         )}
-        <div className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: getColorForLevel(activity.value, chartType) }} />
+        <ActivityColorBadge value={activity.value} />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium text-gray-900" data-testid={`activity-name-${activity.id}`}>
             {activity.name}
           </div>
-          <div className="flex items-center text-xs text-gray-500" data-testid={`activity-value-${activity.id}`}>
-            {Array.from({ length: activity.value }, (_, i) => (
-              <span key={i} className="inline-block">
-                {chartType === 'positive' ? <PlusCircleIcon className="h-4 w-4" /> : <MinusCircleIcon className="h-4 w-4" />}
-              </span>
-            ))}
-          </div>
+          <ActivityValueIndicator value={activity.value} className="text-xs text-gray-500" data-testid={`activity-value-${activity.id}`} />
         </div>
       </div>
 

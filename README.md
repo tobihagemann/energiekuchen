@@ -6,10 +6,10 @@ A visual energy management tool that helps users balance their daily energy sour
 
 Energiekuchen is a client-side web application that serves as a visual coaching tool for energy management. Users can create dual pie charts to visualize:
 
-- **⚡ Positive Energy Sources** (activities that give energy): sports, relaxation, time with friends
-- **🔋 Energy Drains** (activities that consume energy): overtime work, stress, difficult conversations
+- **📍 Ist-Zustand** (Current State): How your energy is currently distributed across various activities - both energy-giving (positive) and energy-draining (negative)
+- **🎯 Wunsch-Zustand** (Desired State): How you want your energy to be distributed in the future
 
-The application helps identify energy imbalances and plan improvements to achieve better work-life balance.
+Each activity is rated on a scale from -5 (strong energy drain) to +5 (strong energy source), allowing you to see the full spectrum of your energy landscape in one place. The application helps identify energy imbalances and plan improvements to achieve better work-life balance.
 
 ## Getting Started
 
