@@ -3,7 +3,6 @@
 import { StorageManager } from '@/app/lib/utils/storage';
 import { Activity, EnergyPie } from '@/app/types';
 import React, { createContext, ReactNode, useContext, useEffect, useReducer, useRef } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 
 // Energy Reducer Actions
 type EnergyAction =
@@ -62,7 +61,7 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
 
       const now = new Date().toISOString();
       const newActivity: Activity = {
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         ...action.payload.activity,
       };
 

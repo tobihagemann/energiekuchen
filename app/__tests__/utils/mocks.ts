@@ -1,9 +1,8 @@
 import { Activity, EnergyPie } from '@/app/types';
-import { v4 as uuidv4 } from 'uuid';
 
 export function createMockActivity(overrides?: Partial<Activity>): Activity {
   return {
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     name: 'Test Activity',
     value: 3,
     ...overrides,
