@@ -2,10 +2,11 @@
 
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { getColorForLevel } from '@/app/lib/utils/constants';
+import { ChartType } from '@/app/types';
 import { ChartData } from '@/app/types/chart';
 import { useMemo } from 'react';
 
-export function useChartData(chartType: 'current' | 'desired', editingActivity: { chartType: 'current' | 'desired'; activityId: string } | null) {
+export function useChartData(chartType: ChartType, editingActivity: { chartType: ChartType; activityId: string } | null) {
   const { state } = useEnergy();
   const chart = state.data[chartType];
 

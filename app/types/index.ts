@@ -18,3 +18,6 @@ export interface ValidationResult {
   isValid: boolean;
   errors: string[];
 }
+
+// Re-export ChartType for convenience
+export type { ChartType } from './context';

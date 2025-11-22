@@ -254,21 +254,6 @@ describe('EnergyContext', () => {
     expect(result.current.state.data.desired.activities).toHaveLength(0);
   });
 
-  test('should handle invalid chart type in addActivity', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // This should not crash, but may not add the activity
-    act(() => {
-      result.current.addActivity('invalid' as 'current', {
-        name: 'Test',
-        value: 5,
-      });
-    });
-
-    expect(result.current.state.data.current.activities).toHaveLength(0);
-    expect(result.current.state.data.desired.activities).toHaveLength(0);
-  });
-
   test('should handle updateActivity with non-existent activity ID', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 

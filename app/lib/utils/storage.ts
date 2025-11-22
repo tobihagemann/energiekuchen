@@ -1,4 +1,5 @@
 import { Activity, EnergyPie } from '@/app/types';
+import { UnknownActivity, UnknownData, V1Data } from '@/app/types/migration';
 import { STORAGE_KEY } from './constants';
 import { validateActivityValue } from './validation';
 
@@ -61,18 +62,6 @@ export function exportData(data: EnergyPie): string {
   return JSON.stringify(data, null, 2);
 }
 
-interface V1Activity {
-  id: string;
-  name: string;
-  value: number;
-}
-
-interface V1Data {
-  version?: string;
-  positive?: { activities: V1Activity[] };
-  negative?: { activities: V1Activity[] };
-}
-
 function migrateV1ToV2(data: V1Data): EnergyPie {
   // Migrate v1.0 format (positive/negative) to v2.0 format (current/desired)
   const positiveActivities = data.positive?.activities || [];
@@ -100,21 +89,6 @@ function migrateV1ToV2(data: V1Data): EnergyPie {
       activities: [],
     },
   };
-}
-
-interface UnknownData {
-  version?: string;
-  positive?: unknown;
-  negative?: unknown;
-  current?: { activities?: unknown[] };
-  desired?: { activities?: unknown[] };
-}
-
-interface UnknownActivity {
-  id?: unknown;
-  name?: unknown;
-  value?: unknown;
-  [key: string]: unknown;
 }
 
 export function importData(jsonString: string): EnergyPie {

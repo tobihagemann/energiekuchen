@@ -5,11 +5,12 @@ import { Input } from '@/app/components/ui/Input';
 import { InputGroup } from '@/app/components/ui/InputGroup';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { validateActivity } from '@/app/lib/utils/validation';
+import { ChartType } from '@/app/types';
 import { MinusCircleIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 import { useRef, useState } from 'react';
 
 interface AddActivityProps {
-  chartType: 'current' | 'desired';
+  chartType: ChartType;
   className?: string;
 }
 

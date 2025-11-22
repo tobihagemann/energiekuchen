@@ -11,12 +11,14 @@ import { Header } from '@/app/components/layout/Header';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
+import { ChartType } from '@/app/types';
+
 export default function Dashboard() {
   const { state } = useEnergy();
   const { state: uiState, setEditingActivity, openEditModal } = useUI();
   const { isSmall } = useResponsive();
 
-  const handleActivityClick = (chartType: 'current' | 'desired') => (activityId: string) => {
+  const handleActivityClick = (chartType: ChartType) => (activityId: string) => {
     // Toggle editing mode: deselect if clicking on the active segment
     if (uiState.editingActivity?.chartType === chartType && uiState.editingActivity?.activityId === activityId) {
       setEditingActivity(null);

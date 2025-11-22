@@ -4,7 +4,7 @@ import { AddActivity } from '@/app/components/features/AddActivity';
 import { Button } from '@/app/components/ui/Button';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
-import { Activity } from '@/app/types';
+import { Activity, ChartType } from '@/app/types';
 import {
   closestCenter,
   defaultDropAnimationSideEffects,
@@ -24,7 +24,7 @@ import { useState } from 'react';
 import { SortableActivityItem } from './SortableActivityItem';
 
 interface ActivityListProps {
-  chartType: 'current' | 'desired';
+  chartType: ChartType;
   activities: Activity[];
   className?: string;
 }
@@ -125,7 +125,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
           <div className="mt-1 text-xs text-gray-400">Füge deine erste Aktivität hinzu, um zu beginnen</div>
           {chartType === 'desired' && (
             <Button onClick={copyActivitiesFromCurrent} disabled={!hasCurrentActivities} className="mt-4 gap-2" data-testid="copy-from-current-button">
-              <ArrowRightEndOnRectangleIcon className="h-5 w-5" />
+              <ArrowRightEndOnRectangleIcon className="h-4 w-4" />
               Ist-Zustand übernehmen
             </Button>
           )}

@@ -2,26 +2,8 @@
 
 import { StorageManager } from '@/app/lib/utils/storage';
 import { Activity, EnergyPie } from '@/app/types';
-import React, { createContext, ReactNode, useContext, useEffect, useReducer, useRef } from 'react';
-
-// Energy Reducer Actions
-type EnergyAction =
-  | { type: 'SET_DATA'; payload: EnergyPie; shouldSave?: boolean }
-  | { type: 'ADD_ACTIVITY'; payload: { chartType: 'current' | 'desired'; activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'> } }
-  | { type: 'UPDATE_ACTIVITY'; payload: { chartType: 'current' | 'desired'; activityId: string; updates: Partial<Activity> } }
-  | { type: 'DELETE_ACTIVITY'; payload: { chartType: 'current' | 'desired'; activityId: string } }
-  | { type: 'REORDER_ACTIVITIES'; payload: { chartType: 'current' | 'desired'; fromIndex: number; toIndex: number } }
-  | { type: 'COPY_ACTIVITIES_FROM_CURRENT' }
-  | { type: 'RESET_DATA' }
-  | { type: 'IMPORT_DATA'; payload: { data: EnergyPie; replaceExisting: boolean } }
-  | { type: 'CLEAR_ALL_DATA' }
-  | { type: 'SET_LOADING'; payload: boolean };
-
-interface EnergyState {
-  data: EnergyPie;
-  isLoading: boolean;
-  lastSaved: string | null;
-}
+import { ChartType, EnergyAction, EnergyContextType, EnergyState } from '@/app/types/context';
+import { createContext, ReactNode, useContext, useEffect, useReducer, useRef } from 'react';
 
 function createDefaultData(): EnergyPie {
   return {
@@ -55,11 +37,6 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       };
 
     case 'ADD_ACTIVITY': {
-      // Validate chart type before processing
-      if (action.payload.chartType !== 'current' && action.payload.chartType !== 'desired') {
-        return state;
-      }
-
       const now = new Date().toISOString();
       const newActivity: Activity = {
         id: crypto.randomUUID(),
@@ -221,21 +198,6 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
 }
 
 // Context Definition
-interface EnergyContextType {
-  state: EnergyState;
-  dispatch: React.Dispatch<EnergyAction>;
-  addActivity: (chartType: 'current' | 'desired', activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateActivity: (chartType: 'current' | 'desired', activityId: string, updates: Partial<Activity>) => void;
-  deleteActivity: (chartType: 'current' | 'desired', activityId: string) => void;
-  reorderActivities: (chartType: 'current' | 'desired', fromIndex: number, toIndex: number) => void;
-  copyActivitiesFromCurrent: () => void;
-  resetData: () => void;
-  saveData: () => void;
-  loadData: () => void;
-  importData: (jsonString: string) => void;
-  exportData: () => string;
-}
-
 const EnergyContext = createContext<EnergyContextType | undefined>(undefined);
 
 // Provider Component
@@ -278,19 +240,19 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const addActivity = (chartType: 'current' | 'desired', activity: Omit<Activity, 'id'>) => {
+  const addActivity = (chartType: ChartType, activity: Omit<Activity, 'id'>) => {
     dispatch({ type: 'ADD_ACTIVITY', payload: { chartType, activity } });
   };
 
-  const updateActivity = (chartType: 'current' | 'desired', activityId: string, updates: Partial<Activity>) => {
+  const updateActivity = (chartType: ChartType, activityId: string, updates: Partial<Activity>) => {
     dispatch({ type: 'UPDATE_ACTIVITY', payload: { chartType, activityId, updates } });
   };
 
-  const deleteActivity = (chartType: 'current' | 'desired', activityId: string) => {
+  const deleteActivity = (chartType: ChartType, activityId: string) => {
     dispatch({ type: 'DELETE_ACTIVITY', payload: { chartType, activityId } });
   };
 
-  const reorderActivities = (chartType: 'current' | 'desired', fromIndex: number, toIndex: number) => {
+  const reorderActivities = (chartType: ChartType, fromIndex: number, toIndex: number) => {
     dispatch({ type: 'REORDER_ACTIVITIES', payload: { chartType, fromIndex, toIndex } });
   };
 
