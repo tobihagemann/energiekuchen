@@ -9,19 +9,21 @@ import { Bars3Icon, MinusCircleIcon, PencilIcon, PlusCircleIcon, TrashIcon } fro
 
 interface SortableActivityItemProps {
   activity: Activity;
-  chartType: 'positive' | 'negative';
   isEditing: boolean;
   onEdit: (activityId: string) => void;
   onDelete: (activityId: string) => void;
 }
 
-export function SortableActivityItem({ activity, chartType, isEditing, onEdit, onDelete }: SortableActivityItemProps) {
+export function SortableActivityItem({ activity, isEditing, onEdit, onDelete }: SortableActivityItemProps) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: activity.id });
 
   const style = {
     transform: CSS.Translate.toString(transform),
     transition,
   };
+
+  const absValue = Math.abs(activity.value);
+  const isPositive = activity.value > 0;
 
   return (
     <div
@@ -35,15 +37,15 @@ export function SortableActivityItem({ activity, chartType, isEditing, onEdit, o
             <Bars3Icon className="h-4 w-4" />
           </button>
         )}
-        <div className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: getColorForLevel(activity.value, chartType) }} />
+        <div className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: getColorForLevel(activity.value) }} />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium text-gray-900" data-testid={`activity-name-${activity.id}`}>
             {activity.name}
           </div>
           <div className="flex items-center text-xs text-gray-500" data-testid={`activity-value-${activity.id}`}>
-            {Array.from({ length: activity.value }, (_, i) => (
+            {Array.from({ length: absValue }, (_, i) => (
               <span key={i} className="inline-block">
-                {chartType === 'positive' ? <PlusCircleIcon className="h-4 w-4" /> : <MinusCircleIcon className="h-4 w-4" />}
+                {isPositive ? <PlusCircleIcon className="h-4 w-4" /> : <MinusCircleIcon className="h-4 w-4" />}
               </span>
             ))}
           </div>

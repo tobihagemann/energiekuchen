@@ -10,15 +10,15 @@ export class SharingManager {
       // Remove timestamps and non-essential data for sharing
       const shareableData = {
         version: data.version,
-        positive: {
-          activities: data.positive.activities.map(a => ({
+        current: {
+          activities: data.current.activities.map(a => ({
             id: a.id,
             name: a.name,
             value: a.value,
           })),
         },
-        negative: {
-          activities: data.negative.activities.map(a => ({
+        desired: {
+          activities: data.desired.activities.map(a => ({
             id: a.id,
             name: a.name,
             value: a.value,
@@ -52,15 +52,15 @@ export class SharingManager {
       // Add missing fields for full EnergyPie object
       return {
         ...data,
-        positive: {
-          ...data.positive,
-          activities: data.positive.activities.map((a: Activity) => ({
+        current: {
+          ...data.current,
+          activities: data.current.activities.map((a: Activity) => ({
             ...a,
           })),
         },
-        negative: {
-          ...data.negative,
-          activities: data.negative.activities.map((a: Activity) => ({
+        desired: {
+          ...data.desired,
+          activities: data.desired.activities.map((a: Activity) => ({
             ...a,
           })),
         },

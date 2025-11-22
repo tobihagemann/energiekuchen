@@ -11,7 +11,7 @@ import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
 interface AddActivityProps {
-  chartType: 'positive' | 'negative';
+  chartType: 'current' | 'desired';
   className?: string;
 }
 
@@ -21,7 +21,7 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const placeholder = chartType === 'positive' ? 'z.B. Sport, Entspannung, Zeit mit Freunden' : 'z.B. Überstunden, Stress, schwierige Gespräche';
+  const placeholder = chartType === 'current' ? 'z.B. Sport, Überstunden, schwierige Gespräche' : 'z.B. Entspannung, Zeit mit Freunden, Hobby';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

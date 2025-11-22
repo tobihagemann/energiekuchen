@@ -7,10 +7,10 @@ import React, { createContext, ReactNode, useContext, useEffect, useReducer, use
 // Energy Reducer Actions
 type EnergyAction =
   | { type: 'SET_DATA'; payload: EnergyPie; shouldSave?: boolean }
-  | { type: 'ADD_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'> } }
-  | { type: 'UPDATE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string; updates: Partial<Activity> } }
-  | { type: 'DELETE_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } }
-  | { type: 'REORDER_ACTIVITIES'; payload: { chartType: 'positive' | 'negative'; fromIndex: number; toIndex: number } }
+  | { type: 'ADD_ACTIVITY'; payload: { chartType: 'current' | 'desired'; activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'> } }
+  | { type: 'UPDATE_ACTIVITY'; payload: { chartType: 'current' | 'desired'; activityId: string; updates: Partial<Activity> } }
+  | { type: 'DELETE_ACTIVITY'; payload: { chartType: 'current' | 'desired'; activityId: string } }
+  | { type: 'REORDER_ACTIVITIES'; payload: { chartType: 'current' | 'desired'; fromIndex: number; toIndex: number } }
   | { type: 'RESET_DATA' }
   | { type: 'IMPORT_DATA'; payload: { data: EnergyPie; replaceExisting: boolean } }
   | { type: 'CLEAR_ALL_DATA' }
@@ -24,11 +24,11 @@ interface EnergyState {
 
 function createDefaultData(): EnergyPie {
   return {
-    version: '1.0',
-    positive: {
+    version: '2.0',
+    current: {
       activities: [],
     },
-    negative: {
+    desired: {
       activities: [],
     },
   };
@@ -55,7 +55,7 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
 
     case 'ADD_ACTIVITY': {
       // Validate chart type before processing
-      if (action.payload.chartType !== 'positive' && action.payload.chartType !== 'negative') {
+      if (action.payload.chartType !== 'current' && action.payload.chartType !== 'desired') {
         return state;
       }
 
@@ -158,18 +158,18 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
         };
       } else {
         // Merge imported activities with existing activities, avoiding duplicates by ID
-        const existingPositiveIds = new Set(state.data.positive.activities.map(a => a.id));
-        const existingNegativeIds = new Set(state.data.negative.activities.map(a => a.id));
+        const existingCurrentIds = new Set(state.data.current.activities.map(a => a.id));
+        const existingDesiredIds = new Set(state.data.desired.activities.map(a => a.id));
 
         resultData = {
           ...importedData,
-          positive: {
-            ...importedData.positive,
-            activities: [...state.data.positive.activities, ...importedData.positive.activities.filter(a => !existingPositiveIds.has(a.id))],
+          current: {
+            ...importedData.current,
+            activities: [...state.data.current.activities, ...importedData.current.activities.filter(a => !existingCurrentIds.has(a.id))],
           },
-          negative: {
-            ...importedData.negative,
-            activities: [...state.data.negative.activities, ...importedData.negative.activities.filter(a => !existingNegativeIds.has(a.id))],
+          desired: {
+            ...importedData.desired,
+            activities: [...state.data.desired.activities, ...importedData.desired.activities.filter(a => !existingDesiredIds.has(a.id))],
           },
         };
       }
@@ -198,10 +198,10 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
 interface EnergyContextType {
   state: EnergyState;
   dispatch: React.Dispatch<EnergyAction>;
-  addActivity: (chartType: 'positive' | 'negative', activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateActivity: (chartType: 'positive' | 'negative', activityId: string, updates: Partial<Activity>) => void;
-  deleteActivity: (chartType: 'positive' | 'negative', activityId: string) => void;
-  reorderActivities: (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => void;
+  addActivity: (chartType: 'current' | 'desired', activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateActivity: (chartType: 'current' | 'desired', activityId: string, updates: Partial<Activity>) => void;
+  deleteActivity: (chartType: 'current' | 'desired', activityId: string) => void;
+  reorderActivities: (chartType: 'current' | 'desired', fromIndex: number, toIndex: number) => void;
   resetData: () => void;
   saveData: () => void;
   loadData: () => void;
@@ -251,19 +251,19 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const addActivity = (chartType: 'positive' | 'negative', activity: Omit<Activity, 'id'>) => {
+  const addActivity = (chartType: 'current' | 'desired', activity: Omit<Activity, 'id'>) => {
     dispatch({ type: 'ADD_ACTIVITY', payload: { chartType, activity } });
   };
 
-  const updateActivity = (chartType: 'positive' | 'negative', activityId: string, updates: Partial<Activity>) => {
+  const updateActivity = (chartType: 'current' | 'desired', activityId: string, updates: Partial<Activity>) => {
     dispatch({ type: 'UPDATE_ACTIVITY', payload: { chartType, activityId, updates } });
   };
 
-  const deleteActivity = (chartType: 'positive' | 'negative', activityId: string) => {
+  const deleteActivity = (chartType: 'current' | 'desired', activityId: string) => {
     dispatch({ type: 'DELETE_ACTIVITY', payload: { chartType, activityId } });
   };
 
-  const reorderActivities = (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => {
+  const reorderActivities = (chartType: 'current' | 'desired', fromIndex: number, toIndex: number) => {
     dispatch({ type: 'REORDER_ACTIVITIES', payload: { chartType, fromIndex, toIndex } });
   };
 

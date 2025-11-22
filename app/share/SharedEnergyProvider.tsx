@@ -14,11 +14,11 @@ interface EnergyState {
 
 function createDefaultData(): EnergyPie {
   return {
-    version: '1.0',
-    positive: {
+    version: '2.0',
+    current: {
       activities: [],
     },
-    negative: {
+    desired: {
       activities: [],
     },
   };
@@ -50,10 +50,10 @@ interface EnergyContextType {
   state: EnergyState;
   dispatch: React.Dispatch<EnergyAction>;
   // Simplified interface - only what we need for shared pages
-  addActivity: (chartType: 'positive' | 'negative', activity: Omit<Activity, 'id'>) => void;
-  updateActivity: (chartType: 'positive' | 'negative', activityId: string, updates: Partial<Activity>) => void;
-  deleteActivity: (chartType: 'positive' | 'negative', activityId: string) => void;
-  reorderActivities: (chartType: 'positive' | 'negative', fromIndex: number, toIndex: number) => void;
+  addActivity: (chartType: 'current' | 'desired', activity: Omit<Activity, 'id'>) => void;
+  updateActivity: (chartType: 'current' | 'desired', activityId: string, updates: Partial<Activity>) => void;
+  deleteActivity: (chartType: 'current' | 'desired', activityId: string) => void;
+  reorderActivities: (chartType: 'current' | 'desired', fromIndex: number, toIndex: number) => void;
   resetData: () => void;
   saveData: () => void;
   loadData: () => void;

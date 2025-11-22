@@ -66,8 +66,13 @@ export function importData(jsonString: string): EnergyPie {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data = JSON.parse(jsonString) as any;
 
-    // Basic validation - we need at least positive or negative data
-    if (!data.positive && !data.negative) {
+    // Check for old version format (v1.0 with positive/negative) and reject it
+    if (data.positive || data.negative) {
+      throw new Error('Alte Datenformat-Version (v1.0) wird nicht mehr unterstützt.');
+    }
+
+    // Basic validation - we need at least current or desired data
+    if (!data.current && !data.desired) {
       throw new Error('Ungültiges Datenformat - keine Aktivitätsdaten gefunden');
     }
 
@@ -104,24 +109,27 @@ export function importData(jsonString: string): EnergyPie {
     };
 
     // Validate and process activities
-    const positiveActivities = data.positive?.activities ? validateActivities(data.positive.activities) : [];
-    const negativeActivities = data.negative?.activities ? validateActivities(data.negative.activities) : [];
+    const currentActivities = data.current?.activities ? validateActivities(data.current.activities) : [];
+    const desiredActivities = data.desired?.activities ? validateActivities(data.desired.activities) : [];
 
     // Create a complete data structure with defaults
     const result: EnergyPie = {
-      version: data.version || '1.0',
-      positive: {
-        activities: positiveActivities,
+      version: data.version || '2.0',
+      current: {
+        activities: currentActivities,
       },
-      negative: {
-        activities: negativeActivities,
+      desired: {
+        activities: desiredActivities,
       },
     };
 
     return result;
   } catch (error) {
     console.error('Failed to import data:', error);
-    if (error instanceof Error && (error.message.includes('Aktivität') || error.message.includes('Energieniveau'))) {
+    if (
+      error instanceof Error &&
+      (error.message.includes('Aktivität') || error.message.includes('Energieniveau') || error.message.includes('Alte Datenformat'))
+    ) {
       throw error; // Re-throw validation errors with specific messages
     }
     throw new Error('Ungültige Datei oder Datenformat');

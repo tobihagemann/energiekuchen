@@ -32,26 +32,26 @@ describe('SharingManager', () => {
 
     // Compare essential data without timestamps (since decoding adds new timestamps)
     expect(
-      decoded.positive.activities.map(a => ({
+      decoded.current.activities.map(a => ({
         id: a.id,
         name: a.name,
         value: a.value,
       }))
     ).toEqual(
-      mockData.positive.activities.map(a => ({
+      mockData.current.activities.map(a => ({
         id: a.id,
         name: a.name,
         value: a.value,
       }))
     );
     expect(
-      decoded.negative.activities.map(a => ({
+      decoded.desired.activities.map(a => ({
         id: a.id,
         name: a.name,
         value: a.value,
       }))
     ).toEqual(
-      mockData.negative.activities.map(a => ({
+      mockData.desired.activities.map(a => ({
         id: a.id,
         name: a.name,
         value: a.value,
@@ -113,15 +113,15 @@ describe('SharingManager', () => {
     const mockData = createMockEnergyPie();
     const jsonString = JSON.stringify({
       version: mockData.version,
-      positive: {
-        activities: mockData.positive.activities.map(a => ({
+      current: {
+        activities: mockData.current.activities.map(a => ({
           id: a.id,
           name: a.name,
           value: a.value,
         })),
       },
-      negative: {
-        activities: mockData.negative.activities.map(a => ({
+      desired: {
+        activities: mockData.desired.activities.map(a => ({
           id: a.id,
           name: a.name,
           value: a.value,
@@ -133,11 +133,11 @@ describe('SharingManager', () => {
     const decoded = SharingManager.decodeShareData(encoded);
 
     // Activities should only have id, name, and value
-    expect(decoded.positive.activities[0]).toHaveProperty('id');
-    expect(decoded.positive.activities[0]).toHaveProperty('name');
-    expect(decoded.positive.activities[0]).toHaveProperty('value');
-    expect(decoded.positive.activities[0]).not.toHaveProperty('createdAt');
-    expect(decoded.positive.activities[0]).not.toHaveProperty('updatedAt');
+    expect(decoded.current.activities[0]).toHaveProperty('id');
+    expect(decoded.current.activities[0]).toHaveProperty('name');
+    expect(decoded.current.activities[0]).toHaveProperty('value');
+    expect(decoded.current.activities[0]).not.toHaveProperty('createdAt');
+    expect(decoded.current.activities[0]).not.toHaveProperty('updatedAt');
   });
 
   test('should copy to clipboard successfully', async () => {

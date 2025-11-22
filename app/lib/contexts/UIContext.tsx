@@ -9,13 +9,13 @@ interface UIState {
   isImportModalOpen: boolean;
   isDeleteModalOpen: boolean;
   isEditModalOpen: boolean;
-  deleteConfirmation: { chartType: 'positive' | 'negative'; activityId: string } | null;
+  deleteConfirmation: { chartType: 'current' | 'desired'; activityId: string } | null;
 
   // Current view
   currentView: 'dashboard';
 
   // Form states
-  editingActivity: { chartType: 'positive' | 'negative'; activityId: string } | null;
+  editingActivity: { chartType: 'current' | 'desired'; activityId: string } | null;
 
   // UI preferences
   sidebarOpen: boolean;
@@ -31,9 +31,9 @@ type UIAction =
   | { type: 'CLOSE_DELETE_MODAL' }
   | { type: 'OPEN_EDIT_MODAL' }
   | { type: 'CLOSE_EDIT_MODAL' }
-  | { type: 'SET_DELETE_CONFIRMATION'; payload: { chartType: 'positive' | 'negative'; activityId: string } | null }
+  | { type: 'SET_DELETE_CONFIRMATION'; payload: { chartType: 'current' | 'desired'; activityId: string } | null }
   | { type: 'SET_CURRENT_VIEW'; payload: 'dashboard' }
-  | { type: 'SET_EDITING_ACTIVITY'; payload: { chartType: 'positive' | 'negative'; activityId: string } | null }
+  | { type: 'SET_EDITING_ACTIVITY'; payload: { chartType: 'current' | 'desired'; activityId: string } | null }
   | { type: 'TOGGLE_SIDEBAR' }
   | { type: 'SET_SIDEBAR_OPEN'; payload: boolean }
   | { type: 'SET_IS_MOBILE'; payload: boolean }
@@ -108,9 +108,9 @@ interface UIContextType {
   closeDeleteModal: () => void;
   openEditModal: () => void;
   closeEditModal: () => void;
-  setDeleteConfirmation: (confirmation: { chartType: 'positive' | 'negative'; activityId: string } | null) => void;
+  setDeleteConfirmation: (confirmation: { chartType: 'current' | 'desired'; activityId: string } | null) => void;
   setCurrentView: (view: 'dashboard') => void;
-  setEditingActivity: (activity: { chartType: 'positive' | 'negative'; activityId: string } | null) => void;
+  setEditingActivity: (activity: { chartType: 'current' | 'desired'; activityId: string } | null) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   setIsMobile: (isMobile: boolean) => void;
@@ -140,10 +140,10 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const closeDeleteModal = () => dispatch({ type: 'CLOSE_DELETE_MODAL' });
   const openEditModal = () => dispatch({ type: 'OPEN_EDIT_MODAL' });
   const closeEditModal = () => dispatch({ type: 'CLOSE_EDIT_MODAL' });
-  const setDeleteConfirmation = (confirmation: { chartType: 'positive' | 'negative'; activityId: string } | null) =>
+  const setDeleteConfirmation = (confirmation: { chartType: 'current' | 'desired'; activityId: string } | null) =>
     dispatch({ type: 'SET_DELETE_CONFIRMATION', payload: confirmation });
   const setCurrentView = (view: 'dashboard') => dispatch({ type: 'SET_CURRENT_VIEW', payload: view });
-  const setEditingActivity = (activity: { chartType: 'positive' | 'negative'; activityId: string } | null) =>
+  const setEditingActivity = (activity: { chartType: 'current' | 'desired'; activityId: string } | null) =>
     dispatch({ type: 'SET_EDITING_ACTIVITY', payload: activity });
   const toggleSidebar = () => dispatch({ type: 'TOGGLE_SIDEBAR' });
   const setSidebarOpen = (open: boolean) => dispatch({ type: 'SET_SIDEBAR_OPEN', payload: open });

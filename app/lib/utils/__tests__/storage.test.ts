@@ -192,7 +192,7 @@ describe('StorageManager', () => {
 
     const dataWithInvalidActivity = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [
           {
             id: '1',
@@ -201,7 +201,7 @@ describe('StorageManager', () => {
           },
         ],
       },
-      negative: {
+      desired: {
         activities: [],
       },
     };
@@ -218,7 +218,7 @@ describe('StorageManager', () => {
 
     const dataWithInvalidActivity = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [
           {
             id: '1',
@@ -227,7 +227,7 @@ describe('StorageManager', () => {
           },
         ],
       },
-      negative: {
+      desired: {
         activities: [],
       },
     };
@@ -244,7 +244,7 @@ describe('StorageManager', () => {
 
     const dataWithInvalidActivity = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [
           {
             id: '1',
@@ -253,7 +253,7 @@ describe('StorageManager', () => {
           },
         ],
       },
-      negative: {
+      desired: {
         activities: [],
       },
     };
@@ -270,7 +270,7 @@ describe('StorageManager', () => {
 
     const dataWithInvalidActivity = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [
           {
             id: '1',
@@ -279,7 +279,7 @@ describe('StorageManager', () => {
           },
         ],
       },
-      negative: {
+      desired: {
         activities: [],
       },
     };
@@ -292,19 +292,19 @@ describe('StorageManager', () => {
   test('should handle activities that are not arrays', () => {
     const invalidData = {
       version: '1.0',
-      positive: {
+      current: {
         activities: 'not an array', // Not an array
       },
     };
 
     const result = StorageManager.import(JSON.stringify(invalidData));
-    expect(result.positive.activities).toEqual([]);
+    expect(result.current.activities).toEqual([]);
   });
 
   test('should handle missing size field with default', () => {
     const dataWithoutSize = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [],
         // missing size field
       },
@@ -312,41 +312,47 @@ describe('StorageManager', () => {
 
     const result = StorageManager.import(JSON.stringify(dataWithoutSize));
     // Size fields no longer exist
-    expect(result.positive.activities).toEqual([]);
-    expect(result.negative.activities).toEqual([]);
+    expect(result.current.activities).toEqual([]);
+    expect(result.desired.activities).toEqual([]);
   });
 
-  test('should reject activity with value too low (0)', () => {
+  test('should reject activity with value of zero', () => {
     // Suppress console.error for this test as it's expected
     const originalError = console.error;
     console.error = jest.fn();
 
-    const dataWithInvalidValue = {
-      version: '1.0',
-      positive: {
+    const dataWithZeroValue = {
+      version: '2.0',
+      current: {
         activities: [
           {
             id: '1',
             name: 'Test Activity',
-            value: 0, // Invalid: below minimum
+            value: 0, // Invalid: zero is not allowed
           },
         ],
       },
+      desired: {
+        activities: [],
+      },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidValue))).toThrow('Energieniveau muss zwischen 1 und 5 liegen');
+    expect(() => StorageManager.import(JSON.stringify(dataWithZeroValue))).toThrow('Energieniveau darf nicht 0 sein');
 
     console.error = originalError;
   });
 
-  test('should reject activity with value too high (10)', () => {
+  test('should reject activity with value too high (6)', () => {
     // Suppress console.error for this test as it's expected
     const originalError = console.error;
     console.error = jest.fn();
 
     const dataWithInvalidValue = {
-      version: '1.0',
-      negative: {
+      version: '2.0',
+      current: {
+        activities: [],
+      },
+      desired: {
         activities: [
           {
             id: '1',
@@ -357,30 +363,52 @@ describe('StorageManager', () => {
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidValue))).toThrow('Energieniveau muss zwischen 1 und 5 liegen');
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidValue))).toThrow('Energieniveau muss zwischen -5 und +5 liegen');
 
     console.error = originalError;
   });
 
-  test('should reject activity with negative value', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
+  test('should accept activity with negative value in valid range', () => {
     const dataWithNegativeValue = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [
           {
             id: '1',
             name: 'Test Activity',
-            value: -5, // Invalid: negative value
+            value: -5, // Valid: -5 is in range
+          },
+        ],
+      },
+      desired: {
+        activities: [],
+      },
+    };
+
+    const result = StorageManager.import(JSON.stringify(dataWithNegativeValue));
+    expect(result.current.activities).toHaveLength(1);
+    expect(result.current.activities[0].value).toBe(-5);
+  });
+
+  test('should reject activity with value below minimum (-6)', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const dataWithTooLowValue = {
+      version: '1.0',
+      current: {
+        activities: [
+          {
+            id: '1',
+            name: 'Test Activity',
+            value: -6, // Invalid: below minimum
           },
         ],
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithNegativeValue))).toThrow('Energieniveau muss zwischen 1 und 5 liegen');
+    expect(() => StorageManager.import(JSON.stringify(dataWithTooLowValue))).toThrow('Energieniveau muss zwischen -5 und +5 liegen');
 
     console.error = originalError;
   });
@@ -392,7 +420,7 @@ describe('StorageManager', () => {
 
     const dataWithFloatValue = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [
           {
             id: '1',
@@ -408,29 +436,31 @@ describe('StorageManager', () => {
     console.error = originalError;
   });
 
-  test('should accept valid activities with values 1-5', () => {
+  test('should accept valid activities with values in range -5 to 5', () => {
     const validData = {
-      version: '1.0',
-      positive: {
+      version: '2.0',
+      current: {
         activities: [
-          { id: '1', name: 'Activity 1', value: 1 },
-          { id: '2', name: 'Activity 2', value: 5 },
+          { id: '1', name: 'Activity 1', value: -5 },
+          { id: '2', name: 'Activity 2', value: 1 },
           { id: '3', name: 'Activity 3', value: 5 },
         ],
       },
-      negative: {
+      desired: {
         activities: [
-          { id: '4', name: 'Activity 4', value: 3 },
+          { id: '4', name: 'Activity 4', value: -3 },
           { id: '5', name: 'Activity 5', value: 4 },
         ],
       },
     };
 
     const result = StorageManager.import(JSON.stringify(validData));
-    expect(result.positive.activities).toHaveLength(3);
-    expect(result.negative.activities).toHaveLength(2);
-    expect(result.positive.activities[0].value).toBe(1);
-    expect(result.positive.activities[2].value).toBe(5);
+    expect(result.current.activities).toHaveLength(3);
+    expect(result.desired.activities).toHaveLength(2);
+    expect(result.current.activities[0].value).toBe(-5);
+    expect(result.current.activities[1].value).toBe(1);
+    expect(result.current.activities[2].value).toBe(5);
+    expect(result.desired.activities[0].value).toBe(-3);
   });
 
   test('should clear localStorage when loading data with invalid activity value', () => {
@@ -440,12 +470,12 @@ describe('StorageManager', () => {
 
     const invalidData = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [
           { id: '1', name: 'Test Activity', value: 10 }, // Invalid value
         ],
       },
-      negative: {
+      desired: {
         activities: [],
       },
     };
@@ -466,12 +496,12 @@ describe('StorageManager', () => {
 
     const invalidData = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [
           { id: '1', name: '', value: 3 }, // Empty name
         ],
       },
-      negative: {
+      desired: {
         activities: [],
       },
     };
@@ -492,12 +522,12 @@ describe('StorageManager', () => {
 
     const invalidData = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [
           { id: '1', name: 'Test', value: 3.5 }, // Non-integer value
         ],
       },
-      negative: {
+      desired: {
         activities: [],
       },
     };
@@ -514,10 +544,10 @@ describe('StorageManager', () => {
   test('should successfully load valid data from localStorage', () => {
     const validData = {
       version: '1.0',
-      positive: {
+      current: {
         activities: [{ id: '1', name: 'Activity 1', value: 3 }],
       },
-      negative: {
+      desired: {
         activities: [{ id: '2', name: 'Activity 2', value: 4 }],
       },
     };
@@ -527,5 +557,49 @@ describe('StorageManager', () => {
     expect(loaded).toEqual(validData);
     // Verify localStorage was NOT cleared
     expect(localStorage.getItem('energiekuchen-data')).not.toBeNull();
+  });
+
+  test('should reject old data format with positive/negative properties', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const oldFormatData = {
+      version: '1.0',
+      positive: {
+        activities: [{ id: '1', name: 'Old Activity', value: 3 }],
+      },
+      negative: {
+        activities: [{ id: '2', name: 'Another Old Activity', value: 2 }],
+      },
+    };
+
+    expect(() => StorageManager.import(JSON.stringify(oldFormatData))).toThrow('Alte Datenformat-Version (v1.0) wird nicht mehr unterstützt.');
+
+    console.error = originalError;
+  });
+
+  test('should clear localStorage when loading old format data', () => {
+    // Suppress console.error for this test as it's expected
+    const originalError = console.error;
+    console.error = jest.fn();
+
+    const oldFormatData = {
+      version: '1.0',
+      positive: {
+        activities: [{ id: '1', name: 'Old Activity', value: 3 }],
+      },
+      negative: {
+        activities: [],
+      },
+    };
+
+    localStorage.setItem('energiekuchen-data', JSON.stringify(oldFormatData));
+    const loaded = StorageManager.load();
+    expect(loaded).toBeNull();
+    // Verify localStorage was cleared
+    expect(localStorage.getItem('energiekuchen-data')).toBeNull();
+
+    console.error = originalError;
   });
 });

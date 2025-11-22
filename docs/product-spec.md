@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool dient, um Nutzern dabei zu helfen, ihre Energiequellen und -verbraucher im täglichen Leben zu bewerten und auszubalancieren. Durch die Erstellung von Kreisdiagrammen können Nutzer Aktivitäten visualisieren, die entweder Energie verbrauchen oder wieder auffüllen, wodurch Ungleichgewichte identifiziert und Verbesserungen geplant werden können.
+Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool dient, um Nutzern dabei zu helfen, ihren aktuellen Energiezustand (Ist-Zustand) mit ihrem gewünschten Energiezustand (Wunsch-Zustand) zu vergleichen. Durch die Erstellung von zwei Kreisdiagrammen können Nutzer Aktivitäten visualisieren, die entweder Energie geben (positiv) oder nehmen (negativ), wodurch Ungleichgewichte identifiziert und Verbesserungen geplant werden können.
 
 ## Technische Spezifikationen
 
@@ -38,18 +38,22 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 #### 1.1 Dual-Chart System
 
-- **Positiver Energiekuchen:** Visualisiert energiegebende Aktivitäten
-  - Grüne Farbpalette
-  - Symbol: ⚡
-- **Negativer Energiekuchen:** Visualisiert energiezehrende Aktivitäten
-  - Rote Farbpalette
-  - Symbol: 🔋
+- **Ist-Zustand:** Visualisiert die aktuelle Energiesituation
+  - Gemischte Farbpalette (grün für energiegebende, rot für energiezehrende Aktivitäten)
+  - Symbol: 📍
+  - Enthält sowohl positive als auch negative Aktivitäten
+- **Wunsch-Zustand:** Visualisiert die gewünschte Energiesituation
+  - Gemischte Farbpalette (grün für energiegebende, rot für energiezehrende Aktivitäten)
+  - Symbol: 🎯
+  - Enthält sowohl positive als auch negative Aktivitäten
 
 #### 1.2 Aktivitäten-Management
 
 - **Hinzufügen von Aktivitäten:**
   - Eingabefeld für Aktivitätsname (max. 50 Zeichen)
-  - Slider oder Eingabefeld für Energielevel (1-5)
+  - Slider für Energielevel (-5 bis +5, 0 nicht erlaubt)
+    - Negative Werte (-5 bis -1): Energiezehrend (rot)
+    - Positive Werte (+1 bis +5): Energiegebend (grün)
   - Bestätigungsbutton
 - **Bearbeiten von Aktivitäten:**
   - Klick auf Aktivität öffnet Bearbeitungsmodus
@@ -65,7 +69,9 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 #### 1.3 Anpassungsoptionen
 
-- **Segment-Größe:** Benutzer können das Energielevel jeder Aktivität anpassen (1-5)
+- **Segment-Größe:** Benutzer können das Energielevel jeder Aktivität anpassen (-5 bis +5, ohne 0)
+  - Die Größe basiert auf dem Absolutwert des Energielevels
+  - Die Farbe basiert auf dem Vorzeichen (positiv = grün, negativ = rot)
 - **Farbschema:** Vordefinierte Farbpaletten für bessere Visualisierung
 
 ### 2. Datenmanagement
@@ -77,22 +83,32 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 ```json
 {
-  "version": "1.0",
-  "positive": {
+  "version": "2.0",
+  "current": {
     "activities": [
       {
         "id": "550e8400-e29b-41d4-a716-446655440000",
         "name": "Sport",
         "value": 3
-      }
-    ]
-  },
-  "negative": {
-    "activities": [
+      },
       {
         "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
         "name": "Überstunden",
-        "value": 3
+        "value": -4
+      }
+    ]
+  },
+  "desired": {
+    "activities": [
+      {
+        "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+        "name": "Sport",
+        "value": 5
+      },
+      {
+        "id": "8d8aa007-8df6-4f0f-b0e1-c7d5f3b8c9e2",
+        "name": "Überstunden",
+        "value": -1
       }
     ]
   }
@@ -158,12 +174,14 @@ Alle Farben folgen dem Tailwind CSS 4 Standard mit oklch-Farbformat (siehe `docs
 - **Hintergrund:**
   - gray-50 für Seitenhintergrund
   - Weiß (#fff) für Content-Bereiche, Karten und Modals
-- **Positiv (Energiegebend):** Grüntöne
-  - Level 1-5: Von green-300 bis green-700
+- **Positiv (Energiegebend):** Grüntöne für positive Werte (+1 bis +5)
+  - Absolute Level 1-5: Von green-300 bis green-700
   - Beispiel: `oklch(0.723 0.219 149.579)` für green-500
-- **Negativ (Energiezehrend):** Rottöne
-  - Level 1-5: Von red-300 bis red-700
+  - Farbe wird basierend auf Absolutwert bestimmt
+- **Negativ (Energiezehrend):** Rottöne für negative Werte (-1 bis -5)
+  - Absolute Level 1-5: Von red-300 bis red-700
   - Beispiel: `oklch(0.637 0.237 25.331)` für red-500
+  - Farbe wird basierend auf Absolutwert bestimmt
   - Zusätzlich red-500/600 für Lösch-Buttons und Fehlermeldungen
 
 ### 5. Interaktivität
@@ -205,14 +223,15 @@ Alle Farben folgen dem Tailwind CSS 4 Standard mit oklch-Farbformat (siehe `docs
 
 ### Hauptfunktionen
 
-1. **Als Nutzer möchte ich einen positiven Energiekuchen erstellen, um meine energiegebenden Aktivitäten zu visualisieren.**
-2. **Als Nutzer möchte ich einen negativen Energiekuchen erstellen, um meine energiezehrenden Aktivitäten zu identifizieren.**
-3. **Als Nutzer möchte ich Aktivitäten hinzufügen, bearbeiten und löschen können.**
-4. **Als Nutzer möchte ich die Größe der Segmente anpassen können, um die relative Wichtigkeit zu reflektieren.**
+1. **Als Nutzer möchte ich meinen Ist-Zustand visualisieren, um meine aktuelle Energiesituation zu verstehen.**
+2. **Als Nutzer möchte ich meinen Wunsch-Zustand erstellen, um mein Energieziel zu definieren.**
+3. **Als Nutzer möchte ich Aktivitäten mit positiven und negativen Energiewerten hinzufügen, bearbeiten und löschen können.**
+4. **Als Nutzer möchte ich die Energiewerte der Aktivitäten anpassen können (-5 bis +5), um deren Einfluss zu reflektieren.**
 5. **Als Nutzer möchte ich meine Energiekuchen speichern und später wieder öffnen können.**
 6. **Als Nutzer möchte ich meine Energiekuchen mit anderen teilen können.**
 7. **Als Nutzer möchte ich meine Daten exportieren und importieren können.**
 8. **Als Nutzer möchte ich eine mobile-optimierte Ansicht haben.**
+9. **Als Nutzer möchte ich sowohl energiegebende als auch energiezehrende Aktivitäten in einem Chart sehen können.**
 
 ## Wireframes & UI-Komponenten
 
@@ -254,7 +273,7 @@ Alle Farben folgen dem Tailwind CSS 4 Standard mit oklch-Farbformat (siehe `docs
 interface Activity {
   id: string; // UUID v4
   name: string;
-  value: number; // 1-5 (Energielevel)
+  value: number; // -5 to +5 (excluding 0) - Energielevel
 }
 
 interface EnergyChart {
@@ -263,8 +282,8 @@ interface EnergyChart {
 
 interface EnergyPie {
   version: string;
-  positive: EnergyChart;
-  negative: EnergyChart;
+  current: EnergyChart; // Ist-Zustand
+  desired: EnergyChart; // Wunsch-Zustand
 }
 ```
 

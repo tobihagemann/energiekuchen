@@ -22,7 +22,7 @@ import { useState } from 'react';
 import { SortableActivityItem } from './SortableActivityItem';
 
 interface ActivityListProps {
-  chartType: 'positive' | 'negative';
+  chartType: 'current' | 'desired';
   activities: Activity[];
   className?: string;
 }
@@ -103,26 +103,13 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
           <SortableContext items={activities.map(activity => activity.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-2" data-testid={`activities-list-${chartType}`}>
               {activities.map(activity => (
-                <SortableActivityItem
-                  key={activity.id}
-                  activity={activity}
-                  chartType={chartType}
-                  isEditing={false}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
+                <SortableActivityItem key={activity.id} activity={activity} isEditing={false} onEdit={handleEdit} onDelete={handleDelete} />
               ))}
             </div>
           </SortableContext>
           <DragOverlay dropAnimation={dropAnimationConfig}>
             {activeId ? (
-              <SortableActivityItem
-                activity={activities.find(a => a.id === activeId)!}
-                chartType={chartType}
-                isEditing={false}
-                onEdit={() => {}}
-                onDelete={() => {}}
-              />
+              <SortableActivityItem activity={activities.find(a => a.id === activeId)!} isEditing={false} onEdit={() => {}} onDelete={() => {}} />
             ) : null}
           </DragOverlay>
         </DndContext>

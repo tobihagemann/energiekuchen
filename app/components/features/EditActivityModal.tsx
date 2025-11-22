@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
-import { CHART_DEFAULTS, getColorForLevel } from '../../lib/utils/constants';
+import { CHART_DEFAULTS } from '../../lib/utils/constants';
 import { validateActivity } from '../../lib/utils/validation';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -91,7 +91,10 @@ export function EditActivityModal() {
   }
 
   const chartType = uiState.editingActivity.chartType;
-  const placeholder = chartType === 'positive' ? 'z.B. Sport, Entspannung, Zeit mit Freunden' : 'z.B. Überstunden, Stress, schwierige Gespräche';
+  const placeholder = chartType === 'current' ? 'z.B. Sport, Überstunden, schwierige Gespräche' : 'z.B. Entspannung, Zeit mit Freunden, Hobby';
+
+  const absValue = Math.abs(formData.value);
+  const isPositive = formData.value > 0;
 
   return (
     <Modal isOpen={uiState.isEditModalOpen} onClose={handleClose} title="Aktivität bearbeiten" titleIcon={<PencilIcon className="h-5 w-5" />} size="md">
@@ -115,11 +118,12 @@ export function EditActivityModal() {
               <div className="flex items-center gap-1 text-sm font-medium text-gray-700">
                 <span>Energieniveau:</span>
                 <div className="flex items-center">
-                  {Array.from({ length: formData.value }, (_, i) => (
-                    <span key={i} className="inline-block">
-                      {chartType === 'positive' ? <PlusCircleIcon className="h-4 w-4" /> : <MinusCircleIcon className="h-4 w-4" />}
-                    </span>
-                  ))}
+                  {formData.value !== 0 &&
+                    Array.from({ length: absValue }, (_, i) => (
+                      <span key={i} className="inline-block">
+                        {isPositive ? <PlusCircleIcon className="h-4 w-4" /> : <MinusCircleIcon className="h-4 w-4" />}
+                      </span>
+                    ))}
                 </div>
               </div>
             </div>
@@ -130,7 +134,6 @@ export function EditActivityModal() {
               max={CHART_DEFAULTS.maxLevel}
               step={1}
               data-testid="activity-value-slider"
-              fillColor={getColorForLevel(formData.value, chartType)}
             />
           </div>
 
