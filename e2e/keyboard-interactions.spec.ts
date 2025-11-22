@@ -15,8 +15,8 @@ test.describe('Keyboard Interactions', () => {
 
   test('should confirm delete all data with Enter key', async ({ page }) => {
     // Add some test data
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Test Activity');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Test Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Verify activity was added
     await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Test Activity');
@@ -36,11 +36,11 @@ test.describe('Keyboard Interactions', () => {
 
   test('should confirm delete activity with Enter key', async ({ page }) => {
     // Add two test activities
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Activity 1');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Activity 1');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Activity 2');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Activity 2');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Click delete button for first activity
     const deleteButton = page.locator('[data-testid^="delete-activity-button-"]').first();
@@ -64,8 +64,8 @@ test.describe('Keyboard Interactions', () => {
 
   test('should close delete modal with Escape key', async ({ page }) => {
     // Add test data
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Test Activity');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Test Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Open delete modal
     await openDeleteModal(page);
@@ -82,8 +82,8 @@ test.describe('Keyboard Interactions', () => {
 
   test('should close activity delete confirmation with Escape key', async ({ page }) => {
     // Add test activity
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Test Activity');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Test Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Click delete button for activity
     const deleteButton = page.locator('[data-testid^="delete-activity-button-"]').first();
@@ -104,8 +104,8 @@ test.describe('Keyboard Interactions', () => {
 
   test('should cancel edit activity with Escape key when focus is in edit form', async ({ page }) => {
     // Add test activity
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Original Name');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Original Name');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Wait for activity to be visible
     const activityItem = page.locator('[data-testid^="activity-item-"]').first();

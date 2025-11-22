@@ -15,10 +15,10 @@ test.describe('Activity Management', () => {
 
   test('should create a current state activity', async ({ page }) => {
     // Type activity name in the quick add input
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Yoga');
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Yoga');
 
     // Click the quick add button
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Verify the activity was created
     await expect(page.locator('[data-testid="activity-list-current"]')).toBeVisible();
@@ -27,10 +27,10 @@ test.describe('Activity Management', () => {
 
   test('should create a desired state activity', async ({ page }) => {
     // Type activity name in the quick add input
-    await page.locator('[data-testid="quick-add-input-desired"]').fill('Work Stress');
+    await page.locator('[data-testid="quick-add-input-negative-desired"]').fill('Work Stress');
 
     // Click the quick add button
-    await page.locator('[data-testid="quick-add-button-desired"]').click();
+    await page.locator('[data-testid="quick-add-button-negative-desired"]').click();
 
     // Verify the activity was created
     await expect(page.locator('[data-testid="activity-list-desired"]')).toBeVisible();
@@ -39,12 +39,12 @@ test.describe('Activity Management', () => {
 
   test('should create multiple activities in both states', async ({ page }) => {
     // Add a current state activity
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Morning Exercise');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Morning Exercise');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Add a desired state activity
-    await page.locator('[data-testid="quick-add-input-desired"]').fill('Late Night Work');
-    await page.locator('[data-testid="quick-add-button-desired"]').click();
+    await page.locator('[data-testid="quick-add-input-negative-desired"]').fill('Late Night Work');
+    await page.locator('[data-testid="quick-add-button-negative-desired"]').click();
 
     // Verify both activities are visible
     await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Morning Exercise');
@@ -57,13 +57,13 @@ test.describe('Activity Management', () => {
 
   test('should not allow submitting empty activity name', async ({ page }) => {
     // The button should be disabled when input is empty
-    await expect(page.locator('[data-testid="quick-add-button-current"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="quick-add-button-positive-current"]')).toBeDisabled();
 
     // Type a space (which should be trimmed)
-    await page.locator('[data-testid="quick-add-input-current"]').fill(' ');
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill(' ');
 
     // Button should still be disabled
-    await expect(page.locator('[data-testid="quick-add-button-current"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="quick-add-button-positive-current"]')).toBeDisabled();
 
     // Should still show empty state
     await expect(page.locator('[data-testid="empty-activities-current"]')).toBeVisible();
@@ -72,9 +72,9 @@ test.describe('Activity Management', () => {
 
   test('should return focus to input after adding activity', async ({ page }) => {
     // Add a current state activity
-    const currentInput = page.locator('[data-testid="quick-add-input-current"]');
+    const currentInput = page.locator('[data-testid="quick-add-input-positive-current"]');
     await currentInput.fill('Meditation');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Wait for the activity to be added
     await expect(page.locator('[data-testid="activity-list-current"]')).toBeVisible();
@@ -85,9 +85,9 @@ test.describe('Activity Management', () => {
     await expect(currentInput).toBeFocused();
 
     // Add a desired state activity
-    const desiredInput = page.locator('[data-testid="quick-add-input-desired"]');
+    const desiredInput = page.locator('[data-testid="quick-add-input-negative-desired"]');
     await desiredInput.fill('Überstunden');
-    await page.locator('[data-testid="quick-add-button-desired"]').click();
+    await page.locator('[data-testid="quick-add-button-negative-desired"]').click();
 
     // Wait for the activity to be added
     await expect(page.locator('[data-testid="activity-list-desired"]')).toBeVisible();

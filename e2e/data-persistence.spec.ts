@@ -8,14 +8,14 @@ test.describe('Data Persistence', () => {
 
   test('should persist activities in localStorage', async ({ page }) => {
     // Add some activities using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Morning Yoga');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Morning Yoga');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Wait for first activity to be added
     await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Morning Yoga');
 
-    await page.locator('[data-testid="quick-add-input-desired"]').fill('Late Night Work');
-    await page.locator('[data-testid="quick-add-button-desired"]').click();
+    await page.locator('[data-testid="quick-add-input-negative-desired"]').fill('Late Night Work');
+    await page.locator('[data-testid="quick-add-button-negative-desired"]').click();
 
     // Wait for second activity to be added
     await expect(page.locator('[data-testid="activity-list-desired"]')).toContainText('Late Night Work');
@@ -31,8 +31,8 @@ test.describe('Data Persistence', () => {
 
   test('should persist activity edits', async ({ page }) => {
     // Add an activity using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Exercise');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Exercise');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Edit the activity
     const activityItem = page.locator('[data-testid^="activity-item-"]').first();
@@ -65,11 +65,11 @@ test.describe('Data Persistence', () => {
 
   test('should persist activity deletions', async ({ page }) => {
     // Add multiple activities using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Reading');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Reading');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Meditation');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Meditation');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Verify both activities exist
     await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Reading');
@@ -135,8 +135,8 @@ test.describe('Data Persistence', () => {
 
   test('should handle localStorage corruption gracefully', async ({ page }) => {
     // Add an activity first using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Test Activity');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Test Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Verify activity exists
     await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Test Activity');
@@ -157,8 +157,8 @@ test.describe('Data Persistence', () => {
 
   test('should maintain data across browser navigation', async ({ page }) => {
     // Add activities using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Walking');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Walking');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Navigate away (simulate going to another site)
     await page.goto('about:blank');
@@ -173,8 +173,8 @@ test.describe('Data Persistence', () => {
 
   test('should preserve activity colors and values', async ({ page }) => {
     // Add an activity using the new inline form (creates with default values)
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Swimming');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Swimming');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Get the activity element to check its color
     const activityItem = page.locator('[data-testid^="activity-item-"]').first();

@@ -67,11 +67,11 @@ test.describe('Sharing Functionality', () => {
 
   test('should open share modal with activities', async ({ page }) => {
     // Add some activities first using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Yoga');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Yoga');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
-    await page.locator('[data-testid="quick-add-input-desired"]').fill('Stress');
-    await page.locator('[data-testid="quick-add-button-desired"]').click();
+    await page.locator('[data-testid="quick-add-input-negative-desired"]').fill('Stress');
+    await page.locator('[data-testid="quick-add-button-negative-desired"]').click();
 
     // Click share button in header
     await page.locator('[data-testid="share-button"]').click();
@@ -85,8 +85,8 @@ test.describe('Sharing Functionality', () => {
 
   test('should generate shareable URL with data', async ({ page }) => {
     // Add activities using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Morning Run');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Morning Run');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Open share modal
     await page.locator('[data-testid="share-button"]').click();
@@ -103,8 +103,8 @@ test.describe('Sharing Functionality', () => {
 
   test('should copy share URL to clipboard', async ({ page }) => {
     // Add an activity using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Reading');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Reading');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Open share modal
     await page.locator('[data-testid="share-button"]').click();
@@ -125,11 +125,11 @@ test.describe('Sharing Functionality', () => {
 
   test('should load shared data from URL', async ({ page }) => {
     // First create some data using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Swimming');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Swimming');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
-    await page.locator('[data-testid="quick-add-input-desired"]').fill('Long Meetings');
-    await page.locator('[data-testid="quick-add-button-desired"]').click();
+    await page.locator('[data-testid="quick-add-input-negative-desired"]').fill('Long Meetings');
+    await page.locator('[data-testid="quick-add-button-negative-desired"]').click();
 
     // Get share URL
     await page.locator('[data-testid="share-button"]').click();
@@ -166,8 +166,8 @@ test.describe('Sharing Functionality', () => {
 
   test('should close share modal', async ({ page }) => {
     // Add an activity using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Test Activity');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Test Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Open share modal
     await page.locator('[data-testid="share-button"]').click();
@@ -180,8 +180,8 @@ test.describe('Sharing Functionality', () => {
 
   test('should close share modal with escape key', async ({ page }) => {
     // Add an activity using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Test Activity');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Test Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Open share modal
     await page.locator('[data-testid="share-button"]').click();
@@ -203,11 +203,11 @@ test.describe('Sharing Functionality', () => {
 
   test('should show shared data in URL preview', async ({ page }) => {
     // Create activities for sharing using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Meditation');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Meditation');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
-    await page.locator('[data-testid="quick-add-input-desired"]').fill('Work Stress');
-    await page.locator('[data-testid="quick-add-button-desired"]').click();
+    await page.locator('[data-testid="quick-add-input-negative-desired"]').fill('Work Stress');
+    await page.locator('[data-testid="quick-add-button-negative-desired"]').click();
 
     // Open share modal
     await page.locator('[data-testid="share-button"]').click();
@@ -257,8 +257,8 @@ test.describe('Sharing Functionality', () => {
 
   test('should preserve original data when viewing shared link', async ({ page }) => {
     // Add personal data using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('My Personal Activity');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('My Personal Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Verify personal data exists
     await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('My Personal Activity');

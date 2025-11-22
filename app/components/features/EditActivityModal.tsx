@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
-import { CHART_DEFAULTS } from '../../lib/utils/constants';
 import { validateActivity } from '../../lib/utils/validation';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -25,7 +24,7 @@ export function EditActivityModal() {
 
   const [formData, setFormData] = useState({
     name: activity?.name || '',
-    value: activity?.value || CHART_DEFAULTS.defaultLevel,
+    value: activity?.value || 1,
   });
 
   const [errors, setErrors] = useState<string[]>([]);
@@ -50,7 +49,7 @@ export function EditActivityModal() {
   const handleClose = useCallback(() => {
     closeEditModal();
     setEditingActivity(null);
-    setFormData({ name: '', value: CHART_DEFAULTS.defaultLevel });
+    setFormData({ name: '', value: 1 });
     setErrors([]);
   }, [closeEditModal, setEditingActivity]);
 
@@ -127,14 +126,7 @@ export function EditActivityModal() {
                 </div>
               </div>
             </div>
-            <Slider
-              value={formData.value}
-              onChange={handleValueChange}
-              min={CHART_DEFAULTS.minLevel}
-              max={CHART_DEFAULTS.maxLevel}
-              step={1}
-              data-testid="activity-value-slider"
-            />
+            <Slider value={formData.value} onChange={handleValueChange} min={-5} max={5} step={1} data-testid="activity-value-slider" />
           </div>
 
           {errors.length > 0 && (

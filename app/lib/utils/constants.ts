@@ -22,14 +22,6 @@ const ENERGY_LEVEL_COLORS = {
   ],
 } as const;
 
-export const CHART_DEFAULTS = {
-  maxActivities: 20,
-  minLevel: -5,
-  maxLevel: 5,
-  defaultLevel: 1,
-  animationDuration: 300,
-} as const;
-
 // Helper function to get color for energy level
 // Positive values (1-5) use green colors, negative values (-1 to -5) use red colors
 export function getColorForLevel(level: number): string {

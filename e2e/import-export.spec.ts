@@ -42,11 +42,11 @@ test.describe('Import & Export Functionality', () => {
 
   test('should export energy data as JSON', async ({ page }) => {
     // Add some activities to export using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Morning Jog');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Morning Jog');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
-    await page.locator('[data-testid="quick-add-input-desired"]').fill('Email Overload');
-    await page.locator('[data-testid="quick-add-button-desired"]').click();
+    await page.locator('[data-testid="quick-add-input-negative-desired"]').fill('Email Overload');
+    await page.locator('[data-testid="quick-add-button-negative-desired"]').click();
 
     // Open share modal
     await page.locator('[data-testid="share-button"]').click();
@@ -189,8 +189,8 @@ test.describe('Import & Export Functionality', () => {
 
   test('should merge with existing data when importing', async ({ page }) => {
     // Add existing data using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Existing Activity');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Existing Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Verify existing data
     await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Existing Activity');
@@ -255,8 +255,8 @@ test.describe('Import & Export Functionality', () => {
 
   test('should replace existing data when importing with replace option', async ({ page }) => {
     // Add existing data using the new inline form
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Old Activity');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Old Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Import data with replace option
     const importData = {
@@ -314,14 +314,14 @@ test.describe('Import & Export Functionality', () => {
 
   test('should preserve data format during export/import cycle', async ({ page }) => {
     // Create activities using the new inline form (with default values)
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Activity A');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Activity A');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Activity B');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Activity B');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
-    await page.locator('[data-testid="quick-add-input-desired"]').fill('Negative Activity');
-    await page.locator('[data-testid="quick-add-button-desired"]').click();
+    await page.locator('[data-testid="quick-add-input-negative-desired"]').fill('Negative Activity');
+    await page.locator('[data-testid="quick-add-button-negative-desired"]').click();
 
     // Verify that activities were created and energy totals are displayed
     await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Activity A');
@@ -334,8 +334,8 @@ test.describe('Import & Export Functionality', () => {
 
   test('should delete all data', async ({ page }) => {
     // Add some test data
-    await page.locator('[data-testid="quick-add-input-current"]').fill('Test Activity');
-    await page.locator('[data-testid="quick-add-button-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Test Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
     // Open delete modal
     await openDeleteModal(page);
