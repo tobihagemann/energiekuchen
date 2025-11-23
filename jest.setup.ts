@@ -1,4 +1,10 @@
 import '@testing-library/jest-dom';
+import { TextDecoder, TextEncoder } from 'util';
+
+// Polyfill TextEncoder/TextDecoder for Jest environment
+global.TextEncoder = TextEncoder;
+// @ts-expect-error - TextDecoder types don't match exactly but work fine
+global.TextDecoder = TextDecoder;
 
 // Mock localStorage with actual storage behavior
 const localStorageMock = (() => {

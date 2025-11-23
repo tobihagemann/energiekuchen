@@ -27,7 +27,12 @@ export function ChartLegend({ activities, onActivityClick, className }: ChartLeg
             <ActivityColorBadge value={activity.value} />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium text-gray-900">{activity.name}</div>
-              <ActivityValueIndicator value={activity.value} className="text-xs text-gray-500" />
+              {activity.details && (
+                <div className="mt-1 text-xs whitespace-pre-wrap text-gray-600" data-testid={`activity-details-${activity.id}`}>
+                  {activity.details}
+                </div>
+              )}
+              <ActivityValueIndicator value={activity.value} className="mt-1 text-xs text-gray-500" />
             </div>
           </div>
         </div>
