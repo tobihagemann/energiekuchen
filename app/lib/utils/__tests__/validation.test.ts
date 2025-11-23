@@ -133,6 +133,65 @@ describe('Activity Validation', () => {
     expect(result.errors).toContain('Aktivitätsname ist erforderlich');
     expect(result.errors).toContain('Energieniveau muss zwischen -5 und +5 liegen');
   });
+
+  test('should accept activity with valid details', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 3,
+      details: 'Jeden Tag 30 Minuten joggen',
+    });
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity without details (optional field)', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 3,
+    });
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity with empty details string', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 3,
+      details: '',
+    });
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity with details at max length (150 chars)', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 3,
+      details: 'a'.repeat(150),
+    });
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should reject activity with details too long', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 3,
+      details: 'a'.repeat(151), // Too long
+    });
+    expect(result.isValid).toBe(false);
+    expect(result.errors).toContain('Details dürfen maximal 150 Zeichen haben');
+  });
+
+  test('should accept activity with details containing newlines', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 3,
+      details: 'Zeile 1\nZeile 2\nZeile 3',
+    });
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
 });
 
 describe('Chart Activities Validation', () => {

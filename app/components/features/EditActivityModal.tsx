@@ -11,6 +11,7 @@ import { ErrorMessage } from '../ui/ErrorMessage';
 import { Input } from '../ui/Input';
 import { Modal } from '../ui/Modal';
 import { Slider } from '../ui/Slider';
+import { Textarea } from '../ui/Textarea';
 
 export function EditActivityModal() {
   const { state: energyState, updateActivity } = useEnergy();
@@ -26,6 +27,7 @@ export function EditActivityModal() {
   const [formData, setFormData] = useState({
     name: activity?.name || '',
     value: activity?.value || 1,
+    details: activity?.details || '',
   });
 
   const [errors, setErrors] = useState<string[]>([]);
@@ -36,6 +38,7 @@ export function EditActivityModal() {
       setFormData({
         name: activity.name,
         value: activity.value,
+        details: activity.details || '',
       });
     }
   }, [activity]);
@@ -50,7 +53,7 @@ export function EditActivityModal() {
   const handleClose = useCallback(() => {
     closeEditModal();
     setEditingActivity(null);
-    setFormData({ name: '', value: 1 });
+    setFormData({ name: '', value: 1, details: '' });
     setErrors([]);
   }, [closeEditModal, setEditingActivity]);
 
@@ -108,6 +111,19 @@ export function EditActivityModal() {
               maxLength={50}
               error={errors.find(error => error.includes('name') || error.includes('Name'))}
               data-testid="activity-name-input"
+            />
+          </div>
+
+          <div>
+            <Textarea
+              label="Details (optional)"
+              value={formData.details}
+              onChange={e => setFormData(prev => ({ ...prev, details: e.target.value }))}
+              placeholder="Zusätzliche Informationen zur Aktivität"
+              maxLength={150}
+              rows={3}
+              error={errors.find(error => error.includes('Details'))}
+              data-testid="activity-details-input"
             />
           </div>
 

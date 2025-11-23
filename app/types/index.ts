@@ -2,6 +2,7 @@ export interface Activity {
   id: string;
   name: string;
   value: number; // -5 to +5 energy level (excluding 0)
+  details?: string; // Optional details text (max 150 chars)
 }
 
 interface EnergyChart {

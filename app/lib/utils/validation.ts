@@ -7,6 +7,9 @@ const VALIDATION_RULES = {
       maxLength: 50,
       pattern: /^[a-zA-ZäöüÄÖÜß0-9\s\-_.,!?]+$/,
     },
+    details: {
+      maxLength: 150,
+    },
     level: {
       min: -5,
       max: 5,
@@ -45,6 +48,10 @@ export function validateActivity(activity: Partial<Activity>): ValidationResult 
 
   if (activity.value === 0) {
     errors.push('Energieniveau darf nicht 0 sein');
+  }
+
+  if (activity.details && activity.details.length > VALIDATION_RULES.activity.details.maxLength) {
+    errors.push(`Details dürfen maximal ${VALIDATION_RULES.activity.details.maxLength} Zeichen haben`);
   }
 
   return {

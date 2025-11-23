@@ -40,7 +40,12 @@ export function SortableActivityItem({ activity, isEditing, onEdit, onDelete }: 
           <div className="truncate text-sm font-medium text-gray-900" data-testid={`activity-name-${activity.id}`}>
             {activity.name}
           </div>
-          <ActivityValueIndicator value={activity.value} className="text-xs text-gray-500" data-testid={`activity-value-${activity.id}`} />
+          {activity.details && (
+            <div className="mt-1 text-xs whitespace-pre-wrap text-gray-600" data-testid={`activity-details-${activity.id}`}>
+              {activity.details}
+            </div>
+          )}
+          <ActivityValueIndicator value={activity.value} className="mt-1 text-xs text-gray-500" data-testid={`activity-value-${activity.id}`} />
         </div>
       </div>
 

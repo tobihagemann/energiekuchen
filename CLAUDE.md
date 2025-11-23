@@ -77,6 +77,7 @@ interface Activity {
   id: string;
   name: string; // 1-50 chars, German characters
   value: number; // -5 to +5 energy level (excluding 0)
+  details?: string; // Optional details text (max 150 chars, supports multi-line)
   // Note: color is computed from value sign (positive = green, negative = red), not stored
   // Chart size is based on absolute value
 }
@@ -85,10 +86,12 @@ interface Activity {
 ### Validation Rules
 
 - Maximum 20 activities per chart (current/desired state)
+- Activity names: 1-50 characters, German characters allowed
 - Activity values must be integers from -5 to +5 (excluding 0)
   - Positive values (+1 to +5): Energy-giving activities (green)
   - Negative values (-5 to -1): Energy-draining activities (red)
   - Zero (0) is selectable in UI but not saveable (validation error)
+- Activity details (optional): max 150 characters, supports multi-line text
 - URL sharing limited to 2048 characters
 - All user-facing text must be in German
 
