@@ -1,7 +1,6 @@
 'use client';
 
 import { ActivityColorBadge } from '@/app/components/ui/ActivityColorBadge';
-import { ActivityValueIndicator } from '@/app/components/ui/ActivityValueIndicator';
 import { Button } from '@/app/components/ui/Button';
 import { Activity } from '@/app/types';
 import { useSortable } from '@dnd-kit/sortable';
@@ -45,7 +44,6 @@ export function SortableActivityItem({ activity, isEditing, onEdit, onDelete }: 
               {activity.details}
             </div>
           )}
-          <ActivityValueIndicator value={activity.value} className="mt-1 text-xs text-gray-500" data-testid={`activity-value-${activity.id}`} />
         </div>
       </div>
 

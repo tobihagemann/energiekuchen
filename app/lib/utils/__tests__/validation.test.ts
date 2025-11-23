@@ -20,7 +20,7 @@ describe('Activity Validation', () => {
   test('should reject invalid activity value', () => {
     const result = validateActivityValue(6);
     expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(result.errors[0]).toContain('Anteil muss zwischen -5 und +5 liegen');
   });
 
   test('should reject activity name that is too long', () => {
@@ -69,13 +69,13 @@ describe('Activity Validation', () => {
   test('should reject activity value of zero', () => {
     const result = validateActivityValue(0);
     expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Energieniveau darf nicht 0 sein');
+    expect(result.errors[0]).toContain('Anteil darf nicht 0 sein');
   });
 
   test('should reject activity value below minimum', () => {
     const result = validateActivityValue(-6);
     expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(result.errors[0]).toContain('Anteil muss zwischen -5 und +5 liegen');
   });
 
   test('should accept negative activity values', () => {
@@ -87,7 +87,7 @@ describe('Activity Validation', () => {
   test('should reject non-integer activity value', () => {
     const result = validateActivityValue(3.5);
     expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Energieniveau muss eine ganze Zahl sein');
+    expect(result.errors[0]).toContain('Anteil muss eine ganze Zahl sein');
   });
 
   test('should reject activity with name too long', () => {
@@ -123,7 +123,7 @@ describe('Activity Validation', () => {
       value: 6, // Too high value
     });
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(result.errors).toContain('Anteil muss zwischen -5 und +5 liegen');
   });
 
   test('should reject activity with value of zero', () => {
@@ -132,7 +132,7 @@ describe('Activity Validation', () => {
       value: 0, // Zero value
     });
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Energieniveau darf nicht 0 sein');
+    expect(result.errors).toContain('Anteil darf nicht 0 sein');
   });
 
   test('should reject activity with value too low', () => {
@@ -141,7 +141,7 @@ describe('Activity Validation', () => {
       value: -6, // Too low value
     });
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(result.errors).toContain('Anteil muss zwischen -5 und +5 liegen');
   });
 
   test('should accept activity with negative value', () => {
@@ -159,7 +159,7 @@ describe('Activity Validation', () => {
       // value is missing
     });
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(result.errors).toContain('Anteil muss zwischen -5 und +5 liegen');
   });
 
   test('should reject activity with multiple validation errors', () => {
@@ -170,7 +170,7 @@ describe('Activity Validation', () => {
     expect(result.isValid).toBe(false);
     expect(result.errors).toHaveLength(2);
     expect(result.errors).toContain('Aktivitätsname ist erforderlich');
-    expect(result.errors).toContain('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(result.errors).toContain('Anteil muss zwischen -5 und +5 liegen');
   });
 
   test('should accept activity with valid details', () => {

@@ -41,7 +41,7 @@ describe('useChartData', () => {
 
     expect(result.current.activities).toEqual(mockActivities);
     expect(result.current.chartData.labels).toEqual(['Activity 1', 'Activity 2']);
-    expect(result.current.chartData.datasets[0].data).toEqual([3, 4]);
+    expect(result.current.chartData.datasets[0].data).toEqual([4, 8]); // Exponential: 2^(3-1)=4, 2^(4-1)=8
     // backgroundColor should now be based on energy levels, not the removed color property
   });
 
@@ -148,7 +148,7 @@ describe('useChartData', () => {
     const { result } = renderHook(() => useChartData('current', null));
 
     expect(result.current.chartData.labels).toEqual(['Activity 1']);
-    expect(result.current.chartData.datasets[0].data).toEqual([3]);
+    expect(result.current.chartData.datasets[0].data).toEqual([4]); // Exponential: 2^(3-1)=4
   });
 
   it("should memoize chart data when activities don't change", () => {

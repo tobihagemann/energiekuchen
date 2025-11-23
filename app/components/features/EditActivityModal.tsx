@@ -130,7 +130,7 @@ export function EditActivityModal() {
           <div>
             <div className="mb-2">
               <div className="flex items-center gap-1 text-sm font-medium text-gray-700">
-                <span>Energieniveau:</span>
+                <span>Anteil:</span>
                 <ActivityValueIndicator value={formData.value} />
               </div>
             </div>

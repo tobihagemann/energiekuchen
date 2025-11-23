@@ -79,7 +79,8 @@ interface Activity {
   value: number; // -5 to +5 energy level (excluding 0)
   details?: string; // Optional details text (max 150 chars, supports multi-line)
   // Note: color is computed from value sign (positive = green, negative = red), not stored
-  // Chart size is based on absolute value
+  // Chart size is based on exponential transformation: 2^(|value|-1)
+  // This creates dramatic visual hierarchy (e.g., value 5 = 16x larger than value 1)
 }
 ```
 

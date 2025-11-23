@@ -169,4 +169,57 @@ describe('SharingManager', () => {
     const testText = 'test clipboard text';
     await expect(SharingManager.copyToClipboard(testText)).rejects.toThrow();
   });
+
+  test('should include details field in shared data when present', async () => {
+    const mockData = createMockEnergyPie();
+    // Add details to activities
+    mockData.current.activities[0].details = 'Test details for current';
+    mockData.desired.activities[0].details = 'Test details for desired';
+
+    const shareData = await SharingManager.generateShareData(mockData);
+    const decoded = SharingManager.decodeShareData(shareData.encoded);
+
+    expect(decoded.current.activities[0].details).toBe('Test details for current');
+    expect(decoded.desired.activities[0].details).toBe('Test details for desired');
+  });
+
+  test('should exclude details field when not present', async () => {
+    const mockData = createMockEnergyPie();
+    // Ensure no details are set
+    mockData.current.activities.forEach(a => delete a.details);
+    mockData.desired.activities.forEach(a => delete a.details);
+
+    const shareData = await SharingManager.generateShareData(mockData);
+    const decoded = SharingManager.decodeShareData(shareData.encoded);
+
+    expect(decoded.current.activities[0]).not.toHaveProperty('details');
+    expect(decoded.desired.activities[0]).not.toHaveProperty('details');
+  });
+
+  test('should preserve multi-line details in shared data', async () => {
+    const mockData = createMockEnergyPie();
+    const multiLineDetails = 'Line 1\nLine 2\nLine 3';
+    mockData.current.activities[0].details = multiLineDetails;
+
+    const shareData = await SharingManager.generateShareData(mockData);
+    const decoded = SharingManager.decodeShareData(shareData.encoded);
+
+    expect(decoded.current.activities[0].details).toBe(multiLineDetails);
+  });
+
+  test('should handle Unicode characters in activity names and details', async () => {
+    const mockData = createMockEnergyPie();
+    mockData.current.activities[0].name = 'Bücher lesen 📚';
+    mockData.current.activities[0].details = 'Jeden Tag → 30 Minuten\nÄöüß und émojis ✨';
+    mockData.desired.activities[0].name = '运动 (Sport)';
+    mockData.desired.activities[0].details = '🏃‍♂️ Joggen → Park';
+
+    const shareData = await SharingManager.generateShareData(mockData);
+    const decoded = SharingManager.decodeShareData(shareData.encoded);
+
+    expect(decoded.current.activities[0].name).toBe('Bücher lesen 📚');
+    expect(decoded.current.activities[0].details).toBe('Jeden Tag → 30 Minuten\nÄöüß und émojis ✨');
+    expect(decoded.desired.activities[0].name).toBe('运动 (Sport)');
+    expect(decoded.desired.activities[0].details).toBe('🏃‍♂️ Joggen → Park');
+  });
 });

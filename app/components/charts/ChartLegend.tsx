@@ -1,7 +1,6 @@
 'use client';
 
 import { ActivityColorBadge } from '@/app/components/ui/ActivityColorBadge';
-import { ActivityValueIndicator } from '@/app/components/ui/ActivityValueIndicator';
 import { cn } from '@/app/lib/utils/cn';
 import { Activity } from '@/app/types';
 
@@ -32,7 +31,6 @@ export function ChartLegend({ activities, onActivityClick, className }: ChartLeg
                   {activity.details}
                 </div>
               )}
-              <ActivityValueIndicator value={activity.value} className="mt-1 text-xs text-gray-500" />
             </div>
           </div>
         </div>

@@ -33,7 +33,10 @@ export function useChartData(chartType: ChartType, editingActivity: { chartType:
       labels: chart.activities.map(activity => activity.name),
       datasets: [
         {
-          data: chart.activities.map(activity => Math.abs(activity.value)),
+          data: chart.activities.map(activity => {
+            const absValue = Math.abs(activity.value);
+            return Math.pow(2, absValue - 1);
+          }),
           backgroundColor: chart.activities.map(activity => getColorForLevel(activity.value)),
           borderColor: chart.activities.map(activity => {
             // Check if this activity is being edited

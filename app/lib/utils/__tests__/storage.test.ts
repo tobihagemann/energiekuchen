@@ -232,7 +232,7 @@ describe('StorageManager', () => {
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss ein Energieniveau haben');
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Anteil haben');
 
     console.error = originalError;
   });
@@ -284,7 +284,7 @@ describe('StorageManager', () => {
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss ein Energieniveau haben');
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Anteil haben');
 
     console.error = originalError;
   });
@@ -337,7 +337,7 @@ describe('StorageManager', () => {
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithZeroValue))).toThrow('Energieniveau darf nicht 0 sein');
+    expect(() => StorageManager.import(JSON.stringify(dataWithZeroValue))).toThrow('Anteil darf nicht 0 sein');
 
     console.error = originalError;
   });
@@ -363,7 +363,7 @@ describe('StorageManager', () => {
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidValue))).toThrow('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidValue))).toThrow('Anteil muss zwischen -5 und +5 liegen');
 
     console.error = originalError;
   });
@@ -408,7 +408,7 @@ describe('StorageManager', () => {
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithTooLowValue))).toThrow('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(() => StorageManager.import(JSON.stringify(dataWithTooLowValue))).toThrow('Anteil muss zwischen -5 und +5 liegen');
 
     console.error = originalError;
   });
@@ -431,7 +431,7 @@ describe('StorageManager', () => {
       },
     };
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithFloatValue))).toThrow('Energieniveau muss eine ganze Zahl sein');
+    expect(() => StorageManager.import(JSON.stringify(dataWithFloatValue))).toThrow('Anteil muss eine ganze Zahl sein');
 
     console.error = originalError;
   });

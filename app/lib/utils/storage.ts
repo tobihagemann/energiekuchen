@@ -118,7 +118,7 @@ export function importData(jsonString: string): EnergyPie {
           throw new Error('Aktivität muss einen Namen haben');
         }
         if (act.value === undefined || typeof act.value !== 'number') {
-          throw new Error('Aktivität muss ein Energieniveau haben');
+          throw new Error('Aktivität muss einen Anteil haben');
         }
 
         // Validate that value is within the allowed range
@@ -149,7 +149,7 @@ export function importData(jsonString: string): EnergyPie {
     return result;
   } catch (error) {
     console.error('Failed to import data:', error);
-    if (error instanceof Error && (error.message.includes('Aktivität') || error.message.includes('Energieniveau'))) {
+    if (error instanceof Error && (error.message.includes('Aktivität') || error.message.includes('Anteil'))) {
       throw error; // Re-throw validation errors with specific messages
     }
     throw new Error('Ungültige Datei oder Datenformat');
