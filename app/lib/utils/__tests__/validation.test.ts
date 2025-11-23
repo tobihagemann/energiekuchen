@@ -30,10 +30,40 @@ describe('Activity Validation', () => {
     expect(result.errors[0]).toContain('Name darf maximal 50 Zeichen haben');
   });
 
-  test('should reject activity name with invalid characters', () => {
-    const result = validateActivityName('Test@#$%');
-    expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Name enthält ungültige Zeichen');
+  test('should accept activity name with emojis', () => {
+    const result = validateActivityName('Sport 🏃');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity name with special symbols', () => {
+    const result = validateActivityName('80% Arbeit');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity name with parentheses', () => {
+    const result = validateActivityName('Familie (Qualitätszeit)');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity name with accented characters', () => {
+    const result = validateActivityName('Café');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity name with math symbols', () => {
+    const result = validateActivityName('5+5 Minuten');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity name with quotes', () => {
+    const result = validateActivityName('"Me-Time"');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
   });
 
   test('should reject activity value of zero', () => {
@@ -69,13 +99,22 @@ describe('Activity Validation', () => {
     expect(result.errors).toContain('Aktivitätsname darf maximal 50 Zeichen haben');
   });
 
-  test('should reject activity with invalid name characters', () => {
+  test('should accept activity with emojis in name', () => {
     const result = validateActivity({
-      name: 'Test@#$%', // Invalid characters
+      name: 'Kaffee ☕',
       value: 5,
     });
-    expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Aktivitätsname enthält ungültige Zeichen');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity with special symbols in name', () => {
+    const result = validateActivity({
+      name: '100% Entspannung',
+      value: 4,
+    });
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
   });
 
   test('should reject activity with value too high', () => {

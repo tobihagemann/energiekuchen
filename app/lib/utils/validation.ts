@@ -5,7 +5,9 @@ const VALIDATION_RULES = {
     name: {
       minLength: 1,
       maxLength: 50,
-      pattern: /^[a-zA-ZäöüÄÖÜß0-9\s\-_.,!?]+$/,
+      // Allow all printable Unicode characters (emojis, accents, symbols)
+      // Only block control characters (null bytes, line breaks, etc.)
+      pattern: /^[^\x00-\x1F\x7F]+$/,
     },
     details: {
       maxLength: 150,
