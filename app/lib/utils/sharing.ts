@@ -15,6 +15,7 @@ export class SharingManager {
             id: a.id,
             name: a.name,
             value: a.value,
+            ...(a.details && { details: a.details }),
           })),
         },
         desired: {
@@ -22,12 +23,16 @@ export class SharingManager {
             id: a.id,
             name: a.name,
             value: a.value,
+            ...(a.details && { details: a.details }),
           })),
         },
       };
 
       const jsonString = JSON.stringify(shareableData);
-      const encoded = btoa(jsonString);
+      // Use TextEncoder to handle Unicode characters properly
+      const utf8Bytes = new TextEncoder().encode(jsonString);
+      const binaryString = Array.from(utf8Bytes, byte => String.fromCharCode(byte)).join('');
+      const encoded = btoa(binaryString);
       const url = `${this.BASE_URL}/share/#${encoded}`;
 
       if (url.length > MAX_URL_LENGTH) {
@@ -46,7 +51,10 @@ export class SharingManager {
 
   static decodeShareData(encoded: string): EnergyPie {
     try {
-      const jsonString = atob(encoded);
+      // Decode base64 and convert back to UTF-8
+      const binaryString = atob(encoded);
+      const bytes = Uint8Array.from(binaryString, char => char.charCodeAt(0));
+      const jsonString = new TextDecoder().decode(bytes);
       const data = JSON.parse(jsonString);
 
       // Add missing fields for full EnergyPie object

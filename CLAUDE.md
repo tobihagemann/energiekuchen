@@ -24,11 +24,11 @@ npm run build         # Build for production
 
 ### Tech Stack
 
-- **Next.js 15** with App Router for static site generation
+- **Next.js 16** with App Router for static site generation
 - **React 19** with TypeScript for component development
 - **Chart.js** for interactive pie chart visualizations
 - **React Context API** with useReducer for state management
-- **Tailwind CSS** for responsive styling
+- **Tailwind CSS 4** for responsive styling
 - **Client-side only** - no server dependencies, all data in localStorage
 
 ### Core Architecture Pattern
@@ -75,20 +75,24 @@ The app uses two main contexts:
 ```typescript
 interface Activity {
   id: string;
-  name: string; // 1-50 chars, German characters
+  name: string; // 1-50 chars, supports all Unicode (emojis, accents, symbols)
   value: number; // -5 to +5 energy level (excluding 0)
+  details?: string; // Optional details text (max 150 chars, supports multi-line)
   // Note: color is computed from value sign (positive = green, negative = red), not stored
-  // Chart size is based on absolute value
+  // Chart size is based on exponential transformation: 2^(|value|-1)
+  // This creates dramatic visual hierarchy (e.g., value 5 = 16x larger than value 1)
 }
 ```
 
 ### Validation Rules
 
 - Maximum 20 activities per chart (current/desired state)
+- Activity names: 1-50 characters, supports all Unicode characters (emojis, accented letters, symbols, etc.)
 - Activity values must be integers from -5 to +5 (excluding 0)
   - Positive values (+1 to +5): Energy-giving activities (green)
   - Negative values (-5 to -1): Energy-draining activities (red)
   - Zero (0) is selectable in UI but not saveable (validation error)
+- Activity details (optional): max 150 characters, supports multi-line text
 - URL sharing limited to 2048 characters
 - All user-facing text must be in German
 

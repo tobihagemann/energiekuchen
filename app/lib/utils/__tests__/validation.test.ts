@@ -20,7 +20,7 @@ describe('Activity Validation', () => {
   test('should reject invalid activity value', () => {
     const result = validateActivityValue(6);
     expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(result.errors[0]).toContain('Anteil muss zwischen -5 und +5 liegen');
   });
 
   test('should reject activity name that is too long', () => {
@@ -30,22 +30,52 @@ describe('Activity Validation', () => {
     expect(result.errors[0]).toContain('Name darf maximal 50 Zeichen haben');
   });
 
-  test('should reject activity name with invalid characters', () => {
-    const result = validateActivityName('Test@#$%');
-    expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Name enthält ungültige Zeichen');
+  test('should accept activity name with emojis', () => {
+    const result = validateActivityName('Sport 🏃');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity name with special symbols', () => {
+    const result = validateActivityName('80% Arbeit');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity name with parentheses', () => {
+    const result = validateActivityName('Familie (Qualitätszeit)');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity name with accented characters', () => {
+    const result = validateActivityName('Café');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity name with math symbols', () => {
+    const result = validateActivityName('5+5 Minuten');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity name with quotes', () => {
+    const result = validateActivityName('"Me-Time"');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
   });
 
   test('should reject activity value of zero', () => {
     const result = validateActivityValue(0);
     expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Energieniveau darf nicht 0 sein');
+    expect(result.errors[0]).toContain('Anteil darf nicht 0 sein');
   });
 
   test('should reject activity value below minimum', () => {
     const result = validateActivityValue(-6);
     expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(result.errors[0]).toContain('Anteil muss zwischen -5 und +5 liegen');
   });
 
   test('should accept negative activity values', () => {
@@ -57,7 +87,7 @@ describe('Activity Validation', () => {
   test('should reject non-integer activity value', () => {
     const result = validateActivityValue(3.5);
     expect(result.isValid).toBe(false);
-    expect(result.errors[0]).toContain('Energieniveau muss eine ganze Zahl sein');
+    expect(result.errors[0]).toContain('Anteil muss eine ganze Zahl sein');
   });
 
   test('should reject activity with name too long', () => {
@@ -69,13 +99,22 @@ describe('Activity Validation', () => {
     expect(result.errors).toContain('Aktivitätsname darf maximal 50 Zeichen haben');
   });
 
-  test('should reject activity with invalid name characters', () => {
+  test('should accept activity with emojis in name', () => {
     const result = validateActivity({
-      name: 'Test@#$%', // Invalid characters
+      name: 'Kaffee ☕',
       value: 5,
     });
-    expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Aktivitätsname enthält ungültige Zeichen');
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity with special symbols in name', () => {
+    const result = validateActivity({
+      name: '100% Entspannung',
+      value: 4,
+    });
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
   });
 
   test('should reject activity with value too high', () => {
@@ -84,7 +123,7 @@ describe('Activity Validation', () => {
       value: 6, // Too high value
     });
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(result.errors).toContain('Anteil muss zwischen -5 und +5 liegen');
   });
 
   test('should reject activity with value of zero', () => {
@@ -93,7 +132,7 @@ describe('Activity Validation', () => {
       value: 0, // Zero value
     });
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Energieniveau darf nicht 0 sein');
+    expect(result.errors).toContain('Anteil darf nicht 0 sein');
   });
 
   test('should reject activity with value too low', () => {
@@ -102,7 +141,7 @@ describe('Activity Validation', () => {
       value: -6, // Too low value
     });
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(result.errors).toContain('Anteil muss zwischen -5 und +5 liegen');
   });
 
   test('should accept activity with negative value', () => {
@@ -120,7 +159,7 @@ describe('Activity Validation', () => {
       // value is missing
     });
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(result.errors).toContain('Anteil muss zwischen -5 und +5 liegen');
   });
 
   test('should reject activity with multiple validation errors', () => {
@@ -131,7 +170,66 @@ describe('Activity Validation', () => {
     expect(result.isValid).toBe(false);
     expect(result.errors).toHaveLength(2);
     expect(result.errors).toContain('Aktivitätsname ist erforderlich');
-    expect(result.errors).toContain('Energieniveau muss zwischen -5 und +5 liegen');
+    expect(result.errors).toContain('Anteil muss zwischen -5 und +5 liegen');
+  });
+
+  test('should accept activity with valid details', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 3,
+      details: 'Jeden Tag 30 Minuten joggen',
+    });
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity without details (optional field)', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 3,
+    });
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity with empty details string', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 3,
+      details: '',
+    });
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should accept activity with details at max length (150 chars)', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 3,
+      details: 'a'.repeat(150),
+    });
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('should reject activity with details too long', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 3,
+      details: 'a'.repeat(151), // Too long
+    });
+    expect(result.isValid).toBe(false);
+    expect(result.errors).toContain('Details dürfen maximal 150 Zeichen haben');
+  });
+
+  test('should accept activity with details containing newlines', () => {
+    const result = validateActivity({
+      name: 'Sport',
+      value: 3,
+      details: 'Zeile 1\nZeile 2\nZeile 3',
+    });
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
   });
 });
 

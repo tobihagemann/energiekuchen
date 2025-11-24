@@ -216,4 +216,129 @@ test.describe('Activity Management', () => {
     const copyButtonInDesired = desiredEmptyState.locator('[data-testid="copy-from-current-button"]');
     await expect(copyButtonInDesired).toBeVisible();
   });
+
+  test('should add activity with details via edit modal', async ({ page }) => {
+    // Add an activity first
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Sport');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Sport');
+
+    // Get the activity ID and click edit button
+    const activityItem = page.locator('[data-testid^="activity-item-"]').first();
+    const activityId = await activityItem.getAttribute('data-testid');
+    const id = activityId?.replace('activity-item-', '') || '';
+    const editButton = page.locator(`[data-testid="edit-activity-button-${id}"]`);
+    await editButton.click();
+
+    // Wait for edit modal to open
+    const editModal = page.locator('[data-testid="edit-activity-modal"]');
+    await expect(editModal).toBeVisible();
+
+    // Fill in details
+    const detailsInput = editModal.locator('[data-testid="activity-details-input"]');
+    await expect(detailsInput).toBeVisible();
+    await detailsInput.fill('Jeden Tag 30 Minuten joggen');
+
+    // Submit the form
+    await editModal.locator('[data-testid="submit-activity-button"]').click();
+
+    // Wait for modal to close
+    await expect(editModal).not.toBeVisible();
+
+    // Verify details are displayed in activity list
+    const activityDetails = page.locator(`[data-testid="activity-details-${id}"]`);
+    await expect(activityDetails).toBeVisible();
+    await expect(activityDetails).toContainText('Jeden Tag 30 Minuten joggen');
+  });
+
+  test('should display multi-line details in activity list', async ({ page }) => {
+    // Add an activity
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Meditation');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Meditation');
+
+    // Edit activity to add multi-line details
+    const activityItem = page.locator('[data-testid^="activity-item-"]').first();
+    const activityId = await activityItem.getAttribute('data-testid');
+    const id = activityId?.replace('activity-item-', '') || '';
+    await page.locator(`[data-testid="edit-activity-button-${id}"]`).click();
+
+    // Fill in multi-line details
+    const editModal = page.locator('[data-testid="edit-activity-modal"]');
+    const detailsInput = editModal.locator('[data-testid="activity-details-input"]');
+    await detailsInput.fill('Morgens 10 Minuten\nAbends 10 Minuten\nFokus auf Atmung');
+    await editModal.locator('[data-testid="submit-activity-button"]').click();
+
+    // Wait for modal to close
+    await expect(editModal).not.toBeVisible();
+
+    // Verify multi-line details are displayed
+    const activityDetails = page.locator(`[data-testid="activity-details-${id}"]`);
+    await expect(activityDetails).toBeVisible();
+    await expect(activityDetails).toContainText('Morgens 10 Minuten');
+    await expect(activityDetails).toContainText('Abends 10 Minuten');
+    await expect(activityDetails).toContainText('Fokus auf Atmung');
+  });
+
+  test('should enforce 150 character limit for details', async ({ page }) => {
+    // Add an activity
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Lesen');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Lesen');
+
+    // Edit activity
+    const activityItem = page.locator('[data-testid^="activity-item-"]').first();
+    const activityId = await activityItem.getAttribute('data-testid');
+    const id = activityId?.replace('activity-item-', '') || '';
+    await page.locator(`[data-testid="edit-activity-button-${id}"]`).click();
+
+    // Try to enter more than 150 characters
+    const editModal = page.locator('[data-testid="edit-activity-modal"]');
+    const detailsInput = editModal.locator('[data-testid="activity-details-input"]');
+    const longText = 'a'.repeat(151);
+    await detailsInput.fill(longText);
+
+    // The maxLength attribute should prevent entering more than 150 characters
+    // Verify the value is truncated to 150 characters
+    const actualValue = await detailsInput.inputValue();
+    expect(actualValue.length).toBe(150);
+  });
+
+  test('should allow editing details to empty string', async ({ page }) => {
+    // Add an activity
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Wandern');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Wandern');
+
+    // Edit activity and add details
+    const activityItem = page.locator('[data-testid^="activity-item-"]').first();
+    const activityId = await activityItem.getAttribute('data-testid');
+    const id = activityId?.replace('activity-item-', '') || '';
+    await page.locator(`[data-testid="edit-activity-button-${id}"]`).click();
+
+    const editModal = page.locator('[data-testid="edit-activity-modal"]');
+    const detailsInput = editModal.locator('[data-testid="activity-details-input"]');
+    await detailsInput.fill('Jedes Wochenende');
+    await editModal.locator('[data-testid="submit-activity-button"]').click();
+    await expect(editModal).not.toBeVisible();
+
+    // Verify details are shown
+    const detailsLocator = page.locator(`[data-testid="activity-details-${id}"]`);
+    await expect(detailsLocator).toBeVisible();
+    await expect(detailsLocator).toContainText('Jedes Wochenende');
+
+    // Edit again and remove details
+    await page.locator(`[data-testid="edit-activity-button-${id}"]`).click();
+    await expect(editModal).toBeVisible();
+    await detailsInput.fill('');
+    await editModal.locator('[data-testid="submit-activity-button"]').click();
+    await expect(editModal).not.toBeVisible();
+
+    // Wait a bit for the DOM to update
+    await page.waitForTimeout(100);
+
+    // Details element should not be in the DOM when details are empty
+    const detailsCount = await page.locator(`[data-testid="activity-details-${id}"]`).count();
+    expect(detailsCount).toBe(0);
+  });
 });

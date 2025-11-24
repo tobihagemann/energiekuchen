@@ -1,17 +1,13 @@
 'use client';
 
-import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { getColorForLevel } from '@/app/lib/utils/constants';
-import { ChartType } from '@/app/types';
+import { Activity, ChartType } from '@/app/types';
 import { ChartData } from '@/app/types/chart';
 import { useMemo } from 'react';
 
-export function useChartData(chartType: ChartType, editingActivity: { chartType: ChartType; activityId: string } | null) {
-  const { state } = useEnergy();
-  const chart = state.data[chartType];
-
+export function useChartData(activities: Activity[], chartType: ChartType, editingActivity: { chartType: ChartType; activityId: string } | null) {
   const chartData: ChartData = useMemo(() => {
-    if (chart.activities.length === 0) {
+    if (activities.length === 0) {
       const emptyChartColor = 'oklch(0.967 0.003 264.542)'; // gray-100
 
       return {
@@ -30,12 +26,15 @@ export function useChartData(chartType: ChartType, editingActivity: { chartType:
     }
 
     return {
-      labels: chart.activities.map(activity => activity.name),
+      labels: activities.map(activity => activity.name),
       datasets: [
         {
-          data: chart.activities.map(activity => Math.abs(activity.value)),
-          backgroundColor: chart.activities.map(activity => getColorForLevel(activity.value)),
-          borderColor: chart.activities.map(activity => {
+          data: activities.map(activity => {
+            const absValue = Math.abs(activity.value);
+            return Math.pow(2, absValue - 1);
+          }),
+          backgroundColor: activities.map(activity => getColorForLevel(activity.value)),
+          borderColor: activities.map(activity => {
             // Check if this activity is being edited
             const isActive = editingActivity?.chartType === chartType && editingActivity?.activityId === activity.id;
             if (isActive) {
@@ -45,11 +44,11 @@ export function useChartData(chartType: ChartType, editingActivity: { chartType:
             return '#fff';
           }),
           borderWidth: 2,
-          hoverBackgroundColor: chart.activities.map(activity => {
+          hoverBackgroundColor: activities.map(activity => {
             const color = getColorForLevel(activity.value);
             return `oklch(from ${color} calc(l + 0.1) c h)`; // 10% lighter
           }),
-          hoverBorderColor: chart.activities.map(activity => {
+          hoverBorderColor: activities.map(activity => {
             // Keep the same border color on hover as the regular state
             const isActive = editingActivity?.chartType === chartType && editingActivity?.activityId === activity.id;
             if (isActive) {
@@ -61,7 +60,7 @@ export function useChartData(chartType: ChartType, editingActivity: { chartType:
         },
       ],
     };
-  }, [chart.activities, chartType, editingActivity]);
+  }, [activities, chartType, editingActivity]);
 
-  return { chartData, activities: chart.activities };
+  return { chartData, activities };
 }

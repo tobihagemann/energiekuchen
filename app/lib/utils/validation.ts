@@ -5,7 +5,12 @@ const VALIDATION_RULES = {
     name: {
       minLength: 1,
       maxLength: 50,
-      pattern: /^[a-zA-ZäöüÄÖÜß0-9\s\-_.,!?]+$/,
+      // Allow all printable Unicode characters (emojis, accents, symbols)
+      // Only block control characters (null bytes, line breaks, etc.)
+      pattern: /^[^\x00-\x1F\x7F]+$/,
+    },
+    details: {
+      maxLength: 150,
     },
     level: {
       min: -5,
@@ -40,11 +45,15 @@ export function validateActivity(activity: Partial<Activity>): ValidationResult 
     activity.value < VALIDATION_RULES.activity.level.min ||
     activity.value > VALIDATION_RULES.activity.level.max
   ) {
-    errors.push('Energieniveau muss zwischen -5 und +5 liegen');
+    errors.push('Anteil muss zwischen -5 und +5 liegen');
   }
 
   if (activity.value === 0) {
-    errors.push('Energieniveau darf nicht 0 sein');
+    errors.push('Anteil darf nicht 0 sein');
+  }
+
+  if (activity.details && activity.details.length > VALIDATION_RULES.activity.details.maxLength) {
+    errors.push(`Details dürfen maximal ${VALIDATION_RULES.activity.details.maxLength} Zeichen haben`);
   }
 
   return {
@@ -98,15 +107,15 @@ export function validateActivityValue(value: number): ValidationResult {
   const errors: string[] = [];
 
   if (value < VALIDATION_RULES.activity.level.min || value > VALIDATION_RULES.activity.level.max) {
-    errors.push('Energieniveau muss zwischen -5 und +5 liegen');
+    errors.push('Anteil muss zwischen -5 und +5 liegen');
   }
 
   if (value === 0) {
-    errors.push('Energieniveau darf nicht 0 sein');
+    errors.push('Anteil darf nicht 0 sein');
   }
 
   if (!Number.isInteger(value)) {
-    errors.push('Energieniveau muss eine ganze Zahl sein');
+    errors.push('Anteil muss eine ganze Zahl sein');
   }
 
   return {

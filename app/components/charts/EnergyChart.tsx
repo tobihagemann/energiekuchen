@@ -4,7 +4,7 @@ import { useUI } from '@/app/lib/contexts/UIContext';
 import { useChartData } from '@/app/lib/hooks/useChartData';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
 import { cn } from '@/app/lib/utils/cn';
-import { ChartType } from '@/app/types';
+import { Activity, ChartType } from '@/app/types';
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { useRef } from 'react';
@@ -13,14 +13,15 @@ import { Pie } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 interface EnergyChartProps {
+  activities: Activity[];
   chartType: ChartType;
   className?: string;
   onActivityClick?: (activityId: string) => void;
 }
 
-export function EnergyChart({ chartType, className, onActivityClick }: EnergyChartProps) {
+export function EnergyChart({ activities, chartType, className, onActivityClick }: EnergyChartProps) {
   const { state: uiState } = useUI();
-  const { chartData, activities } = useChartData(chartType, uiState.editingActivity);
+  const { chartData } = useChartData(activities, chartType, uiState.editingActivity);
   const { isSmall, isMedium } = useResponsive();
   const chartRef = useRef<ChartJS<'pie'>>(null);
 
@@ -51,28 +52,78 @@ export function EnergyChart({ chartType, className, onActivityClick }: EnergyCha
         enabled: false,
       },
       datalabels: {
-        display: () => {
-          // Don't show label for empty state
-          return activities.length > 0;
+        labels: {
+          name: {
+            display: () => {
+              // Don't show label for empty state
+              return activities.length > 0;
+            },
+            color: (context: { dataIndex: number }) => {
+              const activity = activities[context.dataIndex];
+              return activity ? getLabelColor(activity.value) : '#fff';
+            },
+            font: {
+              size: (() => {
+                if (isSmall) return 12;
+                if (isMedium) return 14;
+                return 16;
+              })(),
+              weight: 'bold' as const,
+            },
+            formatter: (_value: number, context: { dataIndex: number }) => {
+              const activity = activities[context.dataIndex];
+              if (!activity) return '';
+              return activity.name;
+            },
+            anchor: 'center' as const,
+            align: (context: { dataIndex: number }) => {
+              const activity = activities[context.dataIndex];
+              // If there are details, move name to top; otherwise keep centered
+              return activity?.details ? ('top' as const) : ('center' as const);
+            },
+            offset: (context: { dataIndex: number }) => {
+              const activity = activities[context.dataIndex];
+              // Add small offset when details present
+              return activity?.details ? -2 : 0;
+            },
+            clip: true,
+            textAlign: 'center' as const,
+            padding: 4,
+          },
+          details: {
+            display: (context: { dataIndex: number }) => {
+              // Only show details label if activity has details text
+              const activity = activities[context.dataIndex];
+              return Boolean(activity?.details);
+            },
+            color: (context: { dataIndex: number }) => {
+              const activity = activities[context.dataIndex];
+              // Use same color as name but with slight transparency if possible
+              return activity ? getLabelColor(activity.value) : '#fff';
+            },
+            font: {
+              size: (() => {
+                if (isSmall) return 10;
+                if (isMedium) return 11;
+                return 12;
+              })(),
+              weight: 'normal' as const,
+            },
+            formatter: (_value: number, context: { dataIndex: number }) => {
+              const activity = activities[context.dataIndex];
+              if (!activity?.details) return '';
+              // Split by newlines to support manual line breaks
+              const lines = activity.details.split('\n');
+              return lines;
+            },
+            anchor: 'center' as const,
+            align: 'bottom' as const,
+            offset: 2,
+            clip: true,
+            textAlign: 'center' as const,
+            padding: 4,
+          },
         },
-        color: (context: { dataIndex: number }) => {
-          const activity = activities[context.dataIndex];
-          return activity ? getLabelColor(activity.value) : '#fff';
-        },
-        font: {
-          size: isSmall ? 12 : isMedium ? 14 : 16,
-          weight: 'bold' as const,
-        },
-        formatter: (value: number, context: { dataIndex: number }) => {
-          const activity = activities[context.dataIndex];
-          if (!activity) return '';
-          return activity.name;
-        },
-        anchor: 'center' as const,
-        align: 'center' as const,
-        clip: true,
-        textAlign: 'center' as const,
-        padding: 4,
       },
     },
     onClick: (event: unknown, elements: { index: number }[]) => {
@@ -90,7 +141,7 @@ export function EnergyChart({ chartType, className, onActivityClick }: EnergyCha
   };
 
   const title = chartType === 'current' ? 'Ist-Zustand' : 'Wunsch-Zustand';
-  const subtitle = chartType === 'current' ? 'Deine aktuelle Energiesituation' : 'Deine gewünschte Energiesituation';
+  const subtitle = chartType === 'current' ? 'Deine aktuelle Energiebilanz' : 'Deine gewünschte Energiebilanz';
   const icon = chartType === 'current' ? '📍' : '🎯';
 
   return (

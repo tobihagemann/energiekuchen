@@ -55,10 +55,24 @@ interface SharedEnergyContextType {
 
 const EnergyContext = createContext<SharedEnergyContextType | undefined>(undefined);
 
+// Hook to access the Shared Energy Context
+export function useEnergy() {
+  const context = React.useContext(EnergyContext);
+  if (context === undefined) {
+    throw new Error('useEnergy must be used within an EnergyProvider');
+  }
+  return context;
+}
+
+interface EnergyProviderProps {
+  children: ReactNode;
+  initialData?: EnergyPie;
+}
+
 // Shared Provider Component (does not auto-load from localStorage)
-export function EnergyProvider({ children }: { children: ReactNode }) {
+export function EnergyProvider({ children, initialData }: EnergyProviderProps) {
   const [state, dispatch] = useReducer(energyReducer, {
-    data: createDefaultData(),
+    data: initialData || createDefaultData(),
     isLoading: false, // Start with loading false for shared pages
     lastSaved: null,
   });

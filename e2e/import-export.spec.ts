@@ -249,7 +249,7 @@ test.describe('Import & Export Functionality', () => {
 
       // Should show validation error about energy level
       await expect(page.locator('[data-testid="import-error"]')).toBeVisible();
-      await expect(page.locator('[data-testid="import-error"]')).toContainText(/Energieniveau|zwischen -5 und \+5|ganze Zahl|darf nicht 0 sein/i);
+      await expect(page.locator('[data-testid="import-error"]')).toContainText(/Anteil|zwischen -5 und \+5|ganze Zahl|darf nicht 0 sein/i);
     }
   });
 

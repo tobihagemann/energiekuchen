@@ -37,11 +37,11 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 #### 1.1 Dual-Chart System
 
-- **Ist-Zustand:** Visualisiert die aktuelle Energiesituation
+- **Ist-Zustand:** Visualisiert die aktuelle Energiebilanz
   - Gemischte Farbpalette (grün für energiegebende, rot für energiezehrende Aktivitäten)
   - Symbol: 📍
   - Enthält sowohl positive als auch negative Aktivitäten
-- **Wunsch-Zustand:** Visualisiert die gewünschte Energiesituation
+- **Wunsch-Zustand:** Visualisiert die gewünschte Energiebilanz
   - Gemischte Farbpalette (grün für energiegebende, rot für energiezehrende Aktivitäten)
   - Symbol: 🎯
   - Enthält sowohl positive als auch negative Aktivitäten
@@ -56,7 +56,8 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
   - Bestätigungsbutton
 - **Bearbeiten von Aktivitäten:**
   - Klick auf Aktivität öffnet Bearbeitungsmodus
-  - Inline-Editing oder Modal-Dialog
+  - Modal-Dialog mit Eingabefeldern für Name, Details (optional) und Energielevel
+  - Details-Feld: Optionales Textfeld (max. 150 Zeichen, mehrzeilig)
   - Speichern/Abbrechen-Buttons
 - **Löschen von Aktivitäten:**
   - Löschen-Button mit Bestätigungsdialog
@@ -88,7 +89,8 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
       {
         "id": "550e8400-e29b-41d4-a716-446655440000",
         "name": "Sport",
-        "value": 3
+        "value": 3,
+        "details": "Jeden Tag 30 Minuten joggen"
       },
       {
         "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
@@ -102,7 +104,8 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
       {
         "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
         "name": "Sport",
-        "value": 5
+        "value": 5,
+        "details": "Morgens joggen\nAbends Yoga"
       },
       {
         "id": "8d8aa007-8df6-4f0f-b0e1-c7d5f3b8c9e2",
@@ -222,7 +225,7 @@ Alle Farben folgen dem Tailwind CSS 4 Standard mit oklch-Farbformat (siehe `docs
 
 ### Hauptfunktionen
 
-1. **Als Nutzer möchte ich meinen Ist-Zustand visualisieren, um meine aktuelle Energiesituation zu verstehen.**
+1. **Als Nutzer möchte ich meinen Ist-Zustand visualisieren, um meine aktuelle Energiebilanz zu verstehen.**
 2. **Als Nutzer möchte ich meinen Wunsch-Zustand erstellen, um mein Energieziel zu definieren.**
 3. **Als Nutzer möchte ich Aktivitäten mit positiven und negativen Energiewerten hinzufügen, bearbeiten und löschen können.**
 4. **Als Nutzer möchte ich die Energiewerte der Aktivitäten anpassen können (-5 bis +5), um deren Einfluss zu reflektieren.**
@@ -273,6 +276,7 @@ interface Activity {
   id: string; // UUID v4
   name: string;
   value: number; // -5 to +5 (excluding 0) - Energielevel
+  details?: string; // Optional details text (max 150 chars, supports multi-line)
 }
 
 interface EnergyChart {
