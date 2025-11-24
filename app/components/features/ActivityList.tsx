@@ -1,7 +1,6 @@
 'use client';
 
 import { AddActivity } from '@/app/components/features/AddActivity';
-import { Button } from '@/app/components/ui/Button';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
 import { Activity, ChartType } from '@/app/types';
@@ -19,7 +18,6 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { SortableActivityItem } from './SortableActivityItem';
 
@@ -40,12 +38,9 @@ const dropAnimationConfig: DropAnimation = {
 };
 
 export function ActivityList({ chartType, activities, className }: ActivityListProps) {
-  const { reorderActivities, copyActivitiesFromCurrent, state } = useEnergy();
+  const { reorderActivities } = useEnergy();
   const { setEditingActivity, setDeleteConfirmation, openEditModal } = useUI();
   const [activeId, setActiveId] = useState<string | null>(null);
-
-  const currentActivities = state.data.current.activities;
-  const hasCurrentActivities = currentActivities.length > 0;
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -123,12 +118,6 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
           <div className="mb-2 text-4xl">📝</div>
           <div className="text-sm">Noch keine Aktivitäten vorhanden</div>
           <div className="mt-1 text-xs text-gray-400">Füge deine erste Aktivität hinzu, um zu beginnen</div>
-          {chartType === 'desired' && (
-            <Button onClick={copyActivitiesFromCurrent} disabled={!hasCurrentActivities} className="mt-4 gap-2" data-testid="copy-from-current-button">
-              <ArrowRightEndOnRectangleIcon className="h-4 w-4" />
-              Ist-Zustand übernehmen
-            </Button>
-          )}
         </div>
       )}
     </div>

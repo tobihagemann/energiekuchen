@@ -100,7 +100,7 @@ test.describe('Activity Management', () => {
 
   test('should show copy button only when desired chart is empty', async ({ page }) => {
     // Copy button should be visible in desired chart empty state
-    await expect(page.locator('[data-testid="copy-from-current-button"]')).toBeVisible();
+    await expect(page.locator('[data-testid="copy-from-current-chart-button"]')).toBeVisible();
 
     // Add an activity to desired chart
     await page.locator('[data-testid="quick-add-input-negative-desired"]').fill('Stress');
@@ -110,18 +110,18 @@ test.describe('Activity Management', () => {
     await expect(page.locator('[data-testid="activity-list-desired"]')).toContainText('Stress');
 
     // Copy button should no longer be visible
-    await expect(page.locator('[data-testid="copy-from-current-button"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="copy-from-current-chart-button"]')).not.toBeVisible();
   });
 
   test('should disable copy button when current chart is empty', async ({ page }) => {
     // Copy button should be visible but disabled when current chart is empty
-    const copyButton = page.locator('[data-testid="copy-from-current-button"]');
+    const copyButton = page.locator('[data-testid="copy-from-current-chart-button"]');
     await expect(copyButton).toBeVisible();
     await expect(copyButton).toBeDisabled();
   });
 
   test('should enable copy button when current chart has activities', async ({ page }) => {
-    const copyButton = page.locator('[data-testid="copy-from-current-button"]');
+    const copyButton = page.locator('[data-testid="copy-from-current-chart-button"]');
 
     // Initially disabled
     await expect(copyButton).toBeDisabled();
@@ -155,7 +155,7 @@ test.describe('Activity Management', () => {
     await expect(page.locator('[data-testid="empty-activities-desired"]')).toBeVisible();
 
     // Click copy button
-    const copyButton = page.locator('[data-testid="copy-from-current-button"]');
+    const copyButton = page.locator('[data-testid="copy-from-current-chart-button"]');
     await expect(copyButton).toBeEnabled();
     await copyButton.click();
 
@@ -185,7 +185,7 @@ test.describe('Activity Management', () => {
     await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Sport');
 
     // Copy button should be visible and enabled
-    const copyButton = page.locator('[data-testid="copy-from-current-button"]');
+    const copyButton = page.locator('[data-testid="copy-from-current-chart-button"]');
     await expect(copyButton).toBeVisible();
     await expect(copyButton).toBeEnabled();
 
@@ -207,13 +207,13 @@ test.describe('Activity Management', () => {
     const currentEmptyState = page.locator('[data-testid="empty-activities-current"]');
     await expect(currentEmptyState).toBeVisible();
 
-    // Copy button should only exist in desired chart
-    const copyButton = page.locator('[data-testid="copy-from-current-button"]');
+    // Copy button should only exist in desired chart (now in the chart center, not activity list)
+    const copyButton = page.locator('[data-testid="copy-from-current-chart-button"]');
     await expect(copyButton).toBeVisible();
 
-    // Verify it's within the desired chart's empty state
-    const desiredEmptyState = page.locator('[data-testid="empty-activities-desired"]');
-    const copyButtonInDesired = desiredEmptyState.locator('[data-testid="copy-from-current-button"]');
+    // Verify the button is within the desired state section (chart area)
+    const desiredSection = page.locator('[data-testid="desired-state-section"]');
+    const copyButtonInDesired = desiredSection.locator('[data-testid="copy-from-current-chart-button"]');
     await expect(copyButtonInDesired).toBeVisible();
   });
 

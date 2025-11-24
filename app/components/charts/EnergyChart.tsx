@@ -1,10 +1,13 @@
 'use client';
 
+import { Button } from '@/app/components/ui/Button';
+import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
 import { useChartData } from '@/app/lib/hooks/useChartData';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
 import { cn } from '@/app/lib/utils/cn';
 import { Activity, ChartType } from '@/app/types';
+import { ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline';
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { useRef } from 'react';
@@ -21,9 +24,13 @@ interface EnergyChartProps {
 
 export function EnergyChart({ activities, chartType, className, onActivityClick }: EnergyChartProps) {
   const { state: uiState } = useUI();
+  const { copyActivitiesFromCurrent, state: energyState } = useEnergy();
   const { chartData } = useChartData(activities, chartType, uiState.editingActivity);
   const { isSmall, isMedium } = useResponsive();
   const chartRef = useRef<ChartJS<'pie'>>(null);
+
+  const hasCurrentActivities = energyState.data.current.activities.length > 0;
+  const showCenterButton = activities.length === 0 && chartType === 'desired';
 
   // Fixed responsive chart sizes
   const chartSize = isSmall ? 280 : isMedium ? 360 : 440;
@@ -156,6 +163,18 @@ export function EnergyChart({ activities, chartType, className, onActivityClick 
 
       <div className="relative" style={{ width: chartSize, height: chartSize }}>
         <Pie ref={chartRef} data={chartData} options={options} />
+        {showCenterButton && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <Button
+              onClick={copyActivitiesFromCurrent}
+              disabled={!hasCurrentActivities}
+              className="pointer-events-auto gap-2 ring-4 ring-white"
+              data-testid="copy-from-current-chart-button">
+              <ArrowRightEndOnRectangleIcon className="h-4 w-4" />
+              Ist-Zustand übernehmen
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
