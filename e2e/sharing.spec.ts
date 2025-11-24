@@ -271,4 +271,98 @@ test.describe('Sharing Functionality', () => {
     // Original personal data should still be there
     await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('My Personal Activity');
   });
+
+  test('should show consistent data in charts and legend on share page', async ({ page }) => {
+    // Create share data with specific activities
+    const mockShareData = btoa(
+      JSON.stringify({
+        version: '2.0',
+        current: {
+          activities: [
+            { id: '1', name: 'Morning Yoga', value: 4 },
+            { id: '2', name: 'Coffee Break', value: 2 },
+          ],
+        },
+        desired: {
+          activities: [
+            { id: '3', name: 'Evening Walk', value: 3 },
+            { id: '4', name: 'Overtime Work', value: -3 },
+          ],
+        },
+      })
+    );
+
+    // Navigate to share URL
+    await page.goto(`/share/#${mockShareData}`);
+
+    // Wait for charts and activity lists to be visible
+    await expect(page.locator('[data-testid="activity-list-current"]')).toBeVisible();
+    await expect(page.locator('[data-testid="activity-list-desired"]')).toBeVisible();
+
+    // Verify current state chart legend shows correct activities
+    const currentList = page.locator('[data-testid="activity-list-current"]');
+    await expect(currentList).toContainText('Morning Yoga');
+    await expect(currentList).toContainText('Coffee Break');
+
+    // Verify desired state chart legend shows correct activities
+    const desiredList = page.locator('[data-testid="activity-list-desired"]');
+    await expect(desiredList).toContainText('Evening Walk');
+    await expect(desiredList).toContainText('Overtime Work');
+
+    // Verify charts are rendered (canvas elements exist)
+    // The charts are displayed in the same container as the activity lists
+    const charts = page.locator('canvas');
+    await expect(charts.first()).toBeVisible();
+    await expect(charts).toHaveCount(2); // Two charts (current and desired)
+
+    // Verify activity counts match
+    await expect(currentList).toContainText('(2)'); // 2 activities
+    await expect(desiredList).toContainText('(2)'); // 2 activities
+  });
+
+  test('should not contaminate main page localStorage when viewing share link', async ({ page }) => {
+    // Start with clean slate
+    await page.evaluate(() => localStorage.clear());
+    await page.goto('/');
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
+
+    // Add main page data
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Main Page Activity');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Main Page Activity');
+
+    // Get localStorage data before viewing share link
+    const localStorageBefore = await page.evaluate(() => localStorage.getItem('energiekuchen-data'));
+
+    // Create and navigate to share link with different data
+    const mockShareData = btoa(
+      JSON.stringify({
+        version: '2.0',
+        current: { activities: [{ id: '1', name: 'Shared Link Activity', value: 3 }] },
+        desired: { activities: [] },
+      })
+    );
+
+    await page.goto(`/share/#${mockShareData}`);
+    await expect(page.locator('[data-testid="activity-list-current"]')).toBeVisible();
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Shared Link Activity');
+
+    // Get localStorage data while on share page
+    const localStorageOnShare = await page.evaluate(() => localStorage.getItem('energiekuchen-data'));
+
+    // localStorage should not be contaminated by share page data
+    expect(localStorageOnShare).toBe(localStorageBefore);
+
+    // Navigate back to main page
+    await page.goto('/');
+    await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
+
+    // Verify main page data is still intact
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Main Page Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).not.toContainText('Shared Link Activity');
+
+    // Verify localStorage is unchanged
+    const localStorageAfter = await page.evaluate(() => localStorage.getItem('energiekuchen-data'));
+    expect(localStorageAfter).toBe(localStorageBefore);
+  });
 });

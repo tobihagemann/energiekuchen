@@ -3,9 +3,8 @@
 import { ChartLegend } from '@/app/components/charts/ChartLegend';
 import { EnergyChart } from '@/app/components/charts/EnergyChart';
 import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
-import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { SharingManager } from '@/app/lib/utils/sharing';
-import { EnergyPie } from '@/app/types';
+import { useEnergy } from '@/app/share/SharedEnergyProvider';
 import { ExclamationTriangleIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -14,8 +13,7 @@ import { useEffect, useState } from 'react';
 
 export default function SharedEnergyChart() {
   const router = useRouter();
-  const { dispatch } = useEnergy();
-  const [data, setData] = useState<EnergyPie | null>(null);
+  const { dispatch, state } = useEnergy();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +32,6 @@ export default function SharedEnergyChart() {
         // Decode the share data
         const decodedData = SharingManager.decodeShareData(encodedData);
 
-        setData(decodedData);
         // Set the data in the context so charts can use it
         dispatch({ type: 'SET_DATA', payload: decodedData, shouldSave: false });
         setError(null);
@@ -47,7 +44,6 @@ export default function SharedEnergyChart() {
         } else {
           setError('Die geteilten Daten konnten nicht geladen werden. Der Link ist möglicherweise ungültig oder beschädigt.');
         }
-        setData(null);
       } finally {
         setIsLoading(false);
       }
@@ -69,7 +65,7 @@ export default function SharedEnergyChart() {
     return <LoadingSpinner size="lg" message="Energiekuchen wird geladen..." className="flex-1" />;
   }
 
-  if (error || !data) {
+  if (error || !state.data) {
     return (
       <div className="flex flex-1 flex-col">
         {/* Header */}
@@ -146,16 +142,16 @@ export default function SharedEnergyChart() {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             {/* Current State Chart */}
             <div className="rounded-lg bg-white p-6 shadow-sm">
-              <EnergyChart chartType="current" className="mb-6" />
+              <EnergyChart activities={state.data.current.activities} chartType="current" className="mb-6" />
 
               <div data-testid="activity-list-current">
-                {data.current.activities.length > 0 ? (
+                {state.data.current.activities.length > 0 ? (
                   <>
                     <h3 className="mb-3 text-lg font-medium text-gray-900">
                       Aktivitäten
-                      <span className="ml-2 text-sm font-normal text-gray-500">({data.current.activities.length})</span>
+                      <span className="ml-2 text-sm font-normal text-gray-500">({state.data.current.activities.length})</span>
                     </h3>
-                    <ChartLegend activities={data.current.activities} />
+                    <ChartLegend activities={state.data.current.activities} />
                   </>
                 ) : (
                   <div className="py-4 text-center text-gray-500">
@@ -167,16 +163,16 @@ export default function SharedEnergyChart() {
 
             {/* Desired State Chart */}
             <div className="rounded-lg bg-white p-6 shadow-sm">
-              <EnergyChart chartType="desired" className="mb-6" />
+              <EnergyChart activities={state.data.desired.activities} chartType="desired" className="mb-6" />
 
               <div data-testid="activity-list-desired">
-                {data.desired.activities.length > 0 ? (
+                {state.data.desired.activities.length > 0 ? (
                   <>
                     <h3 className="mb-3 text-lg font-medium text-gray-900">
                       Aktivitäten
-                      <span className="ml-2 text-sm font-normal text-gray-500">({data.desired.activities.length})</span>
+                      <span className="ml-2 text-sm font-normal text-gray-500">({state.data.desired.activities.length})</span>
                     </h3>
-                    <ChartLegend activities={data.desired.activities} />
+                    <ChartLegend activities={state.data.desired.activities} />
                   </>
                 ) : (
                   <div className="py-4 text-center text-gray-500">

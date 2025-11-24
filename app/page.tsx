@@ -43,14 +43,14 @@ export default function Dashboard() {
           <div className={`grid gap-8 ${isSmall ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`} data-testid="charts-section">
             {/* Current State Chart */}
             <div className="rounded-lg bg-white p-6 shadow-sm" data-testid="current-state-section">
-              <EnergyChart chartType="current" onActivityClick={handleActivityClick('current')} className="mb-6" />
+              <EnergyChart activities={state.data.current.activities} chartType="current" onActivityClick={handleActivityClick('current')} className="mb-6" />
 
               <ActivityList chartType="current" activities={state.data.current.activities} />
             </div>
 
             {/* Desired State Chart */}
             <div className="rounded-lg bg-white p-6 shadow-sm" data-testid="desired-state-section">
-              <EnergyChart chartType="desired" onActivityClick={handleActivityClick('desired')} className="mb-6" />
+              <EnergyChart activities={state.data.desired.activities} chartType="desired" onActivityClick={handleActivityClick('desired')} className="mb-6" />
 
               <ActivityList chartType="desired" activities={state.data.desired.activities} />
             </div>

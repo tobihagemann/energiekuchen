@@ -4,7 +4,7 @@ import { useUI } from '@/app/lib/contexts/UIContext';
 import { useChartData } from '@/app/lib/hooks/useChartData';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
 import { cn } from '@/app/lib/utils/cn';
-import { ChartType } from '@/app/types';
+import { Activity, ChartType } from '@/app/types';
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { useRef } from 'react';
@@ -13,14 +13,15 @@ import { Pie } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 interface EnergyChartProps {
+  activities: Activity[];
   chartType: ChartType;
   className?: string;
   onActivityClick?: (activityId: string) => void;
 }
 
-export function EnergyChart({ chartType, className, onActivityClick }: EnergyChartProps) {
+export function EnergyChart({ activities, chartType, className, onActivityClick }: EnergyChartProps) {
   const { state: uiState } = useUI();
-  const { chartData, activities } = useChartData(chartType, uiState.editingActivity);
+  const { chartData } = useChartData(activities, chartType, uiState.editingActivity);
   const { isSmall, isMedium } = useResponsive();
   const chartRef = useRef<ChartJS<'pie'>>(null);
 
