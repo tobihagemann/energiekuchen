@@ -141,7 +141,7 @@ export function EnergyChart({ activities, chartType, className, onActivityClick 
   };
 
   const title = chartType === 'current' ? 'Ist-Zustand' : 'Wunsch-Zustand';
-  const subtitle = chartType === 'current' ? 'Deine aktuelle Energiesituation' : 'Deine gewünschte Energiesituation';
+  const subtitle = chartType === 'current' ? 'Deine aktuelle Energiebilanz' : 'Deine gewünschte Energiebilanz';
   const icon = chartType === 'current' ? '📍' : '🎯';
 
   return (

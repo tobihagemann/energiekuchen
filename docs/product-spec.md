@@ -37,11 +37,11 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 #### 1.1 Dual-Chart System
 
-- **Ist-Zustand:** Visualisiert die aktuelle Energiesituation
+- **Ist-Zustand:** Visualisiert die aktuelle Energiebilanz
   - Gemischte Farbpalette (grün für energiegebende, rot für energiezehrende Aktivitäten)
   - Symbol: 📍
   - Enthält sowohl positive als auch negative Aktivitäten
-- **Wunsch-Zustand:** Visualisiert die gewünschte Energiesituation
+- **Wunsch-Zustand:** Visualisiert die gewünschte Energiebilanz
   - Gemischte Farbpalette (grün für energiegebende, rot für energiezehrende Aktivitäten)
   - Symbol: 🎯
   - Enthält sowohl positive als auch negative Aktivitäten
@@ -225,7 +225,7 @@ Alle Farben folgen dem Tailwind CSS 4 Standard mit oklch-Farbformat (siehe `docs
 
 ### Hauptfunktionen
 
-1. **Als Nutzer möchte ich meinen Ist-Zustand visualisieren, um meine aktuelle Energiesituation zu verstehen.**
+1. **Als Nutzer möchte ich meinen Ist-Zustand visualisieren, um meine aktuelle Energiebilanz zu verstehen.**
 2. **Als Nutzer möchte ich meinen Wunsch-Zustand erstellen, um mein Energieziel zu definieren.**
 3. **Als Nutzer möchte ich Aktivitäten mit positiven und negativen Energiewerten hinzufügen, bearbeiten und löschen können.**
 4. **Als Nutzer möchte ich die Energiewerte der Aktivitäten anpassen können (-5 bis +5), um deren Einfluss zu reflektieren.**

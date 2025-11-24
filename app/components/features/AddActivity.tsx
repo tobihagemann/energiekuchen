@@ -26,8 +26,8 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
   const positiveInputRef = useRef<HTMLInputElement>(null);
   const negativeInputRef = useRef<HTMLInputElement>(null);
 
-  const positivePlaceholder = chartType === 'current' ? 'z.B. Hobby, Entspannung' : 'z.B. Sport, Zeit mit Freunden';
-  const negativePlaceholder = chartType === 'current' ? 'z.B. Überstunden, Stress' : 'z.B. Pendeln, Meetings';
+  const positivePlaceholder = chartType === 'current' ? 'Energiequelle (z.B. Hobby)' : 'Energiequelle (z.B. Sport)';
+  const negativePlaceholder = chartType === 'current' ? 'Energieräuber (z.B. Pendeln)' : 'Energieräuber (z.B. Meetings)';
 
   const handleSubmitPositive = async (e: React.FormEvent) => {
     e.preventDefault();
