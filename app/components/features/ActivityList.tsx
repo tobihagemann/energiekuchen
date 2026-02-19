@@ -1,9 +1,5 @@
 'use client';
 
-import { AddActivity } from '@/app/components/features/AddActivity';
-import { useEnergy } from '@/app/lib/contexts/EnergyContext';
-import { useUI } from '@/app/lib/contexts/UIContext';
-import { Activity, ChartType } from '@/app/types';
 import {
   closestCenter,
   defaultDropAnimationSideEffects,
@@ -19,6 +15,12 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useState } from 'react';
+
+import { AddActivity } from '@/app/components/features/AddActivity';
+import { useEnergy } from '@/app/lib/contexts/EnergyContext';
+import { useUI } from '@/app/lib/contexts/UIContext';
+import { Activity, ChartType } from '@/app/types';
+
 import { SortableActivityItem } from './SortableActivityItem';
 
 interface ActivityListProps {

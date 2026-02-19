@@ -1,11 +1,12 @@
 'use client';
 
-import { ActivityColorBadge } from '@/app/components/ui/ActivityColorBadge';
-import { Button } from '@/app/components/ui/Button';
-import { Activity } from '@/app/types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Bars3Icon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+
+import { ActivityColorBadge } from '@/app/components/ui/ActivityColorBadge';
+import { Button } from '@/app/components/ui/Button';
+import { Activity } from '@/app/types';
 
 interface SortableActivityItemProps {
   activity: Activity;

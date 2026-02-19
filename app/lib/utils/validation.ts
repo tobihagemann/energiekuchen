@@ -7,6 +7,7 @@ const VALIDATION_RULES = {
       maxLength: 50,
       // Allow all printable Unicode characters (emojis, accents, symbols)
       // Only block control characters (null bytes, line breaks, etc.)
+      // eslint-disable-next-line no-control-regex -- intentional control character matching
       pattern: /^[^\x00-\x1F\x7F]+$/,
     },
     details: {

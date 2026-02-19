@@ -1,8 +1,9 @@
 'use client';
 
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+
 import { cn } from '@/app/lib/utils/cn';
 import { getColorForLevel } from '@/app/lib/utils/constants';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 interface SliderProps {
   value: number;
@@ -120,6 +121,7 @@ export function Slider({ value, onChange, min = -5, max = 5, step = 1, label, cl
   return (
     <div className={cn('w-full', className)}>
       {label && <label className="mb-2 block text-sm font-medium text-gray-700">{label}</label>}
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- custom slider with aria role on thumb */}
       <div
         ref={sliderRef}
         className={cn('relative h-6 cursor-pointer touch-none rounded-full bg-gray-200', disabled && 'cursor-not-allowed opacity-50')}

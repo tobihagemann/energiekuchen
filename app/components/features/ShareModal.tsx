@@ -1,5 +1,8 @@
 'use client';
 
+import { CheckIcon, ClipboardIcon, ShareIcon } from '@heroicons/react/24/outline';
+import { useCallback, useEffect, useState } from 'react';
+
 import { Button } from '@/app/components/ui/Button';
 import { ErrorMessage } from '@/app/components/ui/ErrorMessage';
 import { Input } from '@/app/components/ui/Input';
@@ -11,8 +14,6 @@ import { useUI } from '@/app/lib/contexts/UIContext';
 import { SharingManager } from '@/app/lib/utils/sharing';
 import { exportData } from '@/app/lib/utils/storage';
 import { ShareData } from '@/app/types/storage';
-import { CheckIcon, ClipboardIcon, ShareIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useState } from 'react';
 
 export function ShareModal() {
   const { state } = useEnergy();
@@ -109,6 +110,7 @@ export function ShareModal() {
             <>
               {/* URL Input */}
               <div>
+                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- label for read-only input group */}
                 <label className="mb-2 block text-sm font-medium text-gray-700">Sharing-Link</label>
                 <InputGroup>
                   <Input value={shareData.url} readOnly className="flex-1 text-sm" data-testid="share-url" />
@@ -121,6 +123,7 @@ export function ShareModal() {
 
               {/* Quick share options */}
               <div>
+                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- decorative label for button group */}
                 <label className="mb-2 block text-sm font-medium text-gray-700">Schnell teilen</label>
                 <div className="grid grid-cols-2 gap-2">
                   <Button

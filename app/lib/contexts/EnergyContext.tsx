@@ -1,9 +1,10 @@
 'use client';
 
+import { createContext, ReactNode, useContext, useEffect, useReducer, useRef } from 'react';
+
 import { StorageManager } from '@/app/lib/utils/storage';
 import { Activity, EnergyPie } from '@/app/types';
 import { ChartType, EnergyAction, EnergyContextType, EnergyState } from '@/app/types/context';
-import { createContext, ReactNode, useContext, useEffect, useReducer, useRef } from 'react';
 
 function createDefaultData(): EnergyPie {
   return {
@@ -20,7 +21,7 @@ function createDefaultData(): EnergyPie {
 // Energy Reducer
 function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
   switch (action.type) {
-    case 'SET_DATA':
+    case 'SET_DATA': {
       const newState = {
         ...state,
         data: action.payload,
@@ -29,6 +30,7 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
         isLoading: action.shouldSave === false ? false : state.isLoading,
       };
       return newState;
+    }
 
     case 'SET_LOADING':
       return {

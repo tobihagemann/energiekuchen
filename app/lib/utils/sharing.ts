@@ -1,5 +1,6 @@
 import { Activity, EnergyPie } from '@/app/types';
 import { ShareData } from '@/app/types/storage';
+
 import { MAX_URL_LENGTH } from './constants';
 
 export class SharingManager {

@@ -1,6 +1,7 @@
+import { renderHook } from '@testing-library/react';
+
 import { useChartData } from '@/app/lib/hooks/useChartData';
 import { Activity } from '@/app/types';
-import { renderHook } from '@testing-library/react';
 
 describe('useChartData', () => {
   const mockActivities: Activity[] = [

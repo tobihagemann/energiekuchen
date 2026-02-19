@@ -1,5 +1,6 @@
-import { useEnterKeySubmit } from '@/app/lib/hooks/useEnterKeySubmit';
 import { renderHook } from '@testing-library/react';
+
+import { useEnterKeySubmit } from '@/app/lib/hooks/useEnterKeySubmit';
 
 describe('useEnterKeySubmit', () => {
   let addEventListenerSpy: jest.SpyInstance;

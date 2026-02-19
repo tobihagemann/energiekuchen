@@ -1,5 +1,11 @@
 'use client';
 
+import { ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline';
+import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { useRef } from 'react';
+import { Pie } from 'react-chartjs-2';
+
 import { Button } from '@/app/components/ui/Button';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
@@ -7,11 +13,6 @@ import { useChartData } from '@/app/lib/hooks/useChartData';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
 import { cn } from '@/app/lib/utils/cn';
 import { Activity, ChartType } from '@/app/types';
-import { ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline';
-import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { useRef } from 'react';
-import { Pie } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 

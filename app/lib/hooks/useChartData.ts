@@ -1,9 +1,10 @@
 'use client';
 
+import { useMemo } from 'react';
+
 import { getColorForLevel } from '@/app/lib/utils/constants';
 import { Activity, ChartType } from '@/app/types';
 import { ChartData } from '@/app/types/chart';
-import { useMemo } from 'react';
 
 export function useChartData(activities: Activity[], chartType: ChartType, editingActivity: { chartType: ChartType; activityId: string } | null) {
   const chartData: ChartData = useMemo(() => {

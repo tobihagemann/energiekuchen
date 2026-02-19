@@ -1,15 +1,16 @@
 'use client';
 
-import { ChartLegend } from '@/app/components/charts/ChartLegend';
-import { EnergyChart } from '@/app/components/charts/EnergyChart';
-import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
-import { SharingManager } from '@/app/lib/utils/sharing';
-import { useEnergy } from '@/app/share/SharedEnergyProvider';
 import { ExclamationTriangleIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+import { ChartLegend } from '@/app/components/charts/ChartLegend';
+import { EnergyChart } from '@/app/components/charts/EnergyChart';
+import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
+import { SharingManager } from '@/app/lib/utils/sharing';
+import { useEnergy } from '@/app/share/SharedEnergyProvider';
 
 export default function SharedEnergyChart() {
   const router = useRouter();

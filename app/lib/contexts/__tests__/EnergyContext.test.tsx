@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+
 import { createMockActivity } from '../../../__tests__/utils/mocks';
 import { StorageManager } from '../../utils/storage';
 import { EnergyProvider, useEnergy } from '../EnergyContext';

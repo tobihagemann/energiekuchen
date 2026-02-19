@@ -1,6 +1,7 @@
-import { UIProvider, useUI } from '@/app/lib/contexts/UIContext';
 import { act, renderHook } from '@testing-library/react';
 import { ReactNode } from 'react';
+
+import { UIProvider, useUI } from '@/app/lib/contexts/UIContext';
 
 const wrapper = ({ children }: { children: ReactNode }) => <UIProvider>{children}</UIProvider>;
 

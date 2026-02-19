@@ -2,6 +2,7 @@
 
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import React, { useRef, useState } from 'react';
+
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
 import { importData } from '../../lib/utils/storage';
@@ -90,6 +91,7 @@ export function ImportModal() {
 
             {/* Text Input */}
             <div>
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- label wraps adjacent textarea */}
               <label className="mb-2 block text-sm font-medium text-gray-700">Oder JSON-Text einfügen:</label>
               <textarea
                 value={importContent}

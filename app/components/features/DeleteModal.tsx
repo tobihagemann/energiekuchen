@@ -2,6 +2,7 @@
 
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { useCallback } from 'react';
+
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
 import { useEnterKeySubmit } from '../../lib/hooks/useEnterKeySubmit';

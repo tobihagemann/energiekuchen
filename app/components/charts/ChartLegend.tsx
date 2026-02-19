@@ -18,6 +18,7 @@ export function ChartLegend({ activities, onActivityClick, className }: ChartLeg
   return (
     <div className={cn('space-y-2', className)}>
       {activities.map(activity => (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- click handler is optional enhancement
         <div
           key={activity.id}
           className={cn('flex items-center justify-between rounded p-2 transition-colors hover:bg-gray-50', onActivityClick && 'cursor-pointer')}

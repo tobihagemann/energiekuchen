@@ -1,8 +1,9 @@
 'use client';
 
+import React, { createContext, ReactNode, useReducer } from 'react';
+
 import { Activity, EnergyPie } from '@/app/types';
 import { ChartType, EnergyState, SharedEnergyAction } from '@/app/types/context';
-import React, { createContext, ReactNode, useReducer } from 'react';
 
 function createDefaultData(): EnergyPie {
   return {

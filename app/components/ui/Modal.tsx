@@ -1,9 +1,11 @@
 'use client';
 
-import { cn } from '@/app/lib/utils/cn';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { ReactNode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+
+import { cn } from '@/app/lib/utils/cn';
+
 import { Button } from './Button';
 
 interface ModalProps {
@@ -57,6 +59,7 @@ export function Modal({ isOpen, onClose, title, titleIcon, children, size = 'md'
   const modalContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       {/* Backdrop */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- backdrop dismiss */}
       <div className="absolute inset-0 bg-black opacity-50 transition-opacity" onClick={onClose} />
 
       {/* Modal */}

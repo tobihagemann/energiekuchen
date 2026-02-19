@@ -1,7 +1,8 @@
 'use client';
 
-import { cn } from '@/app/lib/utils/cn';
 import { MinusCircleIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+
+import { cn } from '@/app/lib/utils/cn';
 
 interface ActivityValueIndicatorProps {
   value: number;

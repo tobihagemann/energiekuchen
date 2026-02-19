@@ -1,5 +1,6 @@
 import { Activity, EnergyPie } from '@/app/types';
 import { UnknownActivity, UnknownData, V1Data } from '@/app/types/migration';
+
 import { STORAGE_KEY } from './constants';
 import { validateActivityValue } from './validation';
 

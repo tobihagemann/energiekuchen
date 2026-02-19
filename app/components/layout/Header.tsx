@@ -1,10 +1,11 @@
 'use client';
 
-import { Button } from '@/app/components/ui/Button';
-import { useUI } from '@/app/lib/contexts/UIContext';
 import { ArrowDownTrayIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import Link from 'next/link';
+
+import { Button } from '@/app/components/ui/Button';
+import { useUI } from '@/app/lib/contexts/UIContext';
 
 export function Header() {
   const { openShareModal, openImportModal, openDeleteModal } = useUI();
