@@ -6,18 +6,18 @@ A German-language web application that helps users visualize and balance their p
 
 ```bash
 # Code Quality
-npm run lint          # Run TypeScript + ESLint + Prettier checks
-npm run format        # Format code with Prettier + ESLint
-npm run knip          # Check for unused dependencies, exports, and types
+pnpm lint             # Run tsgo + oxlint + oxfmt checks
+pnpm format           # Format code with oxfmt + oxlint
+pnpm knip             # Check for unused dependencies, exports, and types
 
 # Testing
-npm run test          # Run unit tests (Jest)
-npm run test:coverage # Run tests with coverage report
-npm run test:e2e      # Run end-to-end tests (Playwright)
-npm run test:all      # Run all tests (unit + e2e)
+pnpm test             # Run unit tests (Jest)
+pnpm test:coverage    # Run tests with coverage report
+pnpm test:e2e         # Run end-to-end tests (Playwright)
+pnpm test:all         # Run all tests (unit + e2e)
 
 # Production Build
-npm run build         # Build for production
+pnpm build            # Build for production
 ```
 
 ## High-Level Architecture
@@ -135,9 +135,9 @@ When fixing bugs:
 
 - Check if it's a business logic issue (add unit test)
 - Check if it's a UI issue (add E2E test)
-- Run `npm run test:all`
+- Run `pnpm test:all`
 
 In general:
 
 - Use tests to verify results instead of running a development server
-- Run `npm run format` at the very end
+- Run `pnpm format` at the very end
