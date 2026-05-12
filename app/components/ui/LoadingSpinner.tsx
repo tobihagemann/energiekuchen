@@ -24,11 +24,7 @@ export function LoadingSpinner({ size = 'md', message, variant = 'primary', clas
   return (
     <div className={cn('flex items-center justify-center', className)}>
       <div className="text-center">
-        <div
-          className={cn('animate-spin rounded-full border-b-2', sizes[size], colors[variant], message ? 'mx-auto' : '')}
-          role="status"
-          aria-label="Loading"
-        />
+        <output className={cn('animate-spin rounded-full border-b-2', sizes[size], colors[variant], message ? 'mx-auto' : '')} aria-label="Loading" />
         {message && <p className="mt-4 text-gray-600">{message}</p>}
       </div>
     </div>

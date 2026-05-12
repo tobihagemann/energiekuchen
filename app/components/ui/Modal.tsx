@@ -64,6 +64,7 @@ export function Modal({ isOpen, onClose, title, titleIcon, children, size = 'md'
 
       {/* Modal */}
       <div
+        // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- using portal with custom backdrop and focus handling, not native <dialog>
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? 'modal-title' : undefined}
