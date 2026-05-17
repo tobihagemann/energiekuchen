@@ -6,16 +6,18 @@ import { Bars3Icon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 import { ActivityColorBadge } from '@/app/components/ui/ActivityColorBadge';
 import { Button } from '@/app/components/ui/Button';
+import { getPercentage } from '@/app/lib/utils/percentage';
 import { Activity } from '@/app/types';
 
 interface SortableActivityItemProps {
   activity: Activity;
+  totalWeight: number;
   isEditing: boolean;
   onEdit: (activityId: string) => void;
   onDelete: (activityId: string) => void;
 }
 
-export function SortableActivityItem({ activity, isEditing, onEdit, onDelete }: SortableActivityItemProps) {
+export function SortableActivityItem({ activity, totalWeight, isEditing, onEdit, onDelete }: SortableActivityItemProps) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: activity.id });
 
   const style = {
@@ -35,10 +37,13 @@ export function SortableActivityItem({ activity, isEditing, onEdit, onDelete }: 
             <Bars3Icon className="h-4 w-4" />
           </button>
         )}
-        <ActivityColorBadge value={activity.value} />
+        <ActivityColorBadge polarity={activity.polarity} />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium text-gray-900" data-testid={`activity-name-${activity.id}`}>
             {activity.name}
+            <span className="ml-2 text-xs text-gray-500" data-testid={`activity-percentage-${activity.id}`}>
+              {getPercentage(activity.weight, totalWeight)} %
+            </span>
           </div>
           {activity.details && (
             <div className="mt-1 text-xs whitespace-pre-wrap text-gray-600" data-testid={`activity-details-${activity.id}`}>

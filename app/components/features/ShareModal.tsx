@@ -11,7 +11,7 @@ import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
 import { Modal } from '@/app/components/ui/Modal';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
-import { SharingManager } from '@/app/lib/utils/sharing';
+import { SHARE_TOO_LARGE_ERROR, SharingManager } from '@/app/lib/utils/sharing';
 import { exportData } from '@/app/lib/utils/storage';
 import { ShareData } from '@/app/types/storage';
 
@@ -23,15 +23,20 @@ export function ShareModal() {
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState('');
   const [exportError, setExportError] = useState('');
+  const [shareSizeError, setShareSizeError] = useState('');
 
   const generateShareData = useCallback(async () => {
     setIsGenerating(true);
+    setShareSizeError('');
     try {
       const data = await SharingManager.generateShareData(state.data);
       setShareData(data);
     } catch (error) {
       console.error('Share generation error:', error);
       setShareData(null);
+      if (error instanceof Error && error.message === SHARE_TOO_LARGE_ERROR) {
+        setShareSizeError(error.message);
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -50,6 +55,7 @@ export function ShareModal() {
       setCopied(false);
       setCopyError('');
       setExportError('');
+      setShareSizeError('');
     }
   }, [uiState.isShareModalOpen]);
 
@@ -73,6 +79,7 @@ export function ShareModal() {
     setCopied(false);
     setCopyError('');
     setExportError('');
+    setShareSizeError('');
   };
 
   const handleExport = () => {
@@ -158,6 +165,11 @@ export function ShareModal() {
                 </p>
               </div>
             </>
+          ) : shareSizeError ? (
+            <div className="py-8 text-center text-gray-500">
+              <div className="mb-2 text-lg">⚠️</div>
+              <ErrorMessage error={shareSizeError} testId="share-size-error" />
+            </div>
           ) : (
             <div className="py-8 text-center text-gray-500">
               <div className="mb-2 text-lg">⚠️</div>

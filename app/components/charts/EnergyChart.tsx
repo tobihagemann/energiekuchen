@@ -36,17 +36,8 @@ export function EnergyChart({ activities, chartType, className, onActivityClick 
   // Fixed responsive chart sizes
   const chartSize = isSmall ? 280 : isMedium ? 360 : 440;
 
-  // Determine label color based on activity value (absolute value)
-  // Values 1-2 use lighter backgrounds (300-400), need dark text
-  // Values 3-5 use darker backgrounds (500-700), need white text
-  const getLabelColor = (value: number): string => {
-    const absValue = Math.abs(value);
-    if (absValue >= 3) {
-      return '#fff'; // white for dark backgrounds
-    }
-    // Dark green for positive, dark red for negative (using oklch)
-    return value > 0 ? 'oklch(0.393 0.095 152.535)' : 'oklch(0.396 0.141 25.723)'; // green-900 : red-900
-  };
+  // Both POSITIVE_COLOR and NEGATIVE_COLOR are dark enough for white text contrast.
+  const LABEL_COLOR = 'oklch(1 0 0)';
 
   const options = {
     responsive: true,
@@ -68,7 +59,7 @@ export function EnergyChart({ activities, chartType, className, onActivityClick 
             },
             color: (context: { dataIndex: number }) => {
               const activity = activities[context.dataIndex];
-              return activity ? getLabelColor(activity.value) : '#fff';
+              return activity ? LABEL_COLOR : '#fff';
             },
             font: {
               size: (() => {
@@ -107,7 +98,7 @@ export function EnergyChart({ activities, chartType, className, onActivityClick 
             color: (context: { dataIndex: number }) => {
               const activity = activities[context.dataIndex];
               // Use same color as name but with slight transparency if possible
-              return activity ? getLabelColor(activity.value) : '#fff';
+              return activity ? LABEL_COLOR : '#fff';
             },
             font: {
               size: (() => {

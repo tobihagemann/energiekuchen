@@ -304,6 +304,58 @@ test.describe('Activity Management', () => {
     expect(actualValue.length).toBe(150);
   });
 
+  test('polarity toggle round-trip moves activity to destination group', async ({ page }) => {
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Sport');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+    await page.locator('[data-testid="quick-add-input-negative-current"]').fill('Stress');
+    await page.locator('[data-testid="quick-add-button-negative-current"]').click();
+
+    const sportItem = page.locator('[data-testid^="activity-item-"]').filter({ hasText: 'Sport' }).first();
+    const idAttr = await sportItem.getAttribute('data-testid');
+    const id = idAttr?.replace('activity-item-', '') || '';
+
+    await page.locator(`[data-testid="edit-activity-button-${id}"]`).click();
+    const modal = page.locator('[data-testid="edit-activity-modal"]');
+    await expect(modal).toBeVisible();
+
+    await modal.locator('[data-testid="polarity-negative-button"]').click();
+    await modal.locator('[data-testid="submit-activity-button"]').click();
+    await expect(modal).not.toBeVisible();
+
+    // After toggling Sport to negative, it should sit after the existing negative (Stress).
+    const itemTexts = await page.locator('[data-testid="activity-list-current"] [data-testid^="activity-item-"]').allTextContents();
+    expect(itemTexts.length).toBe(2);
+    expect(itemTexts[itemTexts.length - 1]).toContain('Sport');
+  });
+
+  test('weight slider keyboard accessibility updates aria-valuenow', async ({ page }) => {
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('A');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('B');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+
+    const item = page.locator('[data-testid^="activity-item-"]').first();
+    const idAttr = await item.getAttribute('data-testid');
+    const id = idAttr?.replace('activity-item-', '') || '';
+    await page.locator(`[data-testid="edit-activity-button-${id}"]`).click();
+
+    const modal = page.locator('[data-testid="edit-activity-modal"]');
+    await expect(modal).toBeVisible();
+
+    const sliderThumb = modal.locator('[data-testid="activity-value-slider"] [role="slider"]');
+    await expect(sliderThumb).toBeVisible();
+    await sliderThumb.focus();
+    const before = await sliderThumb.getAttribute('aria-valuenow');
+    await page.keyboard.press('ArrowRight');
+    const after = await sliderThumb.getAttribute('aria-valuenow');
+    expect(after).not.toBe(before);
+
+    await page.keyboard.press('Home');
+    expect(await sliderThumb.getAttribute('aria-valuenow')).toBe(await sliderThumb.getAttribute('aria-valuemin'));
+    await page.keyboard.press('End');
+    expect(await sliderThumb.getAttribute('aria-valuenow')).toBe(await sliderThumb.getAttribute('aria-valuemax'));
+  });
+
   test('should allow editing details to empty string', async ({ page }) => {
     // Add an activity
     await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Wandern');

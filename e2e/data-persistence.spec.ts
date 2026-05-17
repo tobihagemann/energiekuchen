@@ -171,22 +171,26 @@ test.describe('Data Persistence', () => {
     await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Walking');
   });
 
-  test('should preserve activity colors and values', async ({ page }) => {
-    // Add an activity using the new inline form (creates with default values)
+  test('should preserve activity weights and polarities', async ({ page }) => {
+    // Quick-add a positive activity (defaults to weight: 4, polarity: 'positive').
     await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Swimming');
     await page.locator('[data-testid="quick-add-button-positive-current"]').click();
 
-    // Get the activity element to check its color
     const activityItem = page.locator('[data-testid^="activity-item-"]').first();
+    await expect(activityItem).toBeVisible();
 
-    // Reload page
     await page.reload();
     await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
 
-    // Verify activity persisted
     await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Swimming');
 
-    // The activity should still exist with its default color
-    await expect(activityItem).toBeVisible();
+    // Inspect the stored polarity directly via localStorage so the assertion is precise.
+    const storedPolarity = await page.evaluate(() => {
+      const raw = localStorage.getItem('energiekuchen-data');
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      return data?.current?.activities?.[0]?.polarity ?? null;
+    });
+    expect(storedPolarity).toBe('positive');
   });
 });

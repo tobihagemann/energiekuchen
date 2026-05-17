@@ -225,20 +225,16 @@ test.describe('Import & Export Functionality', () => {
     await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Imported Activity');
   });
 
-  test('should reject import data with invalid energy values', async ({ page }) => {
-    // Open import modal
+  test('should reject v3 import data with invalid weights', async ({ page }) => {
     await openImportModal(page);
 
-    // Try to import JSON with invalid energy values
+    // v3-shape payload with an invalid weight triggers a German validation error.
     const invalidData = {
+      version: '3.0',
       current: {
-        activities: [
-          { id: '1', name: 'Zero Value', value: 0 }, // Invalid: zero not allowed
-          { id: '2', name: 'Too High', value: 10 }, // Invalid: above maximum
-          { id: '3', name: 'Too Low', value: -6 }, // Invalid: below minimum
-          { id: '4', name: 'Decimal', value: 5.5 }, // Invalid: not an integer
-        ],
+        activities: [{ id: '1', name: 'Too High', weight: 10001, polarity: 'positive' }],
       },
+      desired: { activities: [] },
     };
 
     const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
@@ -247,10 +243,69 @@ test.describe('Import & Export Functionality', () => {
       await textArea.fill(JSON.stringify(invalidData));
       await page.locator('[data-testid="import-submit"]').click();
 
-      // Should show validation error about energy level
       await expect(page.locator('[data-testid="import-error"]')).toBeVisible();
-      await expect(page.locator('[data-testid="import-error"]')).toContainText(/Anteil|zwischen -5 und \+5|ganze Zahl|darf nicht 0 sein/i);
+      await expect(page.locator('[data-testid="import-error"]')).toContainText(/Gewicht|ungültig/i);
     }
+  });
+
+  test('should silently drop legacy v2 entries with invalid value', async ({ page }) => {
+    await openImportModal(page);
+
+    const v2Mixed = {
+      version: '2.0',
+      current: {
+        activities: [
+          { id: '1', name: 'Valid Activity', value: 3 },
+          { id: '2', name: 'Zero Value', value: 0 },
+          { id: '3', name: 'Too High', value: 6 },
+        ],
+      },
+      desired: { activities: [] },
+    };
+
+    const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
+    if (await textArea.isVisible()) {
+      await textArea.fill(JSON.stringify(v2Mixed));
+      await page.locator('[data-testid="import-submit"]').click();
+    }
+
+    const closeButton = page.locator('[data-testid="close-modal"], button:has-text("Schließen")').first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    }
+
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('Valid Activity');
+    await expect(page.locator('[data-testid="activity-list-current"]')).not.toContainText('Zero Value');
+    await expect(page.locator('[data-testid="activity-list-current"]')).not.toContainText('Too High');
+  });
+
+  test('should import native v3 payload with weight + polarity', async ({ page }) => {
+    await openImportModal(page);
+
+    const v3 = {
+      version: '3.0',
+      current: {
+        activities: [
+          { id: 'v3-1', name: 'V3 Positive', weight: 6, polarity: 'positive' },
+          { id: 'v3-2', name: 'V3 Negative', weight: 4, polarity: 'negative' },
+        ],
+      },
+      desired: { activities: [] },
+    };
+
+    const textArea = page.locator('[data-testid="import-json-textarea"], textarea').first();
+    if (await textArea.isVisible()) {
+      await textArea.fill(JSON.stringify(v3));
+      await page.locator('[data-testid="import-submit"]').click();
+    }
+
+    const closeButton = page.locator('[data-testid="close-modal"], button:has-text("Schließen")').first();
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    }
+
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('V3 Positive');
+    await expect(page.locator('[data-testid="activity-list-current"]')).toContainText('V3 Negative');
   });
 
   test('should replace existing data when importing with replace option', async ({ page }) => {

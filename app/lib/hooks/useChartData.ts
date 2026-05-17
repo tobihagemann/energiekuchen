@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 
-import { getColorForLevel } from '@/app/lib/utils/constants';
+import { getColorForPolarity } from '@/app/lib/utils/constants';
 import { Activity, ChartType } from '@/app/types';
 import { ChartData } from '@/app/types/chart';
 
@@ -20,7 +20,7 @@ export function useChartData(activities: Activity[], chartType: ChartType, editi
             borderColor: ['#fff'],
             borderWidth: 2,
             hoverBackgroundColor: ['oklch(0.985 0.002 247.839)'], // gray-50
-            hoverBorderColor: ['#fff'], // Keep border white on hover
+            hoverBorderColor: ['#fff'],
           },
         ],
       };
@@ -30,31 +30,26 @@ export function useChartData(activities: Activity[], chartType: ChartType, editi
       labels: activities.map(activity => activity.name),
       datasets: [
         {
-          data: activities.map(activity => {
-            const absValue = Math.abs(activity.value);
-            return Math.pow(2, absValue - 1);
-          }),
-          backgroundColor: activities.map(activity => getColorForLevel(activity.value)),
+          data: activities.map(activity => activity.weight),
+          backgroundColor: activities.map(activity => getColorForPolarity(activity.polarity)),
           borderColor: activities.map(activity => {
-            // Check if this activity is being edited
             const isActive = editingActivity?.chartType === chartType && editingActivity?.activityId === activity.id;
             if (isActive) {
-              const baseColor = getColorForLevel(activity.value);
-              return `oklch(from ${baseColor} calc(l - 0.1) c h)`; // 10% darker
+              const baseColor = getColorForPolarity(activity.polarity);
+              return `oklch(from ${baseColor} calc(l - 0.1) c h)`;
             }
             return '#fff';
           }),
           borderWidth: 2,
           hoverBackgroundColor: activities.map(activity => {
-            const color = getColorForLevel(activity.value);
-            return `oklch(from ${color} calc(l + 0.1) c h)`; // 10% lighter
+            const color = getColorForPolarity(activity.polarity);
+            return `oklch(from ${color} calc(l + 0.1) c h)`;
           }),
           hoverBorderColor: activities.map(activity => {
-            // Keep the same border color on hover as the regular state
             const isActive = editingActivity?.chartType === chartType && editingActivity?.activityId === activity.id;
             if (isActive) {
-              const baseColor = getColorForLevel(activity.value);
-              return `oklch(from ${baseColor} calc(l - 0.1) c h)`; // 10% darker
+              const baseColor = getColorForPolarity(activity.polarity);
+              return `oklch(from ${baseColor} calc(l - 0.1) c h)`;
             }
             return '#fff';
           }),

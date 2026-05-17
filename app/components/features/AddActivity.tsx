@@ -38,7 +38,8 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
 
     const newActivity = {
       name: positiveName.trim(),
-      value: 3,
+      weight: 4,
+      polarity: 'positive' as const,
     };
 
     const validation = validateActivity(newActivity);
@@ -71,7 +72,8 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
 
     const newActivity = {
       name: negativeName.trim(),
-      value: -3,
+      weight: 4,
+      polarity: 'negative' as const,
     };
 
     const validation = validateActivity(newActivity);

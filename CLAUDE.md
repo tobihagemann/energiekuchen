@@ -76,11 +76,11 @@ The app uses two main contexts:
 interface Activity {
   id: string;
   name: string; // 1-50 chars, supports all Unicode (emojis, accents, symbols)
-  value: number; // -5 to +5 energy level (excluding 0)
+  weight: number; // > 0, persisted to 2 decimals; slice angle = weight / chartTotal
+  polarity: 'positive' | 'negative'; // green = positive (Energiequelle), red = negative (Energieräuber)
   details?: string; // Optional details text (max 150 chars, supports multi-line)
-  // Note: color is computed from value sign (positive = green, negative = red), not stored
-  // Chart size is based on exponential transformation: 2^(|value|-1)
-  // This creates dramatic visual hierarchy (e.g., value 5 = 16x larger than value 1)
+  labelOffset?: { radial: number; angular: number }; // Optional polar offset from the slice centroid
+  // Note: color is computed from polarity, not stored; slice size comes directly from weight.
 }
 ```
 
@@ -88,12 +88,11 @@ interface Activity {
 
 - Maximum 20 activities per chart (current/desired state)
 - Activity names: 1-50 characters, supports all Unicode characters (emojis, accented letters, symbols, etc.)
-- Activity values must be integers from -5 to +5 (excluding 0)
-  - Positive values (+1 to +5): Energy-giving activities (green)
-  - Negative values (-5 to -1): Energy-draining activities (red)
-  - Zero (0) is selectable in UI but not saveable (validation error)
+- Activity weights must be finite positive numbers up to 10000 (persisted at 2-decimal precision)
+- Activity polarity is either `'positive'` (Energiequelle, green) or `'negative'` (Energieräuber, red)
+- Floor: each slice is renormalized to ≥ 1% of the chart total (`getFloor` in `app/lib/utils/floor.ts`); the edit modal's slider works in integer percentages over `[floorPct, 100 - (n-1) * floorPct]`
 - Activity details (optional): max 150 characters, supports multi-line text
-- URL sharing limited to 2048 characters
+- URL sharing limited to 2000 characters (`MAX_URL_LENGTH` in `app/lib/utils/constants.ts`)
 - All user-facing text must be in German
 
 ### Responsive Breakpoints
@@ -108,7 +107,7 @@ interface Activity {
 
 2. **Client-Side Only**: No API calls or server-side rendering. Everything runs in the browser with localStorage.
 
-3. **Testing Mobile Differences**: Mobile Chrome has different slider precision - use values ≤10 in tests to avoid flakiness.
+3. **Testing Mobile Differences**: Mobile Chrome has different slider precision — for slider interactions in tests, prefer keyboard events (ArrowLeft/Right, Home, End) over pointer drags to avoid flakiness on the integer-percent weight slider.
 
 4. **Accessibility**: WCAG 2.1 AA compliance required. Maintain keyboard navigation and ARIA labels.
 

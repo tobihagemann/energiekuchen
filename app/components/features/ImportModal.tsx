@@ -100,7 +100,7 @@ export function ImportModal() {
                   setImportError(''); // Clear error when content changes
                 }}
                 className="h-32 w-full resize-none rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder='{"version": "2.0", "current": {...}, "desired": {...}}'
+                placeholder='{"version": "3.0", "current": {...}, "desired": {...}}'
                 data-testid="import-json-textarea"
               />
             </div>

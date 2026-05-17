@@ -2,13 +2,14 @@
 
 import { createContext, ReactNode, useContext, useEffect, useReducer, useRef } from 'react';
 
+import { renormalizeToFloor, WeightEntry } from '@/app/lib/utils/redistribution';
 import { StorageManager } from '@/app/lib/utils/storage';
 import { Activity, EnergyPie } from '@/app/types';
 import { ChartType, EnergyAction, EnergyContextType, EnergyState } from '@/app/types/context';
 
 function createDefaultData(): EnergyPie {
   return {
-    version: '2.0',
+    version: '3.0',
     current: {
       activities: [],
     },
@@ -18,7 +19,10 @@ function createDefaultData(): EnergyPie {
   };
 }
 
-// Energy Reducer
+function renormalizeChart(chart: { activities: Activity[] }): { activities: Activity[] } {
+  return { activities: renormalizeToFloor(chart.activities) };
+}
+
 function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
   switch (action.type) {
     case 'SET_DATA': {
@@ -26,7 +30,6 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
         ...state,
         data: action.payload,
         lastSaved: action.shouldSave !== false ? new Date().toISOString() : state.lastSaved,
-        // When loading data (shouldSave=false), also set loading to false
         isLoading: action.shouldSave === false ? false : state.isLoading,
       };
       return newState;
@@ -45,12 +48,11 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
         ...action.payload.activity,
       };
 
+      const targetChart = state.data[action.payload.chartType];
+      const withNew = { activities: [...targetChart.activities, newActivity] };
       const updatedData = {
         ...state.data,
-        [action.payload.chartType]: {
-          ...state.data[action.payload.chartType],
-          activities: [...state.data[action.payload.chartType].activities, newActivity],
-        },
+        [action.payload.chartType]: renormalizeChart(withNew),
       };
 
       return {
@@ -81,12 +83,11 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
 
     case 'DELETE_ACTIVITY': {
       const now = new Date().toISOString();
+      const targetChart = state.data[action.payload.chartType];
+      const filtered = { activities: targetChart.activities.filter(a => a.id !== action.payload.activityId) };
       const updatedData = {
         ...state.data,
-        [action.payload.chartType]: {
-          ...state.data[action.payload.chartType],
-          activities: state.data[action.payload.chartType].activities.filter(activity => activity.id !== action.payload.activityId),
-        },
+        [action.payload.chartType]: renormalizeChart(filtered),
       };
 
       return {
@@ -117,11 +118,60 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       };
     }
 
+    case 'SET_ACTIVITY_WEIGHTS': {
+      const now = new Date().toISOString();
+      const weightById = new Map(action.payload.newWeights.map(w => [w.id, w.weight]));
+      const updatedData = {
+        ...state.data,
+        [action.payload.chartType]: {
+          ...state.data[action.payload.chartType],
+          activities: state.data[action.payload.chartType].activities.map(a => (weightById.has(a.id) ? { ...a, weight: weightById.get(a.id) as number } : a)),
+        },
+      };
+
+      return {
+        ...state,
+        data: updatedData,
+        lastSaved: now,
+      };
+    }
+
+    case 'TOGGLE_POLARITY': {
+      const now = new Date().toISOString();
+      const chart = state.data[action.payload.chartType];
+      const target = chart.activities.find(a => a.id === action.payload.activityId);
+      if (!target) return state;
+
+      const destinationPolarity = target.polarity === 'positive' ? 'negative' : 'positive';
+      const others = chart.activities.filter(a => a.id !== action.payload.activityId);
+      const wasEmptyDestination = others.every(a => a.polarity !== destinationPolarity);
+
+      // Insertion rule (R20 + R7): if the destination group has any activities, insert
+      // immediately after the last one; otherwise place at the start of the destination
+      // group (index 0 for positives, after the last positive for negatives).
+      const anchorPolarity = !wasEmptyDestination ? destinationPolarity : 'positive';
+      const insertAt = !wasEmptyDestination || destinationPolarity === 'negative' ? others.findLastIndex(a => a.polarity === anchorPolarity) + 1 : 0;
+
+      const flipped: Activity = { ...target, polarity: destinationPolarity };
+      const nextActivities = [...others.slice(0, insertAt), flipped, ...others.slice(insertAt)];
+      const nextChart = wasEmptyDestination ? renormalizeChart({ activities: nextActivities }) : { activities: nextActivities };
+
+      const updatedData = {
+        ...state.data,
+        [action.payload.chartType]: nextChart,
+      };
+
+      return {
+        ...state,
+        data: updatedData,
+        lastSaved: now,
+      };
+    }
+
     case 'COPY_ACTIVITIES_FROM_CURRENT': {
       const now = new Date().toISOString();
       const currentActivities = state.data.current.activities;
 
-      // Copy activities from current to desired with new IDs
       const copiedActivities: Activity[] = currentActivities.map(activity => ({
         ...activity,
         id: crypto.randomUUID(),
@@ -154,28 +204,26 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       const now = new Date().toISOString();
       const { data: importedData, replaceExisting } = action.payload;
 
-      let resultData;
+      let resultData: EnergyPie;
 
       if (replaceExisting) {
-        // Replace existing data with imported data
         resultData = {
           ...importedData,
+          current: renormalizeChart(importedData.current),
+          desired: renormalizeChart(importedData.desired),
         };
       } else {
-        // Merge imported activities with existing activities, avoiding duplicates by ID
         const existingCurrentIds = new Set(state.data.current.activities.map(a => a.id));
         const existingDesiredIds = new Set(state.data.desired.activities.map(a => a.id));
 
         resultData = {
           ...importedData,
-          current: {
-            ...importedData.current,
+          current: renormalizeChart({
             activities: [...state.data.current.activities, ...importedData.current.activities.filter(a => !existingCurrentIds.has(a.id))],
-          },
-          desired: {
-            ...importedData.desired,
+          }),
+          desired: renormalizeChart({
             activities: [...state.data.desired.activities, ...importedData.desired.activities.filter(a => !existingDesiredIds.has(a.id))],
-          },
+          }),
         };
       }
 
@@ -199,10 +247,8 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
   }
 }
 
-// Context Definition
 const EnergyContext = createContext<EnergyContextType | undefined>(undefined);
 
-// Provider Component
 export function EnergyProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(energyReducer, {
     data: createDefaultData(),
@@ -212,14 +258,12 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
 
   const hasLoadedRef = useRef(false);
 
-  // Auto-save on data changes
   useEffect(() => {
     if (state.lastSaved) {
       StorageManager.save(state.data);
     }
   }, [state.data, state.lastSaved]);
 
-  // Load data on mount (skip for shared routes)
   useEffect(() => {
     if (hasLoadedRef.current) {
       return;
@@ -258,6 +302,14 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'REORDER_ACTIVITIES', payload: { chartType, fromIndex, toIndex } });
   };
 
+  const setActivityWeights = (chartType: ChartType, newWeights: WeightEntry[]) => {
+    dispatch({ type: 'SET_ACTIVITY_WEIGHTS', payload: { chartType, newWeights } });
+  };
+
+  const togglePolarity = (chartType: ChartType, activityId: string) => {
+    dispatch({ type: 'TOGGLE_POLARITY', payload: { chartType, activityId } });
+  };
+
   const copyActivitiesFromCurrent = () => {
     dispatch({ type: 'COPY_ACTIVITIES_FROM_CURRENT' });
   };
@@ -293,6 +345,8 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     updateActivity,
     deleteActivity,
     reorderActivities,
+    setActivityWeights,
+    togglePolarity,
     copyActivitiesFromCurrent,
     resetData,
     saveData,
@@ -304,7 +358,6 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
   return <EnergyContext.Provider value={value}>{children}</EnergyContext.Provider>;
 }
 
-// Custom Hook
 export function useEnergy() {
   const context = useContext(EnergyContext);
   if (context === undefined) {

@@ -1,8 +1,17 @@
+export type Polarity = 'positive' | 'negative';
+
+export interface LabelOffset {
+  radial: number; // additive offset on the radius axis, in pie-radius units
+  angular: number; // additive offset on the angular axis, in radians
+}
+
 export interface Activity {
   id: string;
   name: string;
-  value: number; // -5 to +5 energy level (excluding 0)
+  weight: number; // > 0, persisted to 2 decimals
+  polarity: Polarity;
   details?: string; // Optional details text (max 150 chars)
+  labelOffset?: LabelOffset;
 }
 
 interface EnergyChart {
@@ -10,7 +19,7 @@ interface EnergyChart {
 }
 
 export interface EnergyPie {
-  version: string;
+  version: '3.0';
   current: EnergyChart;
   desired: EnergyChart;
 }
