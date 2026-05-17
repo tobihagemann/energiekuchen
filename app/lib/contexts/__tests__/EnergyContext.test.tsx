@@ -360,6 +360,89 @@ describe('EnergyContext', () => {
     expect(result.current.state.lastSaved).toBeTruthy();
   });
 
+  test('SET_LABEL_OFFSET persists a validated offset', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+    });
+    const id = result.current.state.data.current.activities[0].id;
+    act(() => {
+      result.current.setLabelOffset('current', id, { radial: 0.2, angular: Math.PI / 4 });
+    });
+    expect(result.current.state.data.current.activities[0].labelOffset).toEqual({
+      radial: 0.2,
+      angular: Math.round((Math.PI / 4) * 10000) / 10000,
+    });
+  });
+
+  test('SET_LABEL_OFFSET with null clears an existing offset', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+    });
+    const id = result.current.state.data.current.activities[0].id;
+    act(() => {
+      result.current.setLabelOffset('current', id, { radial: 0.2, angular: 0.3 });
+    });
+    expect(result.current.state.data.current.activities[0].labelOffset).toBeDefined();
+    act(() => {
+      result.current.setLabelOffset('current', id, null);
+    });
+    expect(result.current.state.data.current.activities[0].labelOffset).toBeUndefined();
+  });
+
+  test('SET_LABEL_OFFSET drops malformed input (NaN)', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+    });
+    const id = result.current.state.data.current.activities[0].id;
+    const before = result.current.state.data.current.activities[0];
+    act(() => {
+      result.current.setLabelOffset('current', id, { radial: Number.NaN, angular: 0 });
+    });
+    expect(result.current.state.data.current.activities[0]).toBe(before);
+  });
+
+  test('SET_LABEL_OFFSET bumps lastSaved on a real change', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+    });
+    const id = result.current.state.data.current.activities[0].id;
+    const beforeState = result.current.state;
+    act(() => {
+      result.current.setLabelOffset('current', id, { radial: 0.1, angular: 0 });
+    });
+    expect(result.current.state).not.toBe(beforeState);
+    expect(result.current.state.lastSaved).toBeTruthy();
+  });
+
+  test('SET_LABEL_OFFSET is a no-op for an unknown id', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+    });
+    const before = result.current.state;
+    act(() => {
+      result.current.setLabelOffset('current', 'does-not-exist', { radial: 0.1, angular: 0 });
+    });
+    expect(result.current.state).toBe(before);
+  });
+
+  test('SET_LABEL_OFFSET with null on an activity with no offset is state-identical', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+    });
+    const id = result.current.state.data.current.activities[0].id;
+    const before = result.current.state;
+    act(() => {
+      result.current.setLabelOffset('current', id, null);
+    });
+    expect(result.current.state).toBe(before);
+  });
+
   test('unknown action keeps state', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
     const before = result.current.state;

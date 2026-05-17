@@ -4,7 +4,8 @@ import { createContext, ReactNode, useContext, useEffect, useReducer, useRef } f
 
 import { renormalizeToFloor, WeightEntry } from '@/app/lib/utils/redistribution';
 import { StorageManager } from '@/app/lib/utils/storage';
-import { Activity, EnergyPie } from '@/app/types';
+import { validateLabelOffset } from '@/app/lib/utils/validation';
+import { Activity, EnergyPie, LabelOffset } from '@/app/types';
 import { ChartType, EnergyAction, EnergyContextType, EnergyState } from '@/app/types/context';
 
 function createDefaultData(): EnergyPie {
@@ -168,6 +169,37 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
       };
     }
 
+    case 'SET_LABEL_OFFSET': {
+      const chart = state.data[action.payload.chartType];
+      const target = chart.activities.find(a => a.id === action.payload.activityId);
+      if (!target) return state;
+
+      let nextActivity: Activity;
+      if (action.payload.offset === null) {
+        if (!target.labelOffset) return state;
+        const { labelOffset: _unused, ...rest } = target;
+        nextActivity = rest;
+      } else {
+        const result = validateLabelOffset(action.payload.offset);
+        if (!result.isValid || !result.normalized) return state;
+        nextActivity = { ...target, labelOffset: result.normalized };
+      }
+
+      const updatedData = {
+        ...state.data,
+        [action.payload.chartType]: {
+          ...chart,
+          activities: chart.activities.map(a => (a.id === action.payload.activityId ? nextActivity : a)),
+        },
+      };
+
+      return {
+        ...state,
+        data: updatedData,
+        lastSaved: new Date().toISOString(),
+      };
+    }
+
     case 'COPY_ACTIVITIES_FROM_CURRENT': {
       const now = new Date().toISOString();
       const currentActivities = state.data.current.activities;
@@ -310,6 +342,10 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'TOGGLE_POLARITY', payload: { chartType, activityId } });
   };
 
+  const setLabelOffset = (chartType: ChartType, activityId: string, offset: LabelOffset | null) => {
+    dispatch({ type: 'SET_LABEL_OFFSET', payload: { chartType, activityId, offset } });
+  };
+
   const copyActivitiesFromCurrent = () => {
     dispatch({ type: 'COPY_ACTIVITIES_FROM_CURRENT' });
   };
@@ -347,6 +383,7 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     reorderActivities,
     setActivityWeights,
     togglePolarity,
+    setLabelOffset,
     copyActivitiesFromCurrent,
     resetData,
     saveData,

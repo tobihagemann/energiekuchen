@@ -1,73 +1,172 @@
 import { renderHook } from '@testing-library/react';
 
-import { useChartData } from '@/app/lib/hooks/useChartData';
+import { RenderedEntry, useChartData } from '@/app/lib/hooks/useChartData';
 import { NEGATIVE_COLOR, POSITIVE_COLOR } from '@/app/lib/utils/constants';
-import { Activity } from '@/app/types';
 
-describe('useChartData', () => {
-  const mockActivities: Activity[] = [
-    { id: '1', name: 'Activity 1', weight: 4, polarity: 'positive' },
-    { id: '2', name: 'Activity 2', weight: 8, polarity: 'negative' },
-  ];
+function makeRendered(entries: Array<Partial<RenderedEntry>>): RenderedEntry[] {
+  return entries.map((e, i) => ({
+    id: e.id ?? `${i}`,
+    name: e.name ?? `Activity ${i}`,
+    weight: e.weight ?? 1,
+    polarity: e.polarity ?? 'positive',
+    details: e.details,
+    labelOffset: e.labelOffset,
+  }));
+}
 
-  it('maps weight directly to dataset data', () => {
-    const { result } = renderHook(() => useChartData(mockActivities, 'current', null));
-    expect(result.current.chartData.datasets[0].data).toEqual([4, 8]);
-    expect(result.current.chartData.labels).toEqual(['Activity 1', 'Activity 2']);
+const baseInput = {
+  labelBBoxes: {},
+  editingActivity: null,
+  chartType: 'current' as const,
+  chartSize: 360,
+};
+
+describe('useChartData (SVG geometry)', () => {
+  test('empty chart returns a single full-circle slice in gray', () => {
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: [],
+        displayedWeights: [],
+        displayedOffsets: [],
+      })
+    );
+    expect(result.current.isEmpty).toBe(true);
+    expect(result.current.slices).toHaveLength(1);
+    expect(result.current.slices[0].fillColor).toBe('oklch(0.967 0.003 264.542)');
+    expect(result.current.labels).toEqual([]);
   });
 
-  it('colors slices by polarity', () => {
-    const { result } = renderHook(() => useChartData(mockActivities, 'current', null));
-    expect(result.current.chartData.datasets[0].backgroundColor).toEqual([POSITIVE_COLOR, NEGATIVE_COLOR]);
+  test('multi-slice angles sum to 2π', () => {
+    const entries = makeRendered([
+      { id: 'a', weight: 3, polarity: 'positive' },
+      { id: 'b', weight: 6, polarity: 'positive' },
+      { id: 'c', weight: 3, polarity: 'negative' },
+    ]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        displayedWeights: [3, 6, 3],
+        displayedOffsets: [undefined, undefined, undefined],
+      })
+    );
+    const total = result.current.slices.reduce((s, slice) => s + (slice.endAngle - slice.startAngle), 0);
+    expect(total).toBeCloseTo(Math.PI * 2);
   });
 
-  it('returns the empty-state palette when no activities', () => {
-    const { result } = renderHook(() => useChartData([], 'current', null));
-    expect(result.current.chartData.labels).toEqual(['Keine Aktivitäten']);
-    expect(result.current.chartData.datasets[0].data).toEqual([1]);
-    expect(result.current.chartData.datasets[0].backgroundColor).toEqual(['oklch(0.967 0.003 264.542)']);
+  test('renders polarity colors', () => {
+    const entries = makeRendered([
+      { id: 'a', weight: 5, polarity: 'positive' },
+      { id: 'b', weight: 5, polarity: 'negative' },
+    ]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        displayedWeights: [5, 5],
+        displayedOffsets: [undefined, undefined],
+      })
+    );
+    expect(result.current.slices[0].fillColor).toBe(POSITIVE_COLOR);
+    expect(result.current.slices[1].fillColor).toBe(NEGATIVE_COLOR);
   });
 
-  it('memoizes when activities are stable', () => {
-    const { result, rerender } = renderHook(() => useChartData(mockActivities, 'current', null));
-    const first = result.current.chartData;
+  test('darkens border for active editing slice', () => {
+    const entries = makeRendered([
+      { id: 'a', weight: 5, polarity: 'positive' },
+      { id: 'b', weight: 5, polarity: 'positive' },
+    ]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        displayedWeights: [5, 5],
+        displayedOffsets: [undefined, undefined],
+        editingActivity: { chartType: 'current', activityId: 'a' },
+      })
+    );
+    expect(result.current.slices[0].borderColor).toBe(`oklch(from ${POSITIVE_COLOR} calc(l - 0.1) c h)`);
+    expect(result.current.slices[1].borderColor).toBe('oklch(1 0 0)');
+  });
+
+  test('single activity emits a non-degenerate full-circle path', () => {
+    const entries = makeRendered([{ id: 'a', weight: 5, polarity: 'positive' }]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        displayedWeights: [5],
+        displayedOffsets: [undefined],
+      })
+    );
+    expect(result.current.slices[0].isFullCircle).toBe(true);
+    expect(result.current.slices[0].pathD).toMatch(/^M /);
+    expect(result.current.slices[0].pathD).toMatch(/A /);
+  });
+
+  test('label leader-line is null when label sits near the centroid', () => {
+    const entries = makeRendered([
+      { id: 'a', weight: 5, polarity: 'positive' },
+      { id: 'b', weight: 5, polarity: 'positive' },
+    ]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        displayedWeights: [5, 5],
+        displayedOffsets: [undefined, undefined],
+      })
+    );
+    expect(result.current.labels[0].leaderTo).toBeNull();
+  });
+
+  test('label leader-line is set when offset pushes label past the threshold', () => {
+    const entries = makeRendered([
+      { id: 'a', weight: 5, polarity: 'positive' },
+      { id: 'b', weight: 5, polarity: 'positive' },
+    ]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        displayedWeights: [5, 5],
+        displayedOffsets: [{ radial: 0.4, angular: 0 }, undefined],
+      })
+    );
+    expect(result.current.labels[0].leaderTo).not.toBeNull();
+  });
+
+  test('layout includes 20% padding around the pie radius', () => {
+    const entries = makeRendered([{ id: 'a', weight: 5, polarity: 'positive' }]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        displayedWeights: [5],
+        displayedOffsets: [undefined],
+        chartSize: 360,
+      })
+    );
+    expect(result.current.layout.radius).toBe(180);
+    expect(result.current.layout.sizePx).toBeCloseTo(360 * 1.2);
+    expect(result.current.layout.viewBox).toBe('-216 -216 432 432');
+  });
+
+  test('memoizes on stable input', () => {
+    const entries = makeRendered([{ id: 'a', weight: 5, polarity: 'positive' }]);
+    const weights = [5];
+    const offsets = [undefined];
+    const { result, rerender } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        displayedWeights: weights,
+        displayedOffsets: offsets,
+      })
+    );
+    const first = result.current;
     rerender();
-    expect(result.current.chartData).toBe(first);
-  });
-
-  it('applies darkened border for active editing activity', () => {
-    const editing = { chartType: 'current' as const, activityId: '1' };
-    const { result } = renderHook(() => useChartData(mockActivities, 'current', editing));
-    expect(result.current.chartData.datasets[0].borderColor[0]).toBe(`oklch(from ${POSITIVE_COLOR} calc(l - 0.1) c h)`);
-    expect(result.current.chartData.datasets[0].borderColor[1]).toBe('#fff');
-  });
-
-  it('applies lightened hover color', () => {
-    const { result } = renderHook(() => useChartData(mockActivities, 'current', null));
-    expect(result.current.chartData.datasets[0].hoverBackgroundColor[0]).toBe(`oklch(from ${POSITIVE_COLOR} calc(l + 0.1) c h)`);
-    expect(result.current.chartData.datasets[0].hoverBackgroundColor[1]).toBe(`oklch(from ${NEGATIVE_COLOR} calc(l + 0.1) c h)`);
-  });
-
-  it('updates dataset when activities change', () => {
-    const { result, rerender } = renderHook(({ activities }) => useChartData(activities, 'current', null), {
-      initialProps: { activities: mockActivities },
-    });
-    const before = result.current.chartData;
-    rerender({ activities: [{ id: '3', name: 'New', weight: 5, polarity: 'positive' }] });
-    expect(result.current.chartData).not.toBe(before);
-    expect(result.current.chartData.labels).toEqual(['New']);
-  });
-
-  it('does not apply active border when editing is on a different chart', () => {
-    const editing = { chartType: 'desired' as const, activityId: '1' };
-    const { result } = renderHook(() => useChartData(mockActivities, 'current', editing));
-    expect(result.current.chartData.datasets[0].borderColor).toEqual(['#fff', '#fff']);
-  });
-
-  it('hoverBorderColor for active editing activity matches darkened border', () => {
-    const editing = { chartType: 'current' as const, activityId: '1' };
-    const { result } = renderHook(() => useChartData(mockActivities, 'current', editing));
-    expect(result.current.chartData.datasets[0].hoverBorderColor?.[0]).toBe(`oklch(from ${POSITIVE_COLOR} calc(l - 0.1) c h)`);
-    expect(result.current.chartData.datasets[0].hoverBorderColor?.[1]).toBe('#fff');
+    expect(result.current).toBe(first);
   });
 });

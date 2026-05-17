@@ -9,6 +9,48 @@ export interface WeightEntry {
   weight: number;
 }
 
+// Chart-drag and ArrowKey commit: transfer `deltaWeight` from `donorIndex` to
+// `receiverIndex`, leaving every other entry untouched. `deltaWeight` is a
+// non-negative absolute amount; direction is encoded by which index is which.
+// On floor underflow, both sides are clamped so the pair sum is preserved exactly
+// under rounding (R13). Returns a fresh array; non-target entries pass through
+// as shallow clones.
+export function redistributeTwoDonor(entries: WeightEntry[], receiverIndex: number, donorIndex: number, deltaWeight: number, floor: number): WeightEntry[] {
+  const next = entries.map(e => ({ ...e }));
+  if (receiverIndex === donorIndex || receiverIndex < 0 || donorIndex < 0 || receiverIndex >= next.length || donorIndex >= next.length) {
+    return next;
+  }
+
+  const pairSum = next[receiverIndex].weight + next[donorIndex].weight;
+  let receiverWeight = next[receiverIndex].weight + deltaWeight;
+  let donorWeight = next[donorIndex].weight - deltaWeight;
+
+  if (donorWeight < floor) {
+    donorWeight = floor;
+    receiverWeight = pairSum - floor;
+  }
+  if (receiverWeight < floor) {
+    receiverWeight = floor;
+    donorWeight = pairSum - floor;
+  }
+
+  let roundedReceiver = round2(receiverWeight);
+  let roundedDonor = round2(pairSum - roundedReceiver);
+
+  if (roundedDonor < floor) {
+    roundedDonor = floor;
+    roundedReceiver = round2(pairSum - floor);
+  }
+  if (roundedReceiver < floor) {
+    roundedReceiver = floor;
+    roundedDonor = round2(pairSum - floor);
+  }
+
+  next[receiverIndex].weight = roundedReceiver;
+  next[donorIndex].weight = roundedDonor;
+  return next;
+}
+
 // Modal-slider commit: shift weight to `targetId` and absorb the delta proportionally
 // from every other entry in proportion to its current weight, clamping any entry that
 // would drop below `floor`.

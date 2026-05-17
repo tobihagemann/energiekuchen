@@ -97,9 +97,12 @@ interface Activity {
 
 ### Responsive Breakpoints
 
-- Small: Below 640px (single column)
-- Medium: 640px-1279px (two columns)
-- Large: 1280px+ (side-by-side charts)
+Two independent responsive systems govern layout:
+
+- **Chart size** (`useResponsive` in `app/lib/hooks/useResponsive.ts`): `isSmall` <640px, `isMedium` 640–1279px, `isLarge` ≥1280px. Drives the chart pixel size (280 / 360 / 440 px).
+- **Dashboard grid** (`app/page.tsx`, Tailwind `lg:grid-cols-2`): single column <1024px, two columns ≥1024px.
+
+The breakpoints do not align: the 1024–1279 px window renders two medium-sized (360 px) charts side-by-side. Any work on chart sizing must account for this window.
 
 ## Important Development Notes
 

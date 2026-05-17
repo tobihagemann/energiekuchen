@@ -34,15 +34,3 @@ Object.defineProperty(global, 'localStorage', {
   value: localStorageMock,
   configurable: true,
 });
-
-// Mock Chart.js
-jest.mock('chart.js', () => ({
-  Chart: {
-    register: jest.fn(),
-  },
-  CategoryScale: jest.fn(),
-  LinearScale: jest.fn(),
-  ArcElement: jest.fn(),
-  Tooltip: jest.fn(),
-  Legend: jest.fn(),
-}));

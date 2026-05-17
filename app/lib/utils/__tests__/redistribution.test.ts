@@ -1,7 +1,7 @@
 import { Activity } from '@/app/types';
 
 import { getFloor } from '../floor';
-import { redistributeProportionalAll, renormalizeToFloor } from '../redistribution';
+import { redistributeProportionalAll, redistributeTwoDonor, renormalizeToFloor } from '../redistribution';
 
 const activity = (id: string, weight: number, polarity: 'positive' | 'negative' = 'positive'): Activity => ({
   id,
@@ -11,6 +11,121 @@ const activity = (id: string, weight: number, polarity: 'positive' | 'negative' 
 });
 
 const totalOf = (entries: Array<{ weight: number }>) => entries.reduce((sum, e) => sum + e.weight, 0);
+
+describe('redistributeTwoDonor', () => {
+  test('balanced pair: transfers delta and preserves pair sum', () => {
+    const entries = [
+      { id: 'a', weight: 5 },
+      { id: 'b', weight: 5 },
+      { id: 'c', weight: 5 },
+    ];
+    const result = redistributeTwoDonor(entries, 0, 1, 1, 0.15);
+    expect(result[0].weight).toBeCloseTo(6, 2);
+    expect(result[1].weight).toBeCloseTo(4, 2);
+    expect(result[2].weight).toBe(5);
+    expect(totalOf(result)).toBeCloseTo(15, 2);
+  });
+
+  test('donor at floor: clamps and assigns residual to receiver', () => {
+    const entries = [
+      { id: 'a', weight: 9.9 },
+      { id: 'b', weight: 0.1 },
+    ];
+    const floor = getFloor(10);
+    const result = redistributeTwoDonor(entries, 0, 1, 0.5, floor);
+    expect(result[1].weight).toBeGreaterThanOrEqual(floor);
+    expect(totalOf(result)).toBeCloseTo(10, 2);
+  });
+
+  test('receiver at floor going down: clamp symmetry', () => {
+    const entries = [
+      { id: 'a', weight: 0.1 },
+      { id: 'b', weight: 9.9 },
+    ];
+    const floor = getFloor(10);
+    // Negative case is encoded as "donor and receiver swap": here we transfer to b from a.
+    const result = redistributeTwoDonor(entries, 1, 0, 0.5, floor);
+    expect(result[0].weight).toBeGreaterThanOrEqual(floor);
+    expect(totalOf(result)).toBeCloseTo(10, 2);
+  });
+
+  test('near-floor repeated drags keep pair sum stable under rounding', () => {
+    let entries = [
+      { id: 'a', weight: 0.5 },
+      { id: 'b', weight: 0.5 },
+    ];
+    const floor = 0.01;
+    const initial = totalOf(entries);
+    for (let i = 0; i < 20; i++) {
+      entries = redistributeTwoDonor(entries, 0, 1, 0.01, floor);
+      entries = redistributeTwoDonor(entries, 1, 0, 0.01, floor);
+    }
+    expect(totalOf(entries)).toBeCloseTo(initial, 2);
+  });
+
+  test('polarity-wrap seam: last index → first index works', () => {
+    const entries = [
+      { id: 'a', weight: 4 },
+      { id: 'b', weight: 4 },
+      { id: 'c', weight: 4 },
+    ];
+    const result = redistributeTwoDonor(entries, 0, 2, 1, 0.12);
+    expect(result[0].weight).toBeCloseTo(5, 2);
+    expect(result[2].weight).toBeCloseTo(3, 2);
+    expect(result[1].weight).toBe(4);
+  });
+
+  test('returns fresh copy when indices are invalid', () => {
+    const entries = [{ id: 'a', weight: 4 }];
+    const result = redistributeTwoDonor(entries, 0, 0, 1, 0.04);
+    expect(result).toEqual(entries);
+    expect(result).not.toBe(entries);
+  });
+
+  test('out-of-range indices short-circuit to a fresh copy', () => {
+    const entries = [
+      { id: 'a', weight: 4 },
+      { id: 'b', weight: 4 },
+    ];
+    const negative = redistributeTwoDonor(entries, -1, 0, 1, 0.04);
+    expect(negative).toEqual(entries);
+    const tooLarge = redistributeTwoDonor(entries, 0, 99, 1, 0.04);
+    expect(tooLarge).toEqual(entries);
+  });
+
+  test('receiver below floor pre-rounding clamp branch (pairSum below 2*floor)', () => {
+    const entries = [
+      { id: 'a', weight: 0.005 },
+      { id: 'b', weight: 0.005 },
+    ];
+    const floor = 0.01;
+    const result = redistributeTwoDonor(entries, 0, 1, 0, floor);
+    expect(result[0].weight).toBeGreaterThanOrEqual(floor);
+  });
+
+  test('receiver underflow after rounding triggers the receiver-clamp branch', () => {
+    const entries = [
+      { id: 'a', weight: 0.014 },
+      { id: 'b', weight: 0.006 },
+    ];
+    const floor = 0.01;
+    const result = redistributeTwoDonor(entries, 1, 0, 0, floor);
+    expect(result[0].weight).toBeGreaterThanOrEqual(floor);
+    expect(result[1].weight).toBeGreaterThanOrEqual(floor);
+  });
+
+  test('R13 both-clamp branch fires when rounding underflows the floor', () => {
+    const entries = [
+      { id: 'a', weight: 0.015 },
+      { id: 'b', weight: 0.985 },
+    ];
+    const floor = 0.01;
+    const result = redistributeTwoDonor(entries, 1, 0, 0.01, floor);
+    expect(result[0].weight).toBeGreaterThanOrEqual(floor);
+    expect(result[1].weight).toBeGreaterThanOrEqual(floor);
+    expect(totalOf(result)).toBeCloseTo(1, 2);
+  });
+});
 
 describe('redistributeProportionalAll', () => {
   test('simple 3-slice case preserves total', () => {
