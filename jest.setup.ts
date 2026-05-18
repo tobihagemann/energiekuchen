@@ -3,8 +3,7 @@ import { TextDecoder, TextEncoder } from 'util';
 
 // Polyfill TextEncoder/TextDecoder for Jest environment
 global.TextEncoder = TextEncoder;
-// @ts-expect-error - TextDecoder types don't match exactly but work fine
-global.TextDecoder = TextDecoder;
+global.TextDecoder = TextDecoder as typeof globalThis.TextDecoder;
 
 // Mock localStorage with actual storage behavior
 const localStorageMock = (() => {
@@ -35,15 +34,3 @@ Object.defineProperty(global, 'localStorage', {
   value: localStorageMock,
   configurable: true,
 });
-
-// Mock Chart.js
-jest.mock('chart.js', () => ({
-  Chart: {
-    register: jest.fn(),
-  },
-  CategoryScale: jest.fn(),
-  LinearScale: jest.fn(),
-  ArcElement: jest.fn(),
-  Tooltip: jest.fn(),
-  Legend: jest.fn(),
-}));

@@ -15,14 +15,14 @@ Each activity is rated on a scale from -5 (strong energy drain) to +5 (strong en
 
 ### Prerequisites
 
-- Node.js 22.x or later
-- npm 9.x or later
+- Node.js 22.13 or later
+- pnpm 11.x or later (or run `corepack enable` to use the version pinned in package.json)
 
 ### Installation
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to see the application.
@@ -31,20 +31,20 @@ Open [http://localhost:3000](http://localhost:3000) to see the application.
 
 ```bash
 # Development
-npm run dev           # Start dev server
-npm run build         # Build for production
-npm run prod          # Build and start production server
+pnpm dev              # Start dev server
+pnpm build            # Build for production
+pnpm prod             # Build and start production server
 
 # Code Quality
-npm run lint          # Run TypeScript + ESLint + Prettier checks
-npm run format        # Format code with Prettier + ESLint
-npm run knip          # Check for unused dependencies, exports, and types
+pnpm lint             # Run tsgo + oxlint + oxfmt checks
+pnpm format           # Format code with oxfmt + oxlint
+pnpm knip             # Check for unused dependencies, exports, and types
 
 # Testing
-npm run test          # Run unit tests
-npm run test:coverage # Run tests with coverage report
-npm run test:e2e      # Run end-to-end tests
-npm run test:all      # Run all tests
+pnpm test             # Run unit tests
+pnpm test:coverage    # Run tests with coverage report
+pnpm test:e2e         # Run end-to-end tests
+pnpm test:all         # Run all tests
 ```
 
 ## Deployment
@@ -53,7 +53,7 @@ The application is deployed as a static site on GitHub Pages at [energiekuchen.d
 
 ```bash
 # Build for production
-npm run build
+pnpm build
 
 # The built application creates static files in the 'out' directory
 ```

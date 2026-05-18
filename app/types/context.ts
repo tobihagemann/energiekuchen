@@ -1,4 +1,6 @@
-import { Activity, EnergyPie } from './index';
+import { WeightEntry } from '@/app/lib/utils/redistribution';
+
+import { Activity, EnergyPie, LabelOffset } from './index';
 
 // ChartType - used throughout the app to specify current or desired state
 export type ChartType = 'current' | 'desired';
@@ -10,6 +12,9 @@ export type EnergyAction =
   | { type: 'UPDATE_ACTIVITY'; payload: { chartType: ChartType; activityId: string; updates: Partial<Activity> } }
   | { type: 'DELETE_ACTIVITY'; payload: { chartType: ChartType; activityId: string } }
   | { type: 'REORDER_ACTIVITIES'; payload: { chartType: ChartType; fromIndex: number; toIndex: number } }
+  | { type: 'SET_ACTIVITY_WEIGHTS'; payload: { chartType: ChartType; newWeights: WeightEntry[] } }
+  | { type: 'TOGGLE_POLARITY'; payload: { chartType: ChartType; activityId: string } }
+  | { type: 'SET_LABEL_OFFSET'; payload: { chartType: ChartType; activityId: string; offset: LabelOffset | null } }
   | { type: 'COPY_ACTIVITIES_FROM_CURRENT' }
   | { type: 'RESET_DATA' }
   | { type: 'IMPORT_DATA'; payload: { data: EnergyPie; replaceExisting: boolean } }
@@ -32,6 +37,9 @@ export interface EnergyContextType {
   updateActivity: (chartType: ChartType, activityId: string, updates: Partial<Activity>) => void;
   deleteActivity: (chartType: ChartType, activityId: string) => void;
   reorderActivities: (chartType: ChartType, fromIndex: number, toIndex: number) => void;
+  setActivityWeights: (chartType: ChartType, newWeights: WeightEntry[]) => void;
+  togglePolarity: (chartType: ChartType, activityId: string) => void;
+  setLabelOffset: (chartType: ChartType, activityId: string, offset: LabelOffset | null) => void;
   copyActivitiesFromCurrent: () => void;
   resetData: () => void;
   saveData: () => void;

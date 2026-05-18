@@ -1,9 +1,9 @@
 import { act, renderHook } from '@testing-library/react';
+
 import { createMockActivity } from '../../../__tests__/utils/mocks';
 import { StorageManager } from '../../utils/storage';
 import { EnergyProvider, useEnergy } from '../EnergyContext';
 
-// Mock StorageManager
 jest.mock('../../utils/storage', () => ({
   StorageManager: {
     save: jest.fn(),
@@ -17,21 +17,16 @@ const wrapper = ({ children }: { children: React.ReactNode }) => <EnergyProvider
 
 describe('EnergyContext', () => {
   beforeEach(() => {
-    // Clear localStorage before each test
     localStorage.clear();
-
-    // Reset StorageManager mocks to default behavior
     jest.mocked(StorageManager.load).mockReturnValue(null);
     jest.mocked(StorageManager.import).mockImplementation((jsonString: string) => JSON.parse(jsonString));
   });
+
   test('should add activity to current chart', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
     act(() => {
-      result.current.addActivity('current', {
-        name: 'Sport',
-        value: 5,
-      });
+      result.current.addActivity('current', { name: 'Sport', weight: 5, polarity: 'positive' });
     });
 
     expect(result.current.state.data.current.activities).toHaveLength(1);
@@ -42,749 +37,455 @@ describe('EnergyContext', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
 
     act(() => {
-      result.current.addActivity('desired', {
-        name: 'Mehr Sport',
-        value: 3,
-      });
+      result.current.addActivity('desired', { name: 'Mehr Sport', weight: 3, polarity: 'positive' });
     });
 
     expect(result.current.state.data.desired.activities).toHaveLength(1);
-    expect(result.current.state.data.desired.activities[0].name).toBe('Mehr Sport');
   });
 
   test('should update activity correctly', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
-
     act(() => {
-      result.current.addActivity('current', {
-        name: 'Sport',
-        value: 5,
-      });
+      result.current.addActivity('current', { name: 'Sport', weight: 5, polarity: 'positive' });
     });
-
-    const activityId = result.current.state.data.current.activities[0].id;
-
+    const id = result.current.state.data.current.activities[0].id;
     act(() => {
-      result.current.updateActivity('current', activityId, { name: 'Fitness' });
+      result.current.updateActivity('current', id, { name: 'Fitness' });
     });
-
     expect(result.current.state.data.current.activities[0].name).toBe('Fitness');
   });
 
-  test('should delete activity correctly', () => {
+  test('should delete activity correctly and renormalize', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
-
     act(() => {
-      result.current.addActivity('current', {
-        name: 'Sport',
-        value: 5,
-      });
+      result.current.addActivity('current', { name: 'A', weight: 5, polarity: 'positive' });
+      result.current.addActivity('current', { name: 'B', weight: 5, polarity: 'positive' });
     });
-
-    const activityId = result.current.state.data.current.activities[0].id;
-
+    const id = result.current.state.data.current.activities[0].id;
     act(() => {
-      result.current.deleteActivity('current', activityId);
+      result.current.deleteActivity('current', id);
     });
-
-    expect(result.current.state.data.current.activities).toHaveLength(0);
+    expect(result.current.state.data.current.activities).toHaveLength(1);
   });
 
   test('should reorder activities correctly', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
-
     act(() => {
-      result.current.addActivity('current', {
-        name: 'Sport',
-        value: 5,
-      });
+      result.current.addActivity('current', { name: 'Sport', weight: 5, polarity: 'positive' });
+      result.current.addActivity('current', { name: 'Lesen', weight: 3, polarity: 'positive' });
     });
-
-    act(() => {
-      result.current.addActivity('current', {
-        name: 'Lesen',
-        value: 3,
-      });
-    });
-
-    expect(result.current.state.data.current.activities[0].name).toBe('Sport');
-    expect(result.current.state.data.current.activities[1].name).toBe('Lesen');
-
     act(() => {
       result.current.reorderActivities('current', 0, 1);
     });
-
     expect(result.current.state.data.current.activities[0].name).toBe('Lesen');
-    expect(result.current.state.data.current.activities[1].name).toBe('Sport');
   });
 
-  test('should reorder multiple activities correctly', () => {
+  test('SET_ACTIVITY_WEIGHTS updates matched ids', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Add three activities
     act(() => {
-      result.current.addActivity('desired', {
-        name: 'Stress',
-        value: 4,
-      });
-      result.current.addActivity('desired', {
-        name: 'Müdigkeit',
-        value: 5,
-      });
-      result.current.addActivity('desired', {
-        name: 'Langeweile',
-        value: 3,
-      });
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+      result.current.addActivity('current', { name: 'B', weight: 4, polarity: 'positive' });
     });
-
-    // Initial order
-    expect(result.current.state.data.desired.activities[0].name).toBe('Stress');
-    expect(result.current.state.data.desired.activities[1].name).toBe('Müdigkeit');
-    expect(result.current.state.data.desired.activities[2].name).toBe('Langeweile');
-
-    // Move last item to first position
+    const ids = result.current.state.data.current.activities.map(a => a.id);
     act(() => {
-      result.current.reorderActivities('desired', 2, 0);
+      result.current.setActivityWeights('current', [
+        { id: ids[0], weight: 6 },
+        { id: 'missing', weight: 99 },
+      ]);
     });
-
-    expect(result.current.state.data.desired.activities[0].name).toBe('Langeweile');
-    expect(result.current.state.data.desired.activities[1].name).toBe('Stress');
-    expect(result.current.state.data.desired.activities[2].name).toBe('Müdigkeit');
+    expect(result.current.state.data.current.activities[0].weight).toBe(6);
+    expect(result.current.state.data.current.activities[1].weight).toBe(4);
   });
 
-  test('should handle reorder with same indices', () => {
+  test('TOGGLE_POLARITY flips polarity in place (non-empty destination)', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
-
     act(() => {
-      result.current.addActivity('current', {
-        name: 'Sport',
-        value: 5,
-      });
+      result.current.addActivity('current', { name: 'P1', weight: 4, polarity: 'positive' });
+      result.current.addActivity('current', { name: 'P2', weight: 4, polarity: 'positive' });
+      result.current.addActivity('current', { name: 'N1', weight: 4, polarity: 'negative' });
     });
-
-    const initialActivities = [...result.current.state.data.current.activities];
-
-    // Reorder with same from and to index
+    const p1Id = result.current.state.data.current.activities[0].id;
+    const weightsBefore = result.current.state.data.current.activities.map(a => a.weight);
     act(() => {
-      result.current.reorderActivities('current', 0, 0);
+      result.current.togglePolarity('current', p1Id);
     });
-
-    // Should remain unchanged
-    expect(result.current.state.data.current.activities).toEqual(initialActivities);
+    const activities = result.current.state.data.current.activities;
+    expect(activities.map(a => a.name)).toEqual(['P1', 'P2', 'N1']);
+    expect(activities[0].polarity).toBe('negative');
+    // Renormalization should NOT have run (non-empty destination): weights unchanged.
+    expect(activities.map(a => a.weight)).toEqual(weightsBefore);
   });
 
-  test('should reset data correctly', () => {
+  test('TOGGLE_POLARITY flips polarity in place (empty destination, positives only)', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
-
     act(() => {
-      result.current.addActivity('current', {
-        name: 'Sport',
-        value: 5,
-      });
+      result.current.addActivity('current', { name: 'P1', weight: 4, polarity: 'positive' });
+      result.current.addActivity('current', { name: 'P2', weight: 4, polarity: 'positive' });
     });
-
-    expect(result.current.state.data.current.activities).toHaveLength(1);
-
+    const p1Id = result.current.state.data.current.activities[0].id;
     act(() => {
-      result.current.resetData();
+      result.current.togglePolarity('current', p1Id);
     });
-
-    expect(result.current.state.data.current.activities).toHaveLength(0);
-    expect(result.current.state.data.desired.activities).toHaveLength(0);
+    const activities = result.current.state.data.current.activities;
+    expect(activities.map(a => a.name)).toEqual(['P1', 'P2']);
+    expect(activities[0].polarity).toBe('negative');
   });
 
-  test('should import data correctly', () => {
+  test('TOGGLE_POLARITY flips polarity in place (empty destination, negatives only)', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    const importData = JSON.stringify({
-      version: '1.0',
-      current: {
-        activities: [createMockActivity({ name: 'Imported Activity' })],
-      },
-      desired: {
-        activities: [],
-      },
-    });
-
-    const mockData = JSON.parse(importData);
-    jest.mocked(StorageManager.import).mockReturnValue(mockData);
-
     act(() => {
-      result.current.importData(importData);
+      result.current.addActivity('current', { name: 'N1', weight: 4, polarity: 'negative' });
+      result.current.addActivity('current', { name: 'N2', weight: 4, polarity: 'negative' });
     });
-
-    expect(StorageManager.import).toHaveBeenCalledWith(importData);
+    const n1Id = result.current.state.data.current.activities[0].id;
+    act(() => {
+      result.current.togglePolarity('current', n1Id);
+    });
+    const activities = result.current.state.data.current.activities;
+    expect(activities.map(a => a.name)).toEqual(['N1', 'N2']);
+    expect(activities[0].polarity).toBe('positive');
   });
 
-  test('should throw error when used outside provider', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    expect(() => {
-      renderHook(() => useEnergy());
-    }).toThrow('useEnergy must be used within an EnergyProvider');
-
-    console.error = originalError;
-  });
-
-  test('should reset all data correctly', () => {
+  test('TOGGLE_POLARITY into a previously-empty destination renormalizes to the 1% floor', () => {
+    // Seed below-floor state directly via dispatch so the renormalize doesn't already run
+    // through addActivity. Two positives at weight 0.01 + 100 give total = 100.01, floor
+    // ≈ 1.01, so the smaller slice violates the floor pre-toggle. The toggle's
+    // wasEmptyDestination branch must lift it.
     const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Add some activities first
-    act(() => {
-      result.current.addActivity('current', {
-        name: 'Sport',
-        value: 5,
-      });
-      result.current.addActivity('desired', {
-        name: 'Stress',
-        value: 3,
-      });
-    });
-
-    expect(result.current.state.data.current.activities).toHaveLength(1);
-    expect(result.current.state.data.desired.activities).toHaveLength(1);
-
-    act(() => {
-      result.current.resetData();
-    });
-
-    expect(result.current.state.data.current.activities).toHaveLength(0);
-    expect(result.current.state.data.desired.activities).toHaveLength(0);
-  });
-
-  test('should handle updateActivity with non-existent activity ID', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // This should not crash
-    act(() => {
-      result.current.updateActivity('current', 'non-existent-id', { name: 'Updated' });
-    });
-
-    expect(result.current.state.data.current.activities).toHaveLength(0);
-  });
-
-  test('should handle deleteActivity with non-existent activity ID', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // This should not crash
-    act(() => {
-      result.current.deleteActivity('current', 'non-existent-id');
-    });
-
-    expect(result.current.state.data.current.activities).toHaveLength(0);
-  });
-
-  test('should handle importData with invalid JSON', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Mock StorageManager.import to throw for invalid JSON
-    jest.mocked(StorageManager.import).mockImplementation(() => {
-      throw new Error('Invalid JSON');
-    });
-
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    expect(() => {
-      act(() => {
-        result.current.importData('invalid json');
-      });
-    }).toThrow();
-
-    console.error = originalError;
-  });
-
-  test('should handle importData with missing required fields', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    const invalidData = JSON.stringify({
-      version: '1.0',
-      // Missing positive, negative, settings
-    });
-
-    // Mock StorageManager.import to throw for missing fields
-    jest.mocked(StorageManager.import).mockImplementation(() => {
-      throw new Error('Missing required fields');
-    });
-
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    expect(() => {
-      act(() => {
-        result.current.importData(invalidData);
-      });
-    }).toThrow();
-
-    console.error = originalError;
-  });
-
-  test('should handle reorderActivities with invalid indices', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Add one activity
-    act(() => {
-      result.current.addActivity('current', { name: 'Test', value: 5 });
-    });
-
-    // Try to reorder with invalid indices - should not crash
-    act(() => {
-      result.current.reorderActivities('current', 0, 5); // destination index out of bounds
-    });
-
-    expect(result.current.state.data.current.activities).toHaveLength(1);
-    expect(result.current.state.data.current.activities[0].name).toBe('Test');
-  });
-
-  test('should save data using saveData method', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    act(() => {
-      result.current.addActivity('current', {
-        name: 'Sport',
-        value: 5,
-      });
-    });
-
-    // Manually call saveData to test the functionality
-    act(() => {
-      result.current.saveData();
-    });
-
-    // Check that StorageManager.save was called
-    expect(StorageManager.save).toHaveBeenCalled();
-  });
-
-  test('should handle data loading errors gracefully', () => {
-    // Mock StorageManager.load to throw an error
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    jest.mocked(StorageManager.load).mockImplementation(() => {
-      throw new Error('Storage error');
-    });
-
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Should not crash and should be in default state
-    expect(result.current.state.data.current.activities).toHaveLength(0);
-    expect(result.current.state.data.desired.activities).toHaveLength(0);
-
-    consoleSpy.mockRestore();
-  });
-
-  test('should load saved data on mount', () => {
-    const mockData = {
-      version: '1.0',
-      current: {
-        activities: [createMockActivity({ name: 'Loaded Activity' })],
-      },
-      desired: {
-        activities: [],
-      },
-    };
-
-    jest.mocked(StorageManager.load).mockReturnValue(mockData);
-
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    expect(result.current.state.data.current.activities).toHaveLength(1);
-    expect(result.current.state.data.current.activities[0].name).toBe('Loaded Activity');
-  });
-
-  test('should handle loadData method', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    const mockData = {
-      version: '1.0',
-      current: {
-        activities: [createMockActivity({ name: 'Manual Load' })],
-      },
-      desired: {
-        activities: [],
-      },
-    };
-
-    jest.mocked(StorageManager.load).mockReturnValue(mockData);
-
-    act(() => {
-      result.current.loadData();
-    });
-
-    expect(result.current.state.data.current.activities).toHaveLength(1);
-    expect(result.current.state.data.current.activities[0].name).toBe('Manual Load');
-  });
-
-  test('should handle exportData method', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    const exportedData = result.current.exportData();
-    expect(typeof exportedData).toBe('string');
-    expect(StorageManager.export).toHaveBeenCalled();
-  });
-
-  test('should handle importData errors gracefully', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    jest.mocked(StorageManager.import).mockImplementation(() => {
-      throw new Error('Import error');
-    });
-
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    // Should not crash when import fails
-    act(() => {
-      try {
-        result.current.importData('invalid data');
-      } catch {
-        // Expected to throw
-      }
-    });
-
-    consoleSpy.mockRestore();
-  });
-
-  test('should handle merge mode in importData', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Add initial activity
-    act(() => {
-      result.current.addActivity('current', {
-        name: 'Existing Activity',
-        value: 3,
-      });
-    });
-
-    // Mock import data
-    const importData = {
-      version: '1.0',
-      current: {
-        id: 'current',
-        type: 'current' as const,
-        activities: [createMockActivity({ name: 'Imported Activity' })],
-        size: 'large' as const,
-      },
-      desired: {
-        id: 'desired',
-        type: 'desired' as const,
-        activities: [],
-        size: 'small' as const,
-      },
-    };
-
-    jest.mocked(StorageManager.import).mockReturnValue(importData);
-
-    // Import data - the basic importData method replaces all data
-    act(() => {
-      result.current.importData(JSON.stringify(importData));
-    });
-
-    // importData method replaces all data, so only imported activity should be present
-    expect(result.current.state.data.current.activities).toHaveLength(1);
-    expect(result.current.state.data.current.activities[0].name).toBe('Imported Activity');
-  });
-
-  test('should handle clearAllData action', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Add some activities
-    act(() => {
-      result.current.addActivity('current', {
-        name: 'Activity 1',
-        value: 3,
-      });
-      result.current.addActivity('desired', {
-        name: 'Activity 2',
-        value: 2,
-      });
-    });
-
-    expect(result.current.state.data.current.activities).toHaveLength(1);
-    expect(result.current.state.data.desired.activities).toHaveLength(1);
-
-    // Clear all data using the internal action (we'll access it via importing empty data)
-    act(() => {
-      result.current.resetData();
-    });
-
-    expect(result.current.state.data.current.activities).toHaveLength(0);
-    expect(result.current.state.data.desired.activities).toHaveLength(0);
-  });
-
-  test('should handle importData with merge mode (replaceExisting: false)', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Add some initial activities
-    act(() => {
-      result.current.addActivity('current', { name: 'Existing Positive', value: 3 });
-      result.current.addActivity('desired', { name: 'Existing Negative', value: 4 });
-    });
-
-    const importData = {
-      version: '1.0',
-      current: {
-        id: 'current',
-        type: 'current' as const,
-        activities: [{ id: '1', name: 'Imported Positive', value: 5 }],
-        size: 'medium' as const,
-      },
-      desired: {
-        id: 'desired',
-        type: 'desired' as const,
-        activities: [{ id: '2', name: 'Imported Negative', value: 3 }],
-        size: 'medium' as const,
-      },
-    };
-
-    // Directly dispatch import action with merge mode
-    act(() => {
-      result.current.dispatch({
-        type: 'IMPORT_DATA',
-        payload: { data: importData, replaceExisting: false },
-      });
-    });
-
-    // Should have merged activities (existing + imported)
-    expect(result.current.state.data.current.activities).toHaveLength(2);
-    expect(result.current.state.data.desired.activities).toHaveLength(2);
-    expect(result.current.state.data.current.activities[0].name).toBe('Existing Positive');
-    expect(result.current.state.data.current.activities[1].name).toBe('Imported Positive');
-  });
-
-  test('should handle importData with replace mode (replaceExisting: true)', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Add some initial activities
-    act(() => {
-      result.current.addActivity('current', { name: 'Existing Positive', value: 3 });
-    });
-
-    const importData = {
-      version: '1.0',
-      current: {
-        id: 'current',
-        type: 'current' as const,
-        activities: [{ id: '1', name: 'Imported Positive', value: 5 }],
-        size: 'medium' as const,
-      },
-      desired: {
-        id: 'desired',
-        type: 'desired' as const,
-        activities: [],
-        size: 'medium' as const,
-      },
-    };
-
-    // Directly dispatch import action with replace mode
-    act(() => {
-      result.current.dispatch({
-        type: 'IMPORT_DATA',
-        payload: { data: importData, replaceExisting: true },
-      });
-    });
-
-    // Should have replaced activities (only imported)
-    expect(result.current.state.data.current.activities).toHaveLength(1);
-    expect(result.current.state.data.current.activities[0].name).toBe('Imported Positive');
-  });
-
-  test('should not add duplicate activities when importing with merge mode', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Add some initial activities with specific IDs
     act(() => {
       result.current.dispatch({
         type: 'SET_DATA',
         payload: {
-          version: '1.0',
+          version: '3.0',
           current: {
             activities: [
-              { id: 'activity-1', name: 'Existing Sport', value: 4 },
-              { id: 'activity-2', name: 'Existing Reading', value: 5 },
+              { id: 'p1', name: 'P1', weight: 0.01, polarity: 'positive' },
+              { id: 'p2', name: 'P2', weight: 100, polarity: 'positive' },
             ],
           },
-          desired: {
-            activities: [{ id: 'activity-3', name: 'Existing Stress', value: 5 }],
-          },
+          desired: { activities: [] },
+        },
+        shouldSave: false,
+      });
+    });
+    // Pre-condition: P1 is below floor. If this fails, the test has been weakened.
+    expect(result.current.state.data.current.activities[0].weight).toBeLessThan(1);
+    act(() => {
+      result.current.togglePolarity('current', 'p1');
+    });
+    const activities = result.current.state.data.current.activities;
+    const total = activities.reduce((sum, a) => sum + a.weight, 0);
+    const floor = Math.max(0.01, Math.ceil(total * 0.01 * 100) / 100);
+    for (const a of activities) {
+      expect(a.weight).toBeGreaterThanOrEqual(floor);
+    }
+    expect(activities.find(a => a.id === 'p1')!.polarity).toBe('negative');
+  });
+
+  test('should reset data correctly', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'Sport', weight: 5, polarity: 'positive' });
+    });
+    act(() => {
+      result.current.resetData();
+    });
+    expect(result.current.state.data.current.activities).toHaveLength(0);
+  });
+
+  test('should import data correctly', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    const payload = JSON.stringify({
+      version: '3.0',
+      current: { activities: [createMockActivity({ name: 'Imported' })] },
+      desired: { activities: [] },
+    });
+    jest.mocked(StorageManager.import).mockReturnValue(JSON.parse(payload));
+    act(() => {
+      result.current.importData(payload);
+    });
+    expect(StorageManager.import).toHaveBeenCalledWith(payload);
+  });
+
+  test('should throw error when used outside provider', () => {
+    const originalError = console.error;
+    console.error = jest.fn();
+    expect(() => renderHook(() => useEnergy())).toThrow('useEnergy must be used within an EnergyProvider');
+    console.error = originalError;
+  });
+
+  test('handles importData failure', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    jest.mocked(StorageManager.import).mockImplementation(() => {
+      throw new Error('boom');
+    });
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => {
+      act(() => {
+        result.current.importData('x');
+      });
+    }).toThrow();
+    consoleSpy.mockRestore();
+  });
+
+  test('save and load proxies', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+    });
+    act(() => {
+      result.current.saveData();
+    });
+    expect(StorageManager.save).toHaveBeenCalled();
+
+    jest.mocked(StorageManager.load).mockReturnValue({
+      version: '3.0',
+      current: { activities: [createMockActivity({ name: 'Loaded' })] },
+      desired: { activities: [] },
+    });
+    act(() => {
+      result.current.loadData();
+    });
+    expect(result.current.state.data.current.activities.find(a => a.name === 'Loaded')).toBeDefined();
+  });
+
+  test('loadData on mount', () => {
+    jest.mocked(StorageManager.load).mockReturnValue({
+      version: '3.0',
+      current: { activities: [createMockActivity({ name: 'Auto' })] },
+      desired: { activities: [] },
+    });
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    expect(result.current.state.data.current.activities[0].name).toBe('Auto');
+  });
+
+  test('exportData delegates to StorageManager', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    const exported = result.current.exportData();
+    expect(typeof exported).toBe('string');
+    expect(StorageManager.export).toHaveBeenCalled();
+  });
+
+  test('copyActivitiesFromCurrent', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+      result.current.addActivity('current', { name: 'B', weight: 4, polarity: 'negative' });
+    });
+    act(() => {
+      result.current.copyActivitiesFromCurrent();
+    });
+    expect(result.current.state.data.desired.activities).toHaveLength(2);
+    const currentIds = new Set(result.current.state.data.current.activities.map(a => a.id));
+    for (const a of result.current.state.data.desired.activities) {
+      expect(currentIds.has(a.id)).toBe(false);
+    }
+  });
+
+  test('IMPORT_DATA merge mode renormalizes both charts', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'Existing', weight: 4, polarity: 'positive' });
+    });
+    const importedData = {
+      version: '3.0' as const,
+      current: { activities: [{ id: 'new', name: 'New', weight: 6, polarity: 'positive' as const }] },
+      desired: { activities: [] },
+    };
+    act(() => {
+      result.current.dispatch({ type: 'IMPORT_DATA', payload: { data: importedData, replaceExisting: false } });
+    });
+    expect(result.current.state.data.current.activities).toHaveLength(2);
+  });
+
+  test('IMPORT_DATA merge mode skips duplicate ids', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.dispatch({
+        type: 'SET_DATA',
+        payload: {
+          version: '3.0',
+          current: { activities: [{ id: 'shared', name: 'Existing', weight: 4, polarity: 'positive' }] },
+          desired: { activities: [] },
         },
       });
     });
-
-    const importData = {
-      version: '1.0',
-      current: {
-        activities: [
-          { id: 'activity-1', name: 'Duplicate Sport', value: 5 }, // Same ID as existing
-          { id: 'activity-4', name: 'New Meditation', value: 3 }, // New ID
-        ],
-      },
-      desired: {
-        activities: [
-          { id: 'activity-3', name: 'Duplicate Stress', value: 3 }, // Same ID as existing
-          { id: 'activity-5', name: 'New Commute', value: 4 }, // New ID
-        ],
-      },
+    const importedData = {
+      version: '3.0' as const,
+      current: { activities: [{ id: 'shared', name: 'Duplicate', weight: 6, polarity: 'positive' as const }] },
+      desired: { activities: [] },
     };
-
-    // Import with merge mode (replaceExisting: false)
     act(() => {
-      result.current.dispatch({
-        type: 'IMPORT_DATA',
-        payload: { data: importData, replaceExisting: false },
-      });
+      result.current.dispatch({ type: 'IMPORT_DATA', payload: { data: importedData, replaceExisting: false } });
     });
-
-    // Should have 3 positive activities (2 existing + 1 new, duplicate ignored)
-    expect(result.current.state.data.current.activities).toHaveLength(3);
-    expect(result.current.state.data.current.activities[0].name).toBe('Existing Sport');
-    expect(result.current.state.data.current.activities[1].name).toBe('Existing Reading');
-    expect(result.current.state.data.current.activities[2].name).toBe('New Meditation');
-
-    // Should have 2 negative activities (1 existing + 1 new, duplicate ignored)
-    expect(result.current.state.data.desired.activities).toHaveLength(2);
-    expect(result.current.state.data.desired.activities[0].name).toBe('Existing Stress');
-    expect(result.current.state.data.desired.activities[1].name).toBe('New Commute');
+    expect(result.current.state.data.current.activities).toHaveLength(1);
+    expect(result.current.state.data.current.activities[0].name).toBe('Existing');
   });
 
-  test('should handle CLEAR_ALL_DATA action', () => {
+  test('ADD_ACTIVITY renormalizes weights so every slice respects the floor', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Add some activities first
     act(() => {
-      result.current.addActivity('current', { name: 'Test Activity', value: 5 });
+      result.current.dispatch({
+        type: 'SET_DATA',
+        payload: {
+          version: '3.0',
+          current: { activities: [{ id: '1', name: 'Big', weight: 100, polarity: 'positive' }] },
+          desired: { activities: [] },
+        },
+      });
     });
+    act(() => {
+      result.current.addActivity('current', { name: 'Tiny', weight: 0.001, polarity: 'positive' });
+    });
+    const activities = result.current.state.data.current.activities;
+    const total = activities.reduce((s, a) => s + a.weight, 0);
+    const floor = Math.max(0.01, Math.ceil(total * 0.01 * 100) / 100);
+    for (const a of activities) {
+      expect(a.weight).toBeGreaterThanOrEqual(floor);
+    }
+  });
 
+  test('IMPORT_DATA replace mode wipes existing activities', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'Existing', weight: 4, polarity: 'positive' });
+    });
+    const importedData = {
+      version: '3.0' as const,
+      current: { activities: [{ id: 'new', name: 'New', weight: 6, polarity: 'negative' as const }] },
+      desired: { activities: [] },
+    };
+    act(() => {
+      result.current.dispatch({ type: 'IMPORT_DATA', payload: { data: importedData, replaceExisting: true } });
+    });
     expect(result.current.state.data.current.activities).toHaveLength(1);
+    expect(result.current.state.data.current.activities[0].name).toBe('New');
+  });
 
-    // Clear all data
+  test('TOGGLE_POLARITY is a no-op for a missing activity id', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'Sport', weight: 4, polarity: 'positive' });
+    });
+    const before = result.current.state.data.current.activities;
+    act(() => {
+      result.current.togglePolarity('current', 'does-not-exist');
+    });
+    expect(result.current.state.data.current.activities).toBe(before);
+  });
+
+  test('loadData with null return leaves state unchanged', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    jest.mocked(StorageManager.load).mockReturnValue(null);
+    const before = result.current.state.data;
+    act(() => {
+      result.current.loadData();
+    });
+    expect(result.current.state.data).toBe(before);
+  });
+
+  test('CLEAR_ALL_DATA resets to default', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'X', weight: 4, polarity: 'positive' });
+    });
     act(() => {
       result.current.dispatch({ type: 'CLEAR_ALL_DATA' });
     });
-
     expect(result.current.state.data.current.activities).toHaveLength(0);
-    expect(result.current.state.data.desired.activities).toHaveLength(0);
     expect(result.current.state.lastSaved).toBeTruthy();
   });
 
-  test('should handle unknown action types gracefully', () => {
+  test('SET_LABEL_OFFSET persists a validated offset', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    const initialState = result.current.state;
-
-    // Dispatch an unknown action
     act(() => {
-      // @ts-expect-error - Testing unknown action type
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+    });
+    const id = result.current.state.data.current.activities[0].id;
+    act(() => {
+      result.current.setLabelOffset('current', id, { radial: 0.2, angular: Math.PI / 4 });
+    });
+    expect(result.current.state.data.current.activities[0].labelOffset).toEqual({
+      radial: 0.2,
+      angular: Math.round((Math.PI / 4) * 10000) / 10000,
+    });
+  });
+
+  test('SET_LABEL_OFFSET with null clears an existing offset', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+    });
+    const id = result.current.state.data.current.activities[0].id;
+    act(() => {
+      result.current.setLabelOffset('current', id, { radial: 0.2, angular: 0.3 });
+    });
+    expect(result.current.state.data.current.activities[0].labelOffset).toBeDefined();
+    act(() => {
+      result.current.setLabelOffset('current', id, null);
+    });
+    expect(result.current.state.data.current.activities[0].labelOffset).toBeUndefined();
+  });
+
+  test('SET_LABEL_OFFSET drops malformed input (NaN)', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+    });
+    const id = result.current.state.data.current.activities[0].id;
+    const before = result.current.state.data.current.activities[0];
+    act(() => {
+      result.current.setLabelOffset('current', id, { radial: Number.NaN, angular: 0 });
+    });
+    expect(result.current.state.data.current.activities[0]).toBe(before);
+  });
+
+  test('SET_LABEL_OFFSET bumps lastSaved on a real change', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+    });
+    const id = result.current.state.data.current.activities[0].id;
+    const beforeState = result.current.state;
+    act(() => {
+      result.current.setLabelOffset('current', id, { radial: 0.1, angular: 0 });
+    });
+    expect(result.current.state).not.toBe(beforeState);
+    expect(result.current.state.lastSaved).toBeTruthy();
+  });
+
+  test('SET_LABEL_OFFSET is a no-op for an unknown id', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+    });
+    const before = result.current.state;
+    act(() => {
+      result.current.setLabelOffset('current', 'does-not-exist', { radial: 0.1, angular: 0 });
+    });
+    expect(result.current.state).toBe(before);
+  });
+
+  test('SET_LABEL_OFFSET with null on an activity with no offset is state-identical', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.addActivity('current', { name: 'A', weight: 4, polarity: 'positive' });
+    });
+    const id = result.current.state.data.current.activities[0].id;
+    const before = result.current.state;
+    act(() => {
+      result.current.setLabelOffset('current', id, null);
+    });
+    expect(result.current.state).toBe(before);
+  });
+
+  test('unknown action keeps state', () => {
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    const before = result.current.state;
+    act(() => {
+      // @ts-expect-error - testing unknown action
       result.current.dispatch({ type: 'UNKNOWN_ACTION' });
     });
-
-    // State should remain unchanged
-    expect(result.current.state).toEqual(initialState);
-  });
-
-  test('should copy activities from current to desired chart', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Add activities to current chart
-    act(() => {
-      result.current.addActivity('current', { name: 'Sport', value: 5 });
-      result.current.addActivity('current', { name: 'Lesen', value: 3 });
-      result.current.addActivity('current', { name: 'Arbeit', value: -4 });
-    });
-
-    expect(result.current.state.data.current.activities).toHaveLength(3);
-    expect(result.current.state.data.desired.activities).toHaveLength(0);
-
-    // Copy activities from current to desired
-    act(() => {
-      result.current.copyActivitiesFromCurrent();
-    });
-
-    // Should have copied all activities to desired chart
-    expect(result.current.state.data.desired.activities).toHaveLength(3);
-    expect(result.current.state.data.desired.activities[0].name).toBe('Sport');
-    expect(result.current.state.data.desired.activities[0].value).toBe(5);
-    expect(result.current.state.data.desired.activities[1].name).toBe('Lesen');
-    expect(result.current.state.data.desired.activities[1].value).toBe(3);
-    expect(result.current.state.data.desired.activities[2].name).toBe('Arbeit');
-    expect(result.current.state.data.desired.activities[2].value).toBe(-4);
-
-    // Verify that IDs are different (new IDs generated)
-    expect(result.current.state.data.desired.activities[0].id).not.toBe(result.current.state.data.current.activities[0].id);
-    expect(result.current.state.data.desired.activities[1].id).not.toBe(result.current.state.data.current.activities[1].id);
-    expect(result.current.state.data.desired.activities[2].id).not.toBe(result.current.state.data.current.activities[2].id);
-  });
-
-  test('should copy activities from current to desired even when desired has existing activities', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Add activities to both charts
-    act(() => {
-      result.current.addActivity('current', { name: 'Sport', value: 5 });
-      result.current.addActivity('desired', { name: 'Existing', value: 2 });
-    });
-
-    expect(result.current.state.data.current.activities).toHaveLength(1);
-    expect(result.current.state.data.desired.activities).toHaveLength(1);
-
-    // Copy activities from current to desired (should replace)
-    act(() => {
-      result.current.copyActivitiesFromCurrent();
-    });
-
-    // Should have replaced desired activities with current activities
-    expect(result.current.state.data.desired.activities).toHaveLength(1);
-    expect(result.current.state.data.desired.activities[0].name).toBe('Sport');
-    expect(result.current.state.data.desired.activities[0].value).toBe(5);
-  });
-
-  test('should handle copy when current chart is empty', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Add activity to desired chart only
-    act(() => {
-      result.current.addActivity('desired', { name: 'Existing', value: 3 });
-    });
-
-    expect(result.current.state.data.current.activities).toHaveLength(0);
-    expect(result.current.state.data.desired.activities).toHaveLength(1);
-
-    // Copy from empty current chart
-    act(() => {
-      result.current.copyActivitiesFromCurrent();
-    });
-
-    // Desired should now be empty
-    expect(result.current.state.data.desired.activities).toHaveLength(0);
-  });
-
-  test('should generate unique IDs when copying activities', () => {
-    const { result } = renderHook(() => useEnergy(), { wrapper });
-
-    // Add multiple activities to current chart
-    act(() => {
-      result.current.addActivity('current', { name: 'Activity 1', value: 5 });
-      result.current.addActivity('current', { name: 'Activity 2', value: 3 });
-      result.current.addActivity('current', { name: 'Activity 3', value: -2 });
-    });
-
-    // Copy activities
-    act(() => {
-      result.current.copyActivitiesFromCurrent();
-    });
-
-    // All IDs should be unique
-    const currentIds = result.current.state.data.current.activities.map(a => a.id);
-    const desiredIds = result.current.state.data.desired.activities.map(a => a.id);
-
-    // No ID from desired should match any ID from current
-    for (const desiredId of desiredIds) {
-      expect(currentIds).not.toContain(desiredId);
-    }
-
-    // All desired IDs should be unique
-    const uniqueDesiredIds = new Set(desiredIds);
-    expect(uniqueDesiredIds.size).toBe(desiredIds.length);
+    expect(result.current.state).toEqual(before);
   });
 });

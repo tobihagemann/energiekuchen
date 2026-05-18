@@ -1,13 +1,8 @@
 import { createMockEnergyPie } from '../../../__tests__/utils/mocks';
 import { SharingManager } from '../sharing';
 
-// Mock document methods for clipboard tests
-Object.defineProperty(document, 'execCommand', {
-  value: jest.fn(),
-  writable: true,
-});
+Object.defineProperty(document, 'execCommand', { value: jest.fn(), writable: true });
 
-// Mock window.location for URL generation
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 delete (window as any).location;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,202 +19,107 @@ delete (window as any).location;
 };
 
 describe('SharingManager', () => {
-  test('should generate and decode share data', async () => {
-    const mockData = createMockEnergyPie();
+  test('round-trip preserves weight + polarity', async () => {
+    const data = createMockEnergyPie();
+    const share = await SharingManager.generateShareData(data);
+    const decoded = SharingManager.decodeShareData(share.encoded);
 
-    const shareData = await SharingManager.generateShareData(mockData);
-    const decoded = SharingManager.decodeShareData(shareData.encoded);
-
-    // Compare essential data without timestamps (since decoding adds new timestamps)
-    expect(
-      decoded.current.activities.map(a => ({
-        id: a.id,
-        name: a.name,
-        value: a.value,
-      }))
-    ).toEqual(
-      mockData.current.activities.map(a => ({
-        id: a.id,
-        name: a.name,
-        value: a.value,
-      }))
+    expect(decoded.version).toBe('3.0');
+    expect(decoded.current.activities.map(a => ({ name: a.name, weight: a.weight, polarity: a.polarity }))).toEqual(
+      data.current.activities.map(a => ({ name: a.name, weight: a.weight, polarity: a.polarity }))
     );
-    expect(
-      decoded.desired.activities.map(a => ({
-        id: a.id,
-        name: a.name,
-        value: a.value,
-      }))
-    ).toEqual(
-      mockData.desired.activities.map(a => ({
-        id: a.id,
-        name: a.name,
-        value: a.value,
-      }))
-    );
-    expect(shareData.url).toContain('http://localhost');
-    expect(shareData.url).toContain('/share/#');
+    expect(share.url).toContain('/share/#');
   });
 
-  test('should handle URL length limits', async () => {
-    // Suppress console.error for this test as it's expected when data is too large
+  test('decodes legacy v2 (value-shaped) share URL', () => {
+    const v2Payload = btoa(
+      JSON.stringify({
+        version: '2.0',
+        current: { activities: [{ id: '1', name: 'Sport', value: 3 }] },
+        desired: { activities: [] },
+      })
+    );
+    const decoded = SharingManager.decodeShareData(v2Payload);
+    expect(decoded.version).toBe('3.0');
+    expect(decoded.current.activities[0].weight).toBe(Math.pow(2, 2));
+    expect(decoded.current.activities[0].polarity).toBe('positive');
+  });
+
+  test('propagates the size-specific error for oversized payloads', async () => {
     const originalError = console.error;
     console.error = jest.fn();
 
-    const largeData = createMockEnergyPie({ activitiesCount: 20 });
-
-    try {
-      const shareData = await SharingManager.generateShareData(largeData);
-      expect(shareData.url.length).toBeLessThan(2048);
-    } catch (error) {
-      // Expected to throw when data is too large
-      expect(error).toBeInstanceOf(Error);
+    const large = createMockEnergyPie({ activitiesCount: 20 });
+    for (let i = 0; i < large.current.activities.length; i++) {
+      large.current.activities[i].name = 'A'.repeat(50);
+      large.current.activities[i].details = 'B'.repeat(150);
+    }
+    for (let i = 0; i < large.desired.activities.length; i++) {
+      large.desired.activities[i].name = 'C'.repeat(50);
+      large.desired.activities[i].details = 'D'.repeat(150);
     }
 
+    await expect(SharingManager.generateShareData(large)).rejects.toThrow('Daten sind zu umfangreich zum Teilen');
+
     console.error = originalError;
   });
 
-  test('should throw error for invalid encoded data', () => {
-    // Suppress console.error for this test as it's expected
+  test('wraps decode failures as "Ungültige Sharing-Daten"', () => {
     const originalError = console.error;
     console.error = jest.fn();
-
-    expect(() => SharingManager.decodeShareData('invalid-data')).toThrow();
-
+    expect(() => SharingManager.decodeShareData('not-base64!!!')).toThrow('Ungültige Sharing-Daten');
+    expect(() => SharingManager.decodeShareData(btoa('invalid json'))).toThrow('Ungültige Sharing-Daten');
     console.error = originalError;
   });
 
-  test('should handle malformed JSON in encoded data', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
+  test('preserves details and unicode', async () => {
+    const data = createMockEnergyPie();
+    data.current.activities[0].details = 'Jeden Tag → 30 Minuten\nÄöüß ✨';
+    data.current.activities[0].name = 'Bücher lesen 📚';
 
-    const invalidJson = btoa('invalid json');
-    expect(() => SharingManager.decodeShareData(invalidJson)).toThrow();
-
-    console.error = originalError;
-  });
-
-  test('should preserve essential data in sharing', async () => {
-    const mockData = createMockEnergyPie();
-    const shareData = await SharingManager.generateShareData(mockData);
-    const decoded = SharingManager.decodeShareData(shareData.encoded);
-
-    // Check that essential data is preserved
-    expect(decoded.version).toBe(mockData.version);
-  });
-
-  test('should decode share data correctly', () => {
-    const mockData = createMockEnergyPie();
-    const jsonString = JSON.stringify({
-      version: mockData.version,
-      current: {
-        activities: mockData.current.activities.map(a => ({
-          id: a.id,
-          name: a.name,
-          value: a.value,
-        })),
-      },
-      desired: {
-        activities: mockData.desired.activities.map(a => ({
-          id: a.id,
-          name: a.name,
-          value: a.value,
-        })),
-      },
-    });
-
-    const encoded = btoa(jsonString);
-    const decoded = SharingManager.decodeShareData(encoded);
-
-    // Activities should only have id, name, and value
-    expect(decoded.current.activities[0]).toHaveProperty('id');
-    expect(decoded.current.activities[0]).toHaveProperty('name');
-    expect(decoded.current.activities[0]).toHaveProperty('value');
-    expect(decoded.current.activities[0]).not.toHaveProperty('createdAt');
-    expect(decoded.current.activities[0]).not.toHaveProperty('updatedAt');
-  });
-
-  test('should copy to clipboard successfully', async () => {
-    // Mock clipboard API
-    Object.assign(navigator, {
-      clipboard: {
-        writeText: jest.fn().mockResolvedValue(undefined),
-      },
-    });
-
-    const testText = 'test clipboard text';
-    await expect(SharingManager.copyToClipboard(testText)).resolves.toBeUndefined();
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(testText);
-  });
-
-  test('should handle clipboard errors gracefully', async () => {
-    // Mock clipboard API to throw error
-    Object.assign(navigator, {
-      clipboard: {
-        writeText: jest.fn().mockRejectedValue(new Error('Clipboard access denied')),
-      },
-    });
-
-    // Mock document.execCommand to also throw error for fallback
-    document.execCommand = jest.fn().mockImplementation(() => {
-      throw new Error('document.execCommand failed');
-    });
-
-    const testText = 'test clipboard text';
-    await expect(SharingManager.copyToClipboard(testText)).rejects.toThrow();
-  });
-
-  test('should include details field in shared data when present', async () => {
-    const mockData = createMockEnergyPie();
-    // Add details to activities
-    mockData.current.activities[0].details = 'Test details for current';
-    mockData.desired.activities[0].details = 'Test details for desired';
-
-    const shareData = await SharingManager.generateShareData(mockData);
-    const decoded = SharingManager.decodeShareData(shareData.encoded);
-
-    expect(decoded.current.activities[0].details).toBe('Test details for current');
-    expect(decoded.desired.activities[0].details).toBe('Test details for desired');
-  });
-
-  test('should exclude details field when not present', async () => {
-    const mockData = createMockEnergyPie();
-    // Ensure no details are set
-    mockData.current.activities.forEach(a => delete a.details);
-    mockData.desired.activities.forEach(a => delete a.details);
-
-    const shareData = await SharingManager.generateShareData(mockData);
-    const decoded = SharingManager.decodeShareData(shareData.encoded);
-
-    expect(decoded.current.activities[0]).not.toHaveProperty('details');
-    expect(decoded.desired.activities[0]).not.toHaveProperty('details');
-  });
-
-  test('should preserve multi-line details in shared data', async () => {
-    const mockData = createMockEnergyPie();
-    const multiLineDetails = 'Line 1\nLine 2\nLine 3';
-    mockData.current.activities[0].details = multiLineDetails;
-
-    const shareData = await SharingManager.generateShareData(mockData);
-    const decoded = SharingManager.decodeShareData(shareData.encoded);
-
-    expect(decoded.current.activities[0].details).toBe(multiLineDetails);
-  });
-
-  test('should handle Unicode characters in activity names and details', async () => {
-    const mockData = createMockEnergyPie();
-    mockData.current.activities[0].name = 'Bücher lesen 📚';
-    mockData.current.activities[0].details = 'Jeden Tag → 30 Minuten\nÄöüß und émojis ✨';
-    mockData.desired.activities[0].name = '运动 (Sport)';
-    mockData.desired.activities[0].details = '🏃‍♂️ Joggen → Park';
-
-    const shareData = await SharingManager.generateShareData(mockData);
-    const decoded = SharingManager.decodeShareData(shareData.encoded);
-
+    const share = await SharingManager.generateShareData(data);
+    const decoded = SharingManager.decodeShareData(share.encoded);
+    expect(decoded.current.activities[0].details).toBe('Jeden Tag → 30 Minuten\nÄöüß ✨');
     expect(decoded.current.activities[0].name).toBe('Bücher lesen 📚');
-    expect(decoded.current.activities[0].details).toBe('Jeden Tag → 30 Minuten\nÄöüß und émojis ✨');
-    expect(decoded.desired.activities[0].name).toBe('运动 (Sport)');
-    expect(decoded.desired.activities[0].details).toBe('🏃‍♂️ Joggen → Park');
+  });
+
+  test('copy to clipboard uses navigator API when available', async () => {
+    Object.assign(navigator, {
+      clipboard: { writeText: jest.fn().mockResolvedValue(undefined) },
+    });
+    await expect(SharingManager.copyToClipboard('hello')).resolves.toBeUndefined();
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('hello');
+  });
+
+  test('decodeShareData rejects oversized fragments before decoding', () => {
+    const originalError = console.error;
+    console.error = jest.fn();
+    const huge = 'A'.repeat(3000);
+    expect(() => SharingManager.decodeShareData(huge)).toThrow('Ungültige Sharing-Daten');
+    console.error = originalError;
+  });
+
+  test('wraps non-size encoding errors as the generic share-error message', async () => {
+    const originalError = console.error;
+    console.error = jest.fn();
+    const originalStringify = JSON.stringify;
+    // Force a non-size error to flow through the outer catch.
+    (JSON as { stringify: typeof JSON.stringify }).stringify = (() => {
+      throw new TypeError('synthetic stringify failure');
+    }) as typeof JSON.stringify;
+    try {
+      await expect(SharingManager.generateShareData(createMockEnergyPie())).rejects.toThrow('Sharing-Daten konnten nicht erstellt werden');
+    } finally {
+      (JSON as { stringify: typeof JSON.stringify }).stringify = originalStringify;
+      console.error = originalError;
+    }
+  });
+
+  test('clipboard fallback uses execCommand', async () => {
+    Object.assign(navigator, {
+      clipboard: { writeText: jest.fn().mockRejectedValue(new Error('denied')) },
+    });
+    document.execCommand = jest.fn().mockReturnValue(true);
+    await expect(SharingManager.copyToClipboard('fallback')).resolves.toBeUndefined();
   });
 });

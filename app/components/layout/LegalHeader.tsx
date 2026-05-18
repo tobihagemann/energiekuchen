@@ -1,9 +1,10 @@
 'use client';
 
-import { Button } from '@/app/components/ui/Button';
 import { HomeIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import Link from 'next/link';
+
+import { Button } from '@/app/components/ui/Button';
 
 export function LegalHeader() {
   return (

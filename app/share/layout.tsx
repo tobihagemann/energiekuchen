@@ -1,5 +1,6 @@
-import { EnergyProvider } from '@/app/share/SharedEnergyProvider';
 import { Metadata } from 'next';
+
+import { EnergyProvider } from '@/app/share/SharedEnergyProvider';
 
 export const metadata: Metadata = {
   title: 'Geteilter Energiekuchen',

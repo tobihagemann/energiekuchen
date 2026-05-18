@@ -1,5 +1,8 @@
 'use client';
 
+import { MinusCircleIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+import { useRef, useState } from 'react';
+
 import { Button } from '@/app/components/ui/Button';
 import { ErrorMessage } from '@/app/components/ui/ErrorMessage';
 import { Input } from '@/app/components/ui/Input';
@@ -7,8 +10,6 @@ import { InputGroup } from '@/app/components/ui/InputGroup';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { validateActivity } from '@/app/lib/utils/validation';
 import { ChartType } from '@/app/types';
-import { MinusCircleIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
-import { useRef, useState } from 'react';
 
 interface AddActivityProps {
   chartType: ChartType;
@@ -37,7 +38,8 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
 
     const newActivity = {
       name: positiveName.trim(),
-      value: 3,
+      weight: 4,
+      polarity: 'positive' as const,
     };
 
     const validation = validateActivity(newActivity);
@@ -70,7 +72,8 @@ export function AddActivity({ chartType, className }: AddActivityProps) {
 
     const newActivity = {
       name: negativeName.trim(),
-      value: -3,
+      weight: 4,
+      polarity: 'negative' as const,
     };
 
     const validation = validateActivity(newActivity);

@@ -1,9 +1,5 @@
 'use client';
 
-import { AddActivity } from '@/app/components/features/AddActivity';
-import { useEnergy } from '@/app/lib/contexts/EnergyContext';
-import { useUI } from '@/app/lib/contexts/UIContext';
-import { Activity, ChartType } from '@/app/types';
 import {
   closestCenter,
   defaultDropAnimationSideEffects,
@@ -19,6 +15,12 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useState } from 'react';
+
+import { AddActivity } from '@/app/components/features/AddActivity';
+import { useEnergy } from '@/app/lib/contexts/EnergyContext';
+import { useUI } from '@/app/lib/contexts/UIContext';
+import { Activity, ChartType } from '@/app/types';
+
 import { SortableActivityItem } from './SortableActivityItem';
 
 interface ActivityListProps {
@@ -81,6 +83,8 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
     setActiveId(null);
   };
 
+  const totalWeight = activities.reduce((sum, a) => sum + a.weight, 0);
+
   return (
     <div className={className} data-testid={`activity-list-${chartType}`}>
       <div className="mb-4">
@@ -103,13 +107,26 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
           <SortableContext items={activities.map(activity => activity.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-2" data-testid={`activities-list-${chartType}`}>
               {activities.map(activity => (
-                <SortableActivityItem key={activity.id} activity={activity} isEditing={false} onEdit={handleEdit} onDelete={handleDelete} />
+                <SortableActivityItem
+                  key={activity.id}
+                  activity={activity}
+                  totalWeight={totalWeight}
+                  isEditing={false}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
               ))}
             </div>
           </SortableContext>
           <DragOverlay dropAnimation={dropAnimationConfig}>
             {activeId ? (
-              <SortableActivityItem activity={activities.find(a => a.id === activeId)!} isEditing={false} onEdit={() => {}} onDelete={() => {}} />
+              <SortableActivityItem
+                activity={activities.find(a => a.id === activeId)!}
+                totalWeight={totalWeight}
+                isEditing={false}
+                onEdit={() => {}}
+                onDelete={() => {}}
+              />
             ) : null}
           </DragOverlay>
         </DndContext>

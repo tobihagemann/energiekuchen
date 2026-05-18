@@ -1,7 +1,8 @@
 'use client';
 
-import { cn } from '@/app/lib/utils/cn';
 import { InputHTMLAttributes, forwardRef } from 'react';
+
+import { cn } from '@/app/lib/utils/cn';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;

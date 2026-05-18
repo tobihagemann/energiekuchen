@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+
 import { Footer } from './components/layout/Footer';
+
 import './globals.css';
 import { EnergyProvider } from './lib/contexts/EnergyContext';
 import { UIProvider } from './lib/contexts/UIContext';

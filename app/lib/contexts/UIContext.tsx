@@ -1,7 +1,8 @@
 'use client';
 
-import { UIAction, UIContextType, UIState } from '@/app/types/context';
 import { createContext, ReactNode, useContext, useReducer } from 'react';
+
+import { UIAction, UIContextType, UIState } from '@/app/types/context';
 
 function uiReducer(state: UIState, action: UIAction): UIState {
   switch (action.type) {

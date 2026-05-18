@@ -1,155 +1,252 @@
-import { useChartData } from '@/app/lib/hooks/useChartData';
-import { Activity } from '@/app/types';
 import { renderHook } from '@testing-library/react';
 
-describe('useChartData', () => {
-  const mockActivities: Activity[] = [
-    {
-      id: '1',
-      name: 'Activity 1',
-      value: 3,
-    },
-    {
-      id: '2',
-      name: 'Activity 2',
-      value: 4,
-    },
-  ];
+import { RenderedEntry, useChartData } from '@/app/lib/hooks/useChartData';
+import { NEGATIVE_COLOR, POSITIVE_COLOR } from '@/app/lib/utils/constants';
 
-  it('should return chart data for positive chart with activities', () => {
-    const { result } = renderHook(() => useChartData(mockActivities, 'current', null));
+function makeRendered(entries: Array<Partial<RenderedEntry>>): RenderedEntry[] {
+  return entries.map((e, i) => ({
+    id: e.id ?? `${i}`,
+    name: e.name ?? `Activity ${i}`,
+    weight: e.weight ?? 1,
+    polarity: e.polarity ?? 'positive',
+    details: e.details,
+    labelOffset: e.labelOffset,
+  }));
+}
 
-    expect(result.current.activities).toEqual(mockActivities);
-    expect(result.current.chartData.labels).toEqual(['Activity 1', 'Activity 2']);
-    expect(result.current.chartData.datasets[0].data).toEqual([4, 8]); // Exponential: 2^(3-1)=4, 2^(4-1)=8
-    // backgroundColor should now be based on energy levels, not the removed color property
+const baseInput = {
+  labelBBoxes: {},
+  editingActivity: null,
+  chartType: 'current' as const,
+  chartSize: 360,
+  draggedLabelId: null,
+};
+
+describe('useChartData (SVG geometry)', () => {
+  test('empty chart returns a single full-circle slice in gray', () => {
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: [],
+      })
+    );
+    expect(result.current.isEmpty).toBe(true);
+    expect(result.current.slices).toHaveLength(1);
+    expect(result.current.slices[0].fillColor).toBe('oklch(0.967 0.003 264.542)');
+    expect(result.current.labels).toEqual([]);
   });
 
-  it('should return chart data for negative chart with activities', () => {
-    const { result } = renderHook(() => useChartData(mockActivities, 'desired', null));
-
-    expect(result.current.activities).toEqual(mockActivities);
-    expect(result.current.chartData.labels).toEqual(['Activity 1', 'Activity 2']);
+  test('multi-slice angles sum to 2π', () => {
+    const entries = makeRendered([
+      { id: 'a', weight: 3, polarity: 'positive' },
+      { id: 'b', weight: 6, polarity: 'positive' },
+      { id: 'c', weight: 3, polarity: 'negative' },
+    ]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+      })
+    );
+    const total = result.current.slices.reduce((s, slice) => s + (slice.endAngle - slice.startAngle), 0);
+    expect(total).toBeCloseTo(Math.PI * 2);
   });
 
-  it('should return empty state chart data when no activities', () => {
-    // Test current chart empty state
-    const { result: currentResult } = renderHook(() => useChartData([], 'current', null));
-
-    expect(currentResult.current.activities).toEqual([]);
-    expect(currentResult.current.chartData.labels).toEqual(['Keine Aktivitäten']);
-    expect(currentResult.current.chartData.datasets[0].data).toEqual([1]);
-    expect(currentResult.current.chartData.datasets[0].backgroundColor).toEqual(['oklch(0.967 0.003 264.542)']); // gray-100
-    expect(currentResult.current.chartData.datasets[0].hoverBackgroundColor).toEqual(['oklch(0.985 0.002 247.839)']); // gray-50
-    expect(currentResult.current.chartData.datasets[0].hoverBorderColor).toEqual(['#fff']); // white on hover
-
-    // Test desired chart empty state (same as current)
-    const { result: desiredResult } = renderHook(() => useChartData([], 'desired', null));
-
-    expect(desiredResult.current.activities).toEqual([]);
-    expect(desiredResult.current.chartData.labels).toEqual(['Keine Aktivitäten']);
-    expect(desiredResult.current.chartData.datasets[0].data).toEqual([1]);
-    expect(desiredResult.current.chartData.datasets[0].backgroundColor).toEqual(['oklch(0.967 0.003 264.542)']); // gray-100
-    expect(desiredResult.current.chartData.datasets[0].hoverBackgroundColor).toEqual(['oklch(0.985 0.002 247.839)']); // gray-50
-    expect(desiredResult.current.chartData.datasets[0].hoverBorderColor).toEqual(['#fff']); // white on hover
+  test('renders polarity colors', () => {
+    const entries = makeRendered([
+      { id: 'a', weight: 5, polarity: 'positive' },
+      { id: 'b', weight: 5, polarity: 'negative' },
+    ]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+      })
+    );
+    expect(result.current.slices[0].fillColor).toBe(POSITIVE_COLOR);
+    expect(result.current.slices[1].fillColor).toBe(NEGATIVE_COLOR);
   });
 
-  it('should include hover effects in chart data', () => {
-    const { result } = renderHook(() => useChartData(mockActivities, 'current', null));
-
-    const dataset = result.current.chartData.datasets[0];
-    expect(dataset.borderWidth).toBe(2);
-    // Hover colors now depend on energy levels
-    expect(dataset.hoverBackgroundColor).toBeDefined();
-    expect(dataset.hoverBorderColor).toBeDefined();
-    // hoverBorderColor should match regular borderColor
-    expect(dataset.hoverBorderColor).toEqual(dataset.borderColor);
+  test('darkens border for active editing slice', () => {
+    const entries = makeRendered([
+      { id: 'a', weight: 5, polarity: 'positive' },
+      { id: 'b', weight: 5, polarity: 'positive' },
+    ]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        editingActivity: { chartType: 'current', activityId: 'a' },
+      })
+    );
+    expect(result.current.slices[0].borderColor).toBe(`oklch(from ${POSITIVE_COLOR} calc(l - 0.1) c h)`);
+    expect(result.current.slices[1].borderColor).toBe('oklch(1 0 0)');
   });
 
-  it('should handle single activity', () => {
-    const singleActivity = [mockActivities[0]];
-
-    const { result } = renderHook(() => useChartData(singleActivity, 'current', null));
-
-    expect(result.current.chartData.labels).toEqual(['Activity 1']);
-    expect(result.current.chartData.datasets[0].data).toEqual([4]); // Exponential: 2^(3-1)=4
+  test('single activity emits a non-degenerate full-circle path', () => {
+    const entries = makeRendered([{ id: 'a', weight: 5, polarity: 'positive' }]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+      })
+    );
+    expect(result.current.slices[0].isFullCircle).toBe(true);
+    expect(result.current.slices[0].pathD).toMatch(/^M /);
+    expect(result.current.slices[0].pathD).toMatch(/A /);
   });
 
-  it("should memoize chart data when activities don't change", () => {
-    const { result, rerender } = renderHook(() => useChartData(mockActivities, 'current', null));
-
-    const firstChartData = result.current.chartData;
-
-    rerender();
-
-    const secondChartData = result.current.chartData;
-
-    expect(firstChartData).toBe(secondChartData); // Same reference due to memoization
+  test('label leader-line is null when label stays inside the circle', () => {
+    const entries = makeRendered([
+      { id: 'a', weight: 5, polarity: 'positive' },
+      { id: 'b', weight: 5, polarity: 'positive' },
+    ]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+      })
+    );
+    expect(result.current.labels[0].isOutside).toBe(false);
+    expect(result.current.labels[0].leaderTo).toBeNull();
   });
 
-  it('should update chart data when activities change', () => {
-    // First render with mock activities
-    const { result, rerender } = renderHook(({ activities }) => useChartData(activities, 'current', null), {
-      initialProps: { activities: mockActivities },
-    });
+  test('label leader-line terminates at the slice arc midpoint when label is dragged outside', () => {
+    const entries = makeRendered([
+      { id: 'a', name: 'A', weight: 5, polarity: 'positive', labelOffset: { radial: 0.6, angular: 0 } },
+      { id: 'b', name: 'B', weight: 5, polarity: 'positive' },
+    ]);
+    // radial: 0.6 → past the radius — outside the circle. Small bbox keeps the constraint
+    // from clamping back inside on a 360px chart.
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        labelBBoxes: { a: { w: 15, h: 16 } },
+      })
+    );
+    const label = result.current.labels[0];
+    const radius = result.current.layout.radius;
+    expect(label.isOutside).toBe(true);
+    expect(label.leaderTo).not.toBeNull();
+    // Two equal slices starting at -π/2 → first slice spans [-π/2, π/2], midAngle = 0,
+    // so the leader endpoint sits at (radius, 0).
+    expect(label.leaderTo!.x).toBeCloseTo(radius, 5);
+    expect(label.leaderTo!.y).toBeCloseTo(0, 5);
+    // leaderFrom is the start of the connector at the bbox edge plus a small gap; it must
+    // be present whenever leaderTo is, and must sit between the label and leaderTo. Here
+    // the label sits outside the circle on the +x side, so leaderFrom is between
+    // leaderTo (on the circle) and the label.
+    expect(label.leaderFrom).not.toBeNull();
+    expect(label.leaderFrom!.x).toBeLessThan(label.x);
+    expect(label.leaderFrom!.x).toBeGreaterThan(label.leaderTo!.x);
+  });
 
-    const firstChartData = result.current.chartData;
+  test('layout includes 20% padding around the pie radius', () => {
+    const entries = makeRendered([{ id: 'a', weight: 5, polarity: 'positive' }]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        chartSize: 360,
+      })
+    );
+    expect(result.current.layout.radius).toBe(180);
+    expect(result.current.layout.sizePx).toBeCloseTo(360 * 1.2);
+    expect(result.current.layout.viewBox).toBe('-216 -216 432 432');
+  });
 
-    // Second render with different activities
-    const newActivities: Activity[] = [
-      {
-        id: '3',
-        name: 'New Activity',
-        value: 5,
-      },
+  test('label bbox is constrained to its slice wedge', () => {
+    // Slice 'a' (weight 1 of 10) spans [-π/2, -3π/10]. A tangential offset that would
+    // place the label past the wedge gets projected back so the bbox fits in the wedge.
+    // angular = +π pushes label half-circle away from its slice's midAxis.
+    const entries = makeRendered([
+      { id: 'a', name: 'A', weight: 1, polarity: 'positive', labelOffset: { radial: 0, angular: Math.PI } },
+      { id: 'b', name: 'B', weight: 9, polarity: 'positive' },
+    ]);
+    const aBBox = { w: 15, h: 16 };
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        labelBBoxes: { a: aBBox, b: { w: 15, h: 16 } },
+      })
+    );
+    const labelA = result.current.labels.find(l => l.id === 'a')!;
+    // Verify the bbox fits in slice 'a's wedge — half-plane test for both radial edges.
+    const startAngle = -Math.PI / 2;
+    const endAngle = -Math.PI / 2 + (2 * Math.PI) / 10;
+    const nStart = { x: -Math.sin(startAngle), y: Math.cos(startAngle) };
+    const nEnd = { x: Math.sin(endAngle), y: -Math.cos(endAngle) };
+    const reqStart = Math.abs(nStart.x) * (aBBox.w / 2) + Math.abs(nStart.y) * (aBBox.h / 2);
+    const reqEnd = Math.abs(nEnd.x) * (aBBox.w / 2) + Math.abs(nEnd.y) * (aBBox.h / 2);
+    expect(nStart.x * labelA.x + nStart.y * labelA.y).toBeGreaterThanOrEqual(reqStart - 1e-3);
+    expect(nEnd.x * labelA.x + nEnd.y * labelA.y).toBeGreaterThanOrEqual(reqEnd - 1e-3);
+  });
+
+  test('at max chart density (20 equal slices), every label stays inside the viewBox', () => {
+    // 20 is the documented chart maximum (see VALIDATION_RULES.chart.maxActivities in
+    // validation.ts) and the densest case the outer-label nudge is sized for. Verify the
+    // pipeline (constrain + nudge) keeps every label fully inside the viewBox at that
+    // density on a small chart where outer labels are tightest.
+    const entries = makeRendered(
+      Array.from({ length: 20 }, (_, i) => ({
+        id: `a${i}`,
+        name: `Aktivität ${i + 1}`,
+        weight: 1,
+        polarity: (i % 2 === 0 ? 'positive' : 'negative') as 'positive' | 'negative',
+      }))
+    );
+    const bboxes = Object.fromEntries(entries.map(e => [e.id, { w: 70, h: 18 }]));
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        labelBBoxes: bboxes,
+        chartSize: 280,
+      })
+    );
+    const halfViewBox = result.current.layout.sizePx / 2;
+    expect(result.current.labels).toHaveLength(20);
+    for (const label of result.current.labels) {
+      const bbox = bboxes[label.id];
+      expect(label.x + bbox.w / 2).toBeLessThanOrEqual(halfViewBox + 1e-3);
+      expect(label.x - bbox.w / 2).toBeGreaterThanOrEqual(-halfViewBox - 1e-3);
+      expect(label.y + bbox.h / 2).toBeLessThanOrEqual(halfViewBox + 1e-3);
+      expect(label.y - bbox.h / 2).toBeGreaterThanOrEqual(-halfViewBox - 1e-3);
+    }
+  });
+
+  test('ghost entries render slices but are excluded from label layout', () => {
+    // Ghost slices fade out during deletion animations. They must keep rendering (their
+    // slice path shrinks toward zero sweep), but they should not occupy a label slot —
+    // otherwise their stale full-size bbox could nudge visible labels around.
+    const entries: RenderedEntry[] = [
+      { id: 'a', name: 'Visible A', polarity: 'positive', weight: 5 },
+      { id: 'ghost', name: 'Disappearing', polarity: 'positive', weight: 0.001, isGhost: true },
+      { id: 'b', name: 'Visible B', polarity: 'positive', weight: 5 },
     ];
-
-    rerender({ activities: newActivities });
-
-    const secondChartData = result.current.chartData;
-
-    expect(firstChartData).not.toBe(secondChartData); // Different reference
-    expect(result.current.chartData.labels).toEqual(['New Activity']);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        labelBBoxes: { a: { w: 70, h: 18 }, ghost: { w: 200, h: 50 }, b: { w: 70, h: 18 } },
+      })
+    );
+    expect(result.current.slices).toHaveLength(3);
+    expect(result.current.labels.map(l => l.id)).toEqual(['a', 'b']);
   });
 
-  it('should apply active border color to edited activity', () => {
-    // Test with no editing activity
-    const { result: result1 } = renderHook(() => useChartData(mockActivities, 'current', null));
-    const dataset1 = result1.current.chartData.datasets[0];
-    expect(dataset1.borderColor).toEqual(['#fff', '#fff']); // All white borders
-
-    // Test with editing activity
-    const editingActivity = { chartType: 'current' as const, activityId: '1' };
-    const { result: result2 } = renderHook(() => useChartData(mockActivities, 'current', editingActivity));
-    const dataset2 = result2.current.chartData.datasets[0];
-    // First activity (level 3) should have darkened border (10% darker), second should be white
-    expect(dataset2.borderColor[0]).toBe('oklch(from oklch(0.723 0.219 149.579) calc(l - 0.1) c h)'); // green-500 darkened
-    expect(dataset2.borderColor[1]).toBe('#fff');
-
-    // Test with different chart type
-    const editingActivityNegative = { chartType: 'desired' as const, activityId: '1' };
-    const { result: result3 } = renderHook(() => useChartData(mockActivities, 'current', editingActivityNegative));
-    const dataset3 = result3.current.chartData.datasets[0];
-    expect(dataset3.borderColor).toEqual(['#fff', '#fff']); // All white borders since editing is on different chart
-  });
-
-  it('should use OKLCH color manipulation for active borders and hover states', () => {
-    // Test with level 1 activity
-    const level1Activity = [{ id: '1', name: 'Low Energy', value: 1 }];
-
-    const editingActivity = { chartType: 'current' as const, activityId: '1' };
-    const { result } = renderHook(() => useChartData(level1Activity, 'current', editingActivity));
-    // Level 1 activity should get darkened border
-    expect(result.current.chartData.datasets[0].borderColor[0]).toBe('oklch(from oklch(0.871 0.15 154.449) calc(l - 0.1) c h)'); // green-300 darkened
-    // Hover background should be lightened
-    expect(result.current.chartData.datasets[0].hoverBackgroundColor[0]).toBe('oklch(from oklch(0.871 0.15 154.449) calc(l + 0.1) c h)'); // green-300 lightened
-
-    // Test with level 5 activity
-    const level5Activity = [{ id: '2', name: 'High Energy', value: 5 }];
-
-    const editingActivity2 = { chartType: 'current' as const, activityId: '2' };
-    const { result: result2 } = renderHook(() => useChartData(level5Activity, 'current', editingActivity2));
-    // Level 5 activity should get darkened border
-    expect(result2.current.chartData.datasets[0].borderColor[0]).toBe('oklch(from oklch(0.527 0.154 150.069) calc(l - 0.1) c h)'); // green-700 darkened
+  test('memoizes on stable input', () => {
+    const entries = makeRendered([{ id: 'a', weight: 5, polarity: 'positive' }]);
+    const { result, rerender } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+      })
+    );
+    const first = result.current;
+    rerender();
+    expect(result.current).toBe(first);
   });
 });

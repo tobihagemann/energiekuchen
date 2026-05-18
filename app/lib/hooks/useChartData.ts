@@ -1,66 +1,253 @@
 'use client';
 
-import { getColorForLevel } from '@/app/lib/utils/constants';
-import { Activity, ChartType } from '@/app/types';
-import { ChartData } from '@/app/types/chart';
 import { useMemo } from 'react';
 
-export function useChartData(activities: Activity[], chartType: ChartType, editingActivity: { chartType: ChartType; activityId: string } | null) {
-  const chartData: ChartData = useMemo(() => {
-    if (activities.length === 0) {
-      const emptyChartColor = 'oklch(0.967 0.003 264.542)'; // gray-100
+import { getColorForPolarity } from '@/app/lib/utils/constants';
+import {
+  applyLabelOffset,
+  computeDefaultLabelPosition,
+  computeLeaderStart,
+  constrainLabelPosition,
+  isLabelOutsideCircle,
+  LabelBBox,
+  nudgeOuterLabelsTangentially,
+  type SliceWedge,
+} from '@/app/lib/utils/labelLayout';
+import { polarToCartesian } from '@/app/lib/utils/polar';
+import type { Activity, ChartType, Polarity } from '@/app/types';
 
-      return {
-        labels: ['Keine Aktivitäten'],
-        datasets: [
-          {
-            data: [1],
-            backgroundColor: [emptyChartColor],
-            borderColor: ['#fff'],
-            borderWidth: 2,
-            hoverBackgroundColor: ['oklch(0.985 0.002 247.839)'], // gray-50
-            hoverBorderColor: ['#fff'], // Keep border white on hover
-          },
-        ],
+// Entries flow in from `useAnimatedRenderedEntries`, which marks slices fading out from a
+// deletion as `isGhost: true`. Ghost slices still render (shrinking weight → vanishing
+// path), but their labels and layout participation are suppressed inside this hook.
+export type RenderedEntry = Activity & { isGhost?: boolean };
+
+export interface SliceGeometry {
+  id: string;
+  name: string;
+  details?: string;
+  polarity: Polarity;
+  startAngle: number;
+  endAngle: number;
+  midAngle: number;
+  normalized: number;
+  displayedWeight: number;
+  pathD: string;
+  fillColor: string;
+  hoverFillColor: string;
+  borderColor: string;
+  hoverBorderColor: string;
+  isFullCircle: boolean;
+}
+
+export interface LabelGeometry {
+  id: string;
+  name: string;
+  details?: string;
+  x: number;
+  y: number;
+  midAngle: number;
+  // Leader line endpoint on the pie's outer edge (at the slice arc midpoint), or null
+  // when no leader line is needed.
+  leaderTo: { x: number; y: number } | null;
+  // Leader line start point at the bbox edge plus a small gap. Null when no line should
+  // be drawn (no leaderTo, or the gap overshoots the leader endpoint).
+  leaderFrom: { x: number; y: number } | null;
+  isOutside: boolean;
+  centroid: { x: number; y: number };
+}
+
+interface ChartLayout {
+  cx: number;
+  cy: number;
+  radius: number;
+  viewBox: string;
+  sizePx: number;
+}
+
+interface UseChartDataInput {
+  // Entries already carry the displayed weight and labelOffset (the animated values during
+  // an animation; the live target values otherwise).
+  renderedEntries: RenderedEntry[];
+  // Active label drag, if any. Excluded from the tangential overlap nudge so the dragged
+  // label stays at the cursor while neighbors move around it.
+  draggedLabelId: string | null;
+  labelBBoxes: Record<string, LabelBBox>;
+  editingActivity: { chartType: ChartType; activityId: string } | null;
+  chartType: ChartType;
+  chartSize: number;
+}
+
+export interface UseChartDataResult {
+  slices: SliceGeometry[];
+  labels: LabelGeometry[];
+  layout: ChartLayout;
+  isEmpty: boolean;
+}
+
+const EMPTY_CHART_COLOR = 'oklch(0.967 0.003 264.542)';
+const EMPTY_CHART_HOVER = 'oklch(0.985 0.002 247.839)';
+const LABEL_PADDING_FRACTION = 1.2;
+const START_ANGLE = -Math.PI / 2;
+
+export function useChartData(input: UseChartDataInput): UseChartDataResult {
+  const { renderedEntries, draggedLabelId, labelBBoxes, editingActivity, chartType, chartSize } = input;
+
+  return useMemo(() => {
+    const radius = chartSize / 2;
+    const viewBoxEdge = chartSize * LABEL_PADDING_FRACTION;
+    const cx = 0;
+    const cy = 0;
+    const viewBox = `${-viewBoxEdge / 2} ${-viewBoxEdge / 2} ${viewBoxEdge} ${viewBoxEdge}`;
+    const layout: ChartLayout = {
+      cx,
+      cy,
+      radius,
+      viewBox,
+      sizePx: viewBoxEdge,
+    };
+
+    if (renderedEntries.length === 0) {
+      const slice: SliceGeometry = {
+        id: '__empty__',
+        name: '',
+        polarity: 'positive',
+        startAngle: START_ANGLE,
+        endAngle: START_ANGLE + Math.PI * 2,
+        midAngle: 0,
+        normalized: 1,
+        displayedWeight: 0,
+        pathD: fullCirclePath(cx, cy, radius),
+        fillColor: EMPTY_CHART_COLOR,
+        hoverFillColor: EMPTY_CHART_HOVER,
+        borderColor: 'oklch(1 0 0)',
+        hoverBorderColor: 'oklch(1 0 0)',
+        isFullCircle: true,
       };
+      return { slices: [slice], labels: [], layout, isEmpty: true };
     }
 
-    return {
-      labels: activities.map(activity => activity.name),
-      datasets: [
-        {
-          data: activities.map(activity => {
-            const absValue = Math.abs(activity.value);
-            return Math.pow(2, absValue - 1);
-          }),
-          backgroundColor: activities.map(activity => getColorForLevel(activity.value)),
-          borderColor: activities.map(activity => {
-            // Check if this activity is being edited
-            const isActive = editingActivity?.chartType === chartType && editingActivity?.activityId === activity.id;
-            if (isActive) {
-              const baseColor = getColorForLevel(activity.value);
-              return `oklch(from ${baseColor} calc(l - 0.1) c h)`; // 10% darker
-            }
-            return '#fff';
-          }),
-          borderWidth: 2,
-          hoverBackgroundColor: activities.map(activity => {
-            const color = getColorForLevel(activity.value);
-            return `oklch(from ${color} calc(l + 0.1) c h)`; // 10% lighter
-          }),
-          hoverBorderColor: activities.map(activity => {
-            // Keep the same border color on hover as the regular state
-            const isActive = editingActivity?.chartType === chartType && editingActivity?.activityId === activity.id;
-            if (isActive) {
-              const baseColor = getColorForLevel(activity.value);
-              return `oklch(from ${baseColor} calc(l - 0.1) c h)`; // 10% darker
-            }
-            return '#fff';
-          }),
-        },
-      ],
-    };
-  }, [activities, chartType, editingActivity]);
+    const total = renderedEntries.reduce((sum, e) => sum + e.weight, 0) || 1;
+    const slices: SliceGeometry[] = [];
+    const labelInputs: Array<{
+      id: string;
+      name: string;
+      details?: string;
+      centroid: { x: number; y: number };
+      offsetPos: { x: number; y: number };
+      midAngle: number;
+      bbox: LabelBBox;
+      slice: SliceWedge;
+    }> = [];
 
-  return { chartData, activities };
+    let cursor = START_ANGLE;
+    for (let i = 0; i < renderedEntries.length; i++) {
+      const entry = renderedEntries[i];
+      const weight = entry.weight;
+      const sweep = (weight / total) * Math.PI * 2;
+      const start = cursor;
+      const end = cursor + sweep;
+      const mid = start + sweep / 2;
+      cursor = end;
+
+      const isActive = editingActivity?.chartType === chartType && editingActivity?.activityId === entry.id;
+      const baseColor = getColorForPolarity(entry.polarity);
+
+      const isFullCircle = renderedEntries.length === 1;
+      const pathD = isFullCircle ? fullCirclePath(cx, cy, radius) : slicePath(cx, cy, radius, start, end);
+
+      slices.push({
+        id: entry.id,
+        name: entry.name,
+        details: entry.details,
+        polarity: entry.polarity,
+        startAngle: start,
+        endAngle: end,
+        midAngle: mid,
+        normalized: weight / total,
+        displayedWeight: weight,
+        pathD,
+        fillColor: baseColor,
+        hoverFillColor: `oklch(from ${baseColor} calc(l + 0.1) c h)`,
+        borderColor: isActive ? `oklch(from ${baseColor} calc(l - 0.1) c h)` : 'oklch(1 0 0)',
+        hoverBorderColor: isActive ? `oklch(from ${baseColor} calc(l - 0.1) c h)` : 'oklch(1 0 0)',
+        isFullCircle,
+      });
+
+      // Ghost slices keep rendering (their path shrinks during the deletion animation),
+      // but they don't contribute a label — and they must not occupy a layout slot, or
+      // their stale full-size bbox could push visible labels around as their slice sweep
+      // approaches zero.
+      if (entry.isGhost) continue;
+
+      const centroid = computeDefaultLabelPosition({ cx, cy, radius, midAngle: mid });
+      const offsetPos = applyLabelOffset({ cx, cy, midAngle: mid }, entry.labelOffset, radius);
+      const bbox = labelBBoxes[entry.id] ?? estimateBBox(entry);
+
+      labelInputs.push({
+        id: entry.id,
+        name: entry.name,
+        details: entry.details,
+        centroid,
+        offsetPos,
+        midAngle: mid,
+        bbox,
+        slice: { startAngle: start, endAngle: end, midAngle: mid, sweep },
+      });
+    }
+
+    const viewBoxHalf = viewBoxEdge / 2;
+    const center = { cx, cy };
+    const constrainedPositions = labelInputs.map(l => {
+      const pos = constrainLabelPosition(l.offsetPos, center, radius, l.bbox, viewBoxHalf, l.slice);
+      return { id: l.id, pos, bbox: l.bbox, isOutside: isLabelOutsideCircle(pos, center, radius) };
+    });
+
+    // Tangential overlap nudge among outer labels (skip dragged). Inner labels are
+    // separated by construction (each fully contained in its own slice ∩ inner disk).
+    const outerLabels = constrainedPositions.filter(l => l.isOutside).map(l => ({ id: l.id, pos: l.pos, bbox: l.bbox }));
+    const nudgedOuter = nudgeOuterLabelsTangentially(outerLabels, center, draggedLabelId, viewBoxHalf);
+    const nudgedById = new Map(nudgedOuter.map(n => [n.id, n.pos]));
+
+    const labels: LabelGeometry[] = labelInputs.map((l, i) => {
+      const constrained = nudgedById.get(l.id) ?? constrainedPositions[i].pos;
+      const isOutside = constrainedPositions[i].isOutside;
+      // Leader line attaches to the slice's arc midpoint on the circle, not the radial
+      // projection of the label — the connector stays at the slice's "center" even when
+      // the user drags the label tangentially.
+      const leaderTo = isOutside ? polarToCartesian(cx, cy, radius, l.midAngle) : null;
+      const leaderFrom = leaderTo ? computeLeaderStart(constrained, leaderTo, l.bbox) : null;
+      return {
+        id: l.id,
+        name: l.name,
+        details: l.details,
+        x: constrained.x,
+        y: constrained.y,
+        midAngle: l.midAngle,
+        leaderTo,
+        leaderFrom,
+        isOutside,
+        centroid: l.centroid,
+      };
+    });
+
+    return { slices, labels, layout, isEmpty: false };
+  }, [renderedEntries, draggedLabelId, labelBBoxes, editingActivity, chartType, chartSize]);
+}
+
+function slicePath(cx: number, cy: number, r: number, startAngle: number, endAngle: number): string {
+  const start = polarToCartesian(cx, cy, r, startAngle);
+  const end = polarToCartesian(cx, cy, r, endAngle);
+  const largeArcFlag = endAngle - startAngle > Math.PI ? 1 : 0;
+  return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`;
+}
+
+function fullCirclePath(cx: number, cy: number, r: number): string {
+  return `M ${cx} ${cy - r} A ${r} ${r} 0 1 1 ${cx} ${cy + r} A ${r} ${r} 0 1 1 ${cx} ${cy - r} Z`;
+}
+
+function estimateBBox(entry: { name: string; details?: string }): LabelBBox {
+  return {
+    w: entry.name.length * 7 + 8,
+    h: entry.details ? 32 : 16,
+  };
 }

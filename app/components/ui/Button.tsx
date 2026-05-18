@@ -1,7 +1,8 @@
 'use client';
 
-import { cn } from '@/app/lib/utils/cn';
 import { ButtonHTMLAttributes, forwardRef } from 'react';
+
+import { cn } from '@/app/lib/utils/cn';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'positive' | 'negative';

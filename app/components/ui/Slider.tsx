@@ -1,8 +1,8 @@
 'use client';
 
-import { cn } from '@/app/lib/utils/cn';
-import { getColorForLevel } from '@/app/lib/utils/constants';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+
+import { cn } from '@/app/lib/utils/cn';
 
 interface SliderProps {
   value: number;
@@ -13,50 +13,42 @@ interface SliderProps {
   label?: string;
   className?: string;
   disabled?: boolean;
+  color?: string;
+  ariaLabel?: string;
+  ariaValuetext?: string;
   'data-testid'?: string;
 }
 
-export function Slider({ value, onChange, min = -5, max = 5, step = 1, label, className, disabled = false, 'data-testid': testId }: SliderProps) {
+const DEFAULT_RING_COLOR = 'oklch(0.852 0.199 91.936)'; // yellow-400
+const DEFAULT_FILL_COLOR = 'oklch(0.872 0.01 258.338)'; // gray-300
+const DISABLED_BORDER_COLOR = DEFAULT_FILL_COLOR;
+
+export function Slider({
+  value,
+  onChange,
+  min = 1,
+  max = 100,
+  step = 1,
+  label,
+  className,
+  disabled = false,
+  color,
+  ariaLabel,
+  ariaValuetext,
+  'data-testid': testId,
+}: SliderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
 
-  const percentage = ((value - min) / (max - min)) * 100;
-  const centerPercentage = ((0 - min) / (max - min)) * 100; // Center point at value 0
+  const range = max - min || 1;
+  const percentage = ((value - min) / range) * 100;
 
-  // Calculate thumb position to keep it within bounds
-  // At 0%, thumb should be at left edge (0px)
-  // At 100%, thumb should be at right edge minus thumb width (calc(100% - 24px))
+  // Single unidirectional fill from the left edge to the thumb's center.
   const thumbPosition = `calc(${percentage}% - ${(percentage / 100) * 24}px)`;
+  const fillWidth = `calc(${percentage}% - ${(percentage / 100) * 24}px + 12px)`;
 
-  // Calculate bidirectional fill from center
-  // At 0: no fill
-  // Positive values: fill from center to right
-  // Negative values: fill from left to center
-  let fillLeft: string;
-  let fillWidth: string;
-  let fillColor: string | undefined;
-
-  if (value === 0) {
-    // No fill at 0
-    fillLeft = '0%';
-    fillWidth = '0%';
-    fillColor = undefined;
-  } else if (value > 0) {
-    // Positive: fill from center to thumb center
-    fillLeft = `calc(${centerPercentage}% - ${(centerPercentage / 100) * 24}px + 12px)`;
-    const thumbCenter = `calc(${percentage}% - ${(percentage / 100) * 24}px + 12px)`;
-    fillWidth = `calc(${thumbCenter} - ${fillLeft})`;
-    fillColor = getColorForLevel(value);
-  } else {
-    // Negative: fill from thumb center to center
-    fillLeft = `calc(${percentage}% - ${(percentage / 100) * 24}px + 12px)`;
-    const centerPoint = `calc(${centerPercentage}% - ${(centerPercentage / 100) * 24}px + 12px)`;
-    fillWidth = `calc(${centerPoint} - ${fillLeft})`;
-    fillColor = getColorForLevel(value);
-  }
-
-  // Ring color follows fill color, or yellow for neutral
-  const ringColor = fillColor || 'oklch(0.852 0.199 91.936)'; // yellow-400
+  const fillColor = color ?? DEFAULT_FILL_COLOR;
+  const ringColor = color ?? DEFAULT_RING_COLOR;
 
   const updateValue = useCallback(
     (clientX: number) => {
@@ -84,11 +76,34 @@ export function Slider({ value, onChange, min = -5, max = 5, step = 1, label, cl
     updateValue(e.touches[0].clientX);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
+    let next: number | null = null;
+    switch (e.key) {
+      case 'ArrowLeft':
+      case 'ArrowDown':
+        next = value - step;
+        break;
+      case 'ArrowRight':
+      case 'ArrowUp':
+        next = value + step;
+        break;
+      case 'Home':
+        next = min;
+        break;
+      case 'End':
+        next = max;
+        break;
+    }
+    if (next !== null) {
+      e.preventDefault();
+      onChange(Math.max(min, Math.min(max, next)));
+    }
+  };
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging && !disabled) {
-        updateValue(e.clientX);
-      }
+      if (isDragging && !disabled) updateValue(e.clientX);
     };
 
     const handleTouchMove = (e: TouchEvent) => {
@@ -98,9 +113,7 @@ export function Slider({ value, onChange, min = -5, max = 5, step = 1, label, cl
       }
     };
 
-    const handleEnd = () => {
-      setIsDragging(false);
-    };
+    const handleEnd = () => setIsDragging(false);
 
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -120,6 +133,7 @@ export function Slider({ value, onChange, min = -5, max = 5, step = 1, label, cl
   return (
     <div className={cn('w-full', className)}>
       {label && <label className="mb-2 block text-sm font-medium text-gray-700">{label}</label>}
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- pointer hit-area for a custom slider; semantic role + keyboard handlers live on the thumb */}
       <div
         ref={sliderRef}
         className={cn('relative h-6 cursor-pointer touch-none rounded-full bg-gray-200', disabled && 'cursor-not-allowed opacity-50')}
@@ -127,18 +141,34 @@ export function Slider({ value, onChange, min = -5, max = 5, step = 1, label, cl
         onTouchStart={handleTouchStart}
         data-testid={testId}>
         <div
-          className="absolute top-0 h-full"
+          // Left side rounded to match the track; right side stays square so it ends
+          // cleanly under the thumb (which sits at the fill's right edge) instead of
+          // bulging out past the thumb's left arc.
+          className="absolute top-0 h-full rounded-l-full"
           style={{
-            left: fillLeft,
+            left: '0px',
             width: fillWidth,
-            backgroundColor: fillColor,
+            backgroundColor: color ? fillColor : undefined,
           }}
         />
         <div
-          className={cn('absolute top-1/2 h-6 w-6 -translate-y-1/2 transform rounded-full border-2 bg-white shadow-sm', isDragging && 'scale-110 shadow-md')}
+          // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- a real <input type="range"> can't render the custom thumb/fill geometry this design needs
+          role="slider"
+          tabIndex={disabled ? -1 : 0}
+          aria-valuemin={min}
+          aria-valuemax={max}
+          aria-valuenow={value}
+          aria-label={ariaLabel}
+          aria-valuetext={ariaValuetext}
+          aria-disabled={disabled}
+          onKeyDown={handleKeyDown}
+          className={cn(
+            'absolute top-1/2 h-6 w-6 -translate-y-1/2 transform rounded-full border-2 bg-white shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+            isDragging && 'scale-110 shadow-md'
+          )}
           style={{
             left: thumbPosition,
-            borderColor: disabled ? 'oklch(0.872 0.01 258.338)' : ringColor, // gray-300
+            borderColor: disabled ? DISABLED_BORDER_COLOR : ringColor,
           }}
         />
       </div>

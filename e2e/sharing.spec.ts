@@ -309,9 +309,9 @@ test.describe('Sharing Functionality', () => {
     await expect(desiredList).toContainText('Evening Walk');
     await expect(desiredList).toContainText('Overtime Work');
 
-    // Verify charts are rendered (canvas elements exist)
+    // Verify charts are rendered (SVG elements exist)
     // The charts are displayed in the same container as the activity lists
-    const charts = page.locator('canvas');
+    const charts = page.locator('[data-testid^="energy-chart-"]');
     await expect(charts.first()).toBeVisible();
     await expect(charts).toHaveCount(2); // Two charts (current and desired)
 

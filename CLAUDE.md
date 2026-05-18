@@ -6,18 +6,18 @@ A German-language web application that helps users visualize and balance their p
 
 ```bash
 # Code Quality
-npm run lint          # Run TypeScript + ESLint + Prettier checks
-npm run format        # Format code with Prettier + ESLint
-npm run knip          # Check for unused dependencies, exports, and types
+pnpm lint             # Run tsgo + oxlint + oxfmt checks
+pnpm format           # Format code with oxfmt + oxlint
+pnpm knip             # Check for unused dependencies, exports, and types
 
 # Testing
-npm run test          # Run unit tests (Jest)
-npm run test:coverage # Run tests with coverage report
-npm run test:e2e      # Run end-to-end tests (Playwright)
-npm run test:all      # Run all tests (unit + e2e)
+pnpm test             # Run unit tests (Jest)
+pnpm test:coverage    # Run tests with coverage report
+pnpm test:e2e         # Run end-to-end tests (Playwright)
+pnpm test:all         # Run all tests (unit + e2e)
 
 # Production Build
-npm run build         # Build for production
+pnpm build            # Build for production
 ```
 
 ## High-Level Architecture
@@ -76,11 +76,11 @@ The app uses two main contexts:
 interface Activity {
   id: string;
   name: string; // 1-50 chars, supports all Unicode (emojis, accents, symbols)
-  value: number; // -5 to +5 energy level (excluding 0)
+  weight: number; // > 0, persisted to 2 decimals; slice angle = weight / chartTotal
+  polarity: 'positive' | 'negative'; // green = positive (Energiequelle), red = negative (Energieräuber)
   details?: string; // Optional details text (max 150 chars, supports multi-line)
-  // Note: color is computed from value sign (positive = green, negative = red), not stored
-  // Chart size is based on exponential transformation: 2^(|value|-1)
-  // This creates dramatic visual hierarchy (e.g., value 5 = 16x larger than value 1)
+  labelOffset?: { radial: number; angular: number }; // Optional polar offset from the slice centroid
+  // Note: color is computed from polarity, not stored; slice size comes directly from weight.
 }
 ```
 
@@ -88,19 +88,21 @@ interface Activity {
 
 - Maximum 20 activities per chart (current/desired state)
 - Activity names: 1-50 characters, supports all Unicode characters (emojis, accented letters, symbols, etc.)
-- Activity values must be integers from -5 to +5 (excluding 0)
-  - Positive values (+1 to +5): Energy-giving activities (green)
-  - Negative values (-5 to -1): Energy-draining activities (red)
-  - Zero (0) is selectable in UI but not saveable (validation error)
+- Activity weights must be finite positive numbers up to 10000 (persisted at 2-decimal precision)
+- Activity polarity is either `'positive'` (Energiequelle, green) or `'negative'` (Energieräuber, red)
+- Floor: each slice is renormalized to ≥ 1% of the chart total (`getFloor` in `app/lib/utils/floor.ts`); the edit modal's slider works in integer percentages over `[floorPct, 100 - (n-1) * floorPct]`
 - Activity details (optional): max 150 characters, supports multi-line text
-- URL sharing limited to 2048 characters
+- URL sharing limited to 2000 characters (`MAX_URL_LENGTH` in `app/lib/utils/constants.ts`)
 - All user-facing text must be in German
 
 ### Responsive Breakpoints
 
-- Small: Below 640px (single column)
-- Medium: 640px-1279px (two columns)
-- Large: 1280px+ (side-by-side charts)
+Two independent responsive systems govern layout:
+
+- **Chart size** (`useResponsive` in `app/lib/hooks/useResponsive.ts`): `isSmall` <640px, `isMedium` 640–1279px, `isLarge` ≥1280px. Drives the chart pixel size (280 / 360 / 440 px).
+- **Dashboard grid** (`app/page.tsx`, Tailwind `lg:grid-cols-2`): single column <1024px, two columns ≥1024px.
+
+The breakpoints do not align: the 1024–1279 px window renders two medium-sized (360 px) charts side-by-side. Any work on chart sizing must account for this window.
 
 ## Important Development Notes
 
@@ -108,7 +110,7 @@ interface Activity {
 
 2. **Client-Side Only**: No API calls or server-side rendering. Everything runs in the browser with localStorage.
 
-3. **Testing Mobile Differences**: Mobile Chrome has different slider precision - use values ≤10 in tests to avoid flakiness.
+3. **Testing Mobile Differences**: Mobile Chrome has different slider precision — for slider interactions in tests, prefer keyboard events (ArrowLeft/Right, Home, End) over pointer drags to avoid flakiness on the integer-percent weight slider.
 
 4. **Accessibility**: WCAG 2.1 AA compliance required. Maintain keyboard navigation and ARIA labels.
 
@@ -135,9 +137,9 @@ When fixing bugs:
 
 - Check if it's a business logic issue (add unit test)
 - Check if it's a UI issue (add E2E test)
-- Run `npm run test:all`
+- Run `pnpm test:all`
 
 In general:
 
 - Use tests to verify results instead of running a development server
-- Run `npm run format` at the very end
+- Run `pnpm format` at the very end

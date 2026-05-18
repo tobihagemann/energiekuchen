@@ -1,11 +1,16 @@
 'use client';
 
 import { PencilIcon } from '@heroicons/react/24/outline';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
+import { cn } from '../../lib/utils/cn';
+import { NEGATIVE_COLOR, POSITIVE_COLOR } from '../../lib/utils/constants';
+import { getFloor } from '../../lib/utils/floor';
+import { redistributeProportionalAll } from '../../lib/utils/redistribution';
 import { validateActivity } from '../../lib/utils/validation';
-import { ActivityValueIndicator } from '../ui/ActivityValueIndicator';
+import { Polarity } from '../../types';
 import { Button } from '../ui/Button';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import { Input } from '../ui/Input';
@@ -14,57 +19,114 @@ import { Slider } from '../ui/Slider';
 import { Textarea } from '../ui/Textarea';
 
 export function EditActivityModal() {
-  const { state: energyState, updateActivity } = useEnergy();
+  const { state: energyState, updateActivity, setActivityWeights, togglePolarity } = useEnergy();
   const { state: uiState, closeEditModal, setEditingActivity } = useUI();
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const positivePolarityRef = useRef<HTMLButtonElement>(null);
+  const negativePolarityRef = useRef<HTMLButtonElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get the activity to edit based on editingActivity state
   const activity = uiState.editingActivity
     ? energyState.data[uiState.editingActivity.chartType].activities.find(a => a.id === uiState.editingActivity!.activityId)
     : undefined;
+  const chartType = uiState.editingActivity?.chartType;
 
-  const [formData, setFormData] = useState({
+  // Snapshot the pre-edit chart composition at modal open time so polarity toggles
+  // in the form don't reshape the slider's bounds underneath the user.
+  const snapshot = useMemo(() => {
+    if (!activity || !chartType) return null;
+    const activities = energyState.data[chartType].activities;
+    const chartTotal = activities.reduce((sum, a) => sum + a.weight, 0);
+    const otherCount = activities.length - 1;
+    const floor = getFloor(chartTotal);
+    const floorExactPct = chartTotal > 0 ? floor / chartTotal : 0.01;
+    const floorPct = Math.max(1, Math.ceil(floorExactPct * 100));
+    const initialPct = chartTotal > 0 ? Math.round((activity.weight / chartTotal) * 100) : 100;
+
+    return {
+      chartTotal,
+      otherCount,
+      floor,
+      floorExactPct,
+      floorPct,
+      initialPct,
+      currentActivities: activities,
+    };
+    // Only recompute when the modal opens for a new activity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activity?.id, chartType]);
+
+  const sliderMaxFromFloor = snapshot ? Math.max(snapshot.floorPct, Math.floor((1 - snapshot.otherCount * snapshot.floorExactPct) * 100)) : 100;
+  const sliderMaxFromWeightCap = snapshot && snapshot.chartTotal > 0 ? Math.max(snapshot.floorPct, Math.floor((10000 / snapshot.chartTotal) * 100)) : 100;
+  const sliderMax = snapshot ? Math.min(sliderMaxFromFloor, sliderMaxFromWeightCap) : 100;
+  const sliderMin = snapshot ? snapshot.floorPct : 1;
+  const clampedInitial = snapshot ? Math.min(sliderMax, Math.max(sliderMin, snapshot.initialPct)) : 100;
+
+  const [formData, setFormData] = useState<{ name: string; sliderPercent: number; polarity: Polarity; details: string }>({
     name: activity?.name || '',
-    value: activity?.value || 1,
+    sliderPercent: clampedInitial,
+    polarity: activity?.polarity || 'positive',
     details: activity?.details || '',
   });
-
+  const initialSliderPercentRef = useRef(clampedInitial);
   const [errors, setErrors] = useState<string[]>([]);
 
-  // Update form data when activity changes
   useEffect(() => {
-    if (activity) {
+    if (activity && snapshot) {
+      const clamped = Math.min(sliderMax, Math.max(sliderMin, snapshot.initialPct));
       setFormData({
         name: activity.name,
-        value: activity.value,
+        sliderPercent: clamped,
+        polarity: activity.polarity,
         details: activity.details || '',
       });
+      initialSliderPercentRef.current = clamped;
     }
-  }, [activity]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activity?.id]);
 
-  // Auto-focus the input when modal opens
   useEffect(() => {
     if (uiState.isEditModalOpen && nameInputRef.current) {
       nameInputRef.current.focus();
     }
   }, [uiState.isEditModalOpen]);
 
+  const selectPolarity = (next: Polarity) => {
+    setFormData(prev => ({ ...prev, polarity: next }));
+    // WAI-ARIA APG radiogroup: focus follows selection.
+    (next === 'positive' ? positivePolarityRef : negativePolarityRef).current?.focus();
+  };
+
+  const handlePolarityKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectPolarity(formData.polarity === 'positive' ? 'negative' : 'positive');
+    }
+  };
+
   const handleClose = useCallback(() => {
     closeEditModal();
     setEditingActivity(null);
-    setFormData({ name: '', value: 1, details: '' });
+    setFormData({ name: '', sliderPercent: 100, polarity: 'positive', details: '' });
     setErrors([]);
   }, [closeEditModal, setEditingActivity]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uiState.editingActivity || !activity) return;
+    if (!uiState.editingActivity || !activity || !snapshot || !chartType) return;
 
     setIsSubmitting(true);
 
-    const validation = validateActivity(formData);
+    const targetWeight = snapshot.chartTotal > 0 ? (formData.sliderPercent / 100) * snapshot.chartTotal : activity.weight;
+    const candidate = {
+      id: activity.id,
+      name: formData.name,
+      weight: targetWeight,
+      polarity: formData.polarity,
+      details: formData.details,
+    };
 
+    const validation = validateActivity(candidate);
     if (!validation.isValid) {
       setErrors(validation.errors);
       setIsSubmitting(false);
@@ -72,30 +134,46 @@ export function EditActivityModal() {
     }
 
     try {
-      await updateActivity(uiState.editingActivity.chartType, activity.id, formData);
+      const nameChanged = formData.name !== activity.name;
+      const detailsChanged = (formData.details || '') !== (activity.details || '');
+      if (nameChanged || detailsChanged) {
+        updateActivity(chartType, activity.id, {
+          name: formData.name,
+          details: formData.details || undefined,
+        });
+      }
+
+      if (formData.sliderPercent !== initialSliderPercentRef.current && snapshot.currentActivities.length > 1) {
+        const newWeights = redistributeProportionalAll(
+          snapshot.currentActivities.map(a => ({ id: a.id, weight: a.weight })),
+          activity.id,
+          targetWeight,
+          snapshot.floor
+        );
+        setActivityWeights(chartType, newWeights);
+      }
+
+      if (formData.polarity !== activity.polarity) {
+        togglePolarity(chartType, activity.id);
+      }
+
       handleClose();
     } catch (error) {
       console.error('Error updating activity:', error);
       setErrors(['Fehler beim Speichern der Aktivität']);
-      setIsSubmitting(false);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleValueChange = (value: number) => {
-    setFormData(prev => ({
-      ...prev,
-      value,
-    }));
-  };
-
-  if (!uiState.editingActivity || !activity) {
+  if (!uiState.editingActivity || !activity || !chartType || !snapshot) {
     return null;
   }
 
-  const chartType = uiState.editingActivity.chartType;
   const placeholder = chartType === 'current' ? 'z.B. Sport, Überstunden, schwierige Gespräche' : 'z.B. Entspannung, Zeit mit Freunden, Hobby';
+  const sliderColor = formData.polarity === 'positive' ? POSITIVE_COLOR : NEGATIVE_COLOR;
+  const isSingleActivity = snapshot.otherCount === 0;
+  const displayPercent = isSingleActivity ? 100 : formData.sliderPercent;
 
   return (
     <Modal isOpen={uiState.isEditModalOpen} onClose={handleClose} title="Aktivität bearbeiten" titleIcon={<PencilIcon className="h-5 w-5" />} size="md">
@@ -128,13 +206,76 @@ export function EditActivityModal() {
           </div>
 
           <div>
-            <div className="mb-2">
-              <div className="flex items-center gap-1 text-sm font-medium text-gray-700">
-                <span>Anteil:</span>
-                <ActivityValueIndicator value={formData.value} />
-              </div>
+            <div id="polarity-group-label" className="mb-2 block text-sm font-medium text-gray-700">
+              Polarität
             </div>
-            <Slider value={formData.value} onChange={handleValueChange} min={-5} max={5} step={1} data-testid="activity-value-slider" />
+            {/* Segmented-control style toggle. Both polarities are equally valid choices
+                with their own color identity (green / red), so this isn't a true on/off
+                switch — it's a two-option pill with a sliding colored indicator that
+                takes the active polarity's color. */}
+            {/* eslint-disable-next-line jsx-a11y/interactive-supports-focus -- ARIA radiogroup: focus lives on individual radio children via roving tabindex */}
+            <div
+              className="relative grid grid-cols-2 rounded-full bg-gray-100 p-1 ring-1 ring-gray-900/5"
+              role="radiogroup"
+              aria-labelledby="polarity-group-label"
+              onKeyDown={handlePolarityKeyDown}>
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full transition-transform duration-200 ease-out',
+                  formData.polarity === 'positive' ? 'bg-green-500' : 'translate-x-full bg-red-500'
+                )}
+              />
+              <button
+                ref={positivePolarityRef}
+                type="button"
+                // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- styled toggle group; native radios can't host the colored panel design
+                role="radio"
+                aria-checked={formData.polarity === 'positive'}
+                tabIndex={formData.polarity === 'positive' ? 0 : -1}
+                onClick={() => selectPolarity('positive')}
+                className={cn(
+                  'relative z-10 rounded-full px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-yellow-500 focus:outline-none focus:ring-inset',
+                  formData.polarity === 'positive' ? 'text-white' : 'text-gray-700'
+                )}
+                data-testid="polarity-positive-button">
+                Energiequelle
+              </button>
+              <button
+                ref={negativePolarityRef}
+                type="button"
+                // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- styled toggle group; native radios can't host the colored panel design
+                role="radio"
+                aria-checked={formData.polarity === 'negative'}
+                tabIndex={formData.polarity === 'negative' ? 0 : -1}
+                onClick={() => selectPolarity('negative')}
+                className={cn(
+                  'relative z-10 rounded-full px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-yellow-500 focus:outline-none focus:ring-inset',
+                  formData.polarity === 'negative' ? 'text-white' : 'text-gray-700'
+                )}
+                data-testid="polarity-negative-button">
+                Energieräuber
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700">
+              <span>Anteil:</span>
+              <span data-testid="activity-percentage-readout">{displayPercent} %</span>
+            </div>
+            <Slider
+              value={isSingleActivity ? 100 : formData.sliderPercent}
+              onChange={pct => setFormData(prev => ({ ...prev, sliderPercent: pct }))}
+              min={sliderMin}
+              max={sliderMax}
+              step={1}
+              color={sliderColor}
+              ariaLabel="Anteil"
+              ariaValuetext={`${displayPercent} Prozent`}
+              disabled={isSingleActivity}
+              data-testid="activity-value-slider"
+            />
           </div>
 
           <ErrorMessage error={errors} testId="form-errors" />

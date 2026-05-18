@@ -1,5 +1,5 @@
 import { createMockEnergyPie } from '../../../__tests__/utils/mocks';
-import { StorageManager, exportData, importData } from '../storage';
+import { exportData, importData, StorageManager, toV3Serializable } from '../storage';
 
 describe('StorageManager', () => {
   beforeEach(() => {
@@ -17,15 +17,10 @@ describe('StorageManager', () => {
     const mockData = createMockEnergyPie();
     const exported = exportData(mockData);
     const imported = importData(exported);
-
-    // importData returns the data as-is since there are no more id/type fields
-    const expectedData = mockData;
-
-    expect(imported).toEqual(expectedData);
+    expect(imported).toEqual(mockData);
   });
 
   test('should throw error for invalid import data', () => {
-    // Suppress console.error for this test as it's expected
     const originalError = console.error;
     console.error = jest.fn();
 
@@ -47,21 +42,17 @@ describe('StorageManager', () => {
     expect(loaded).toBeNull();
   });
 
-  test('should handle localStorage errors gracefully', () => {
-    // Mock localStorage to throw error
+  test('should handle localStorage save errors gracefully', () => {
     const originalSetItem = localStorage.setItem;
     localStorage.setItem = jest.fn(() => {
       throw new Error('Storage quota exceeded');
     });
-
-    // Suppress console.error for this test as it's expected
     const originalError = console.error;
     console.error = jest.fn();
 
     const mockData = createMockEnergyPie();
     expect(() => StorageManager.save(mockData)).toThrow('Daten konnten nicht gespeichert werden');
 
-    // Restore original methods
     localStorage.setItem = originalSetItem;
     console.error = originalError;
   });
@@ -70,591 +61,374 @@ describe('StorageManager', () => {
     expect(() => StorageManager.export()).toThrow('Keine Daten zum Exportieren vorhanden');
   });
 
-  test('should validate imported data structure', () => {
-    // Suppress console.error for this test as it's expected
+  test('should throw on missing activity name during import', () => {
     const originalError = console.error;
     console.error = jest.fn();
-
-    const invalidData = JSON.stringify({ version: '1.0' }); // Missing required fields
-    expect(() => importData(invalidData)).toThrow('Ungültiges Datenformat - keine Aktivitätsdaten gefunden');
-
+    const invalid = { version: '3.0', current: { activities: [{ id: '1', weight: 4, polarity: 'positive' }] }, desired: { activities: [] } };
+    expect(() => importData(JSON.stringify(invalid))).toThrow('Aktivitätsname ist erforderlich');
     console.error = originalError;
   });
 
-  test('should handle localStorage getItem errors gracefully', () => {
-    const originalGetItem = localStorage.getItem;
-    localStorage.getItem = jest.fn(() => {
-      throw new Error('Storage error');
-    });
-
-    // Suppress console.error for this test as it's expected
+  test('should throw on v3 payload missing weight/polarity', () => {
     const originalError = console.error;
     console.error = jest.fn();
+    const invalid = { version: '3.0', current: { activities: [{ id: '1', name: 'A' }] }, desired: { activities: [] } };
+    expect(() => importData(JSON.stringify(invalid))).toThrow('Aktivität muss Gewicht und Polarität haben');
+    console.error = originalError;
+  });
 
+  test('should handle corrupted JSON in localStorage', () => {
+    localStorage.setItem('energiekuchen-data', '{"invalid": json}');
+    const originalError = console.error;
+    console.error = jest.fn();
     const loaded = StorageManager.load();
     expect(loaded).toBeNull();
+    expect(localStorage.getItem('energiekuchen-data')).toBeNull();
+    console.error = originalError;
+  });
 
-    // Restore original methods
+  test('should export valid JSON with formatting', () => {
+    const mockData = createMockEnergyPie();
+    StorageManager.save(mockData);
+    const exported = StorageManager.export();
+    expect(() => JSON.parse(exported)).not.toThrow();
+    expect(exported).toContain('\n');
+  });
+
+  test('empty string import throws', () => {
+    const originalError = console.error;
+    console.error = jest.fn();
+    expect(() => importData('')).toThrow('Ungültige Datei oder Datenformat');
+    console.error = originalError;
+  });
+
+  test('payload with no current and no desired throws', () => {
+    const originalError = console.error;
+    console.error = jest.fn();
+    expect(() => importData(JSON.stringify({ version: null }))).toThrow('keine Aktivitätsdaten gefunden');
+    console.error = originalError;
+  });
+
+  test('should treat non-array activities as empty', () => {
+    const result = StorageManager.import(JSON.stringify({ version: '2.0', current: { activities: 'oops' }, desired: { activities: [] } }));
+    expect(result.current.activities).toEqual([]);
+    expect(result.version).toBe('3.0');
+  });
+
+  test('v1 → v3 migration', () => {
+    const v1 = {
+      version: '1.0',
+      positive: { activities: [{ id: '1', name: 'Energy Giving', value: 3 }] },
+      negative: { activities: [{ id: '2', name: 'Energy Draining', value: 2 }] },
+    };
+    const result = StorageManager.import(JSON.stringify(v1));
+    expect(result.version).toBe('3.0');
+    expect(result.current.activities).toHaveLength(2);
+    const giving = result.current.activities.find(a => a.name === 'Energy Giving');
+    const draining = result.current.activities.find(a => a.name === 'Energy Draining');
+    expect(giving?.polarity).toBe('positive');
+    expect(giving?.weight).toBe(Math.pow(2, 3 - 1));
+    expect(draining?.polarity).toBe('negative');
+    expect(draining?.weight).toBe(Math.pow(2, 2 - 1));
+    expect(result.desired.activities).toHaveLength(0);
+  });
+
+  test('v2 → v3 migration both polarities', () => {
+    const v2 = {
+      version: '2.0',
+      current: { activities: [{ id: '1', name: 'Sport', value: 5 }] },
+      desired: { activities: [{ id: '2', name: 'Stress', value: -3 }] },
+    };
+    const result = StorageManager.import(JSON.stringify(v2));
+    expect(result.version).toBe('3.0');
+    expect(result.current.activities[0].weight).toBe(Math.pow(2, 4));
+    expect(result.current.activities[0].polarity).toBe('positive');
+    expect(result.desired.activities[0].weight).toBe(Math.pow(2, 2));
+    expect(result.desired.activities[0].polarity).toBe('negative');
+  });
+
+  test('v2 → v3 drops legacy entries with invalid value and warns', () => {
+    const originalWarn = console.warn;
+    console.warn = jest.fn();
+    const v2 = {
+      version: '2.0',
+      current: {
+        activities: [
+          { id: '1', name: 'Valid', value: 3 },
+          { id: '2', name: 'Zero', value: 0 },
+          { id: '3', name: 'Too High', value: 6 },
+        ],
+      },
+      desired: { activities: [] },
+    };
+    const result = StorageManager.import(JSON.stringify(v2));
+    expect(result.current.activities).toHaveLength(1);
+    expect(result.current.activities[0].name).toBe('Valid');
+    expect(console.warn).toHaveBeenCalled();
+    console.warn = originalWarn;
+  });
+
+  test('mixed payload: v2 entry migrates, v3 entry survives', () => {
+    const mixed = {
+      current: {
+        activities: [
+          { id: '1', name: 'Legacy', value: 2 },
+          { id: '2', name: 'Modern', weight: 7, polarity: 'negative' },
+        ],
+      },
+      desired: { activities: [] },
+    };
+    const result = StorageManager.import(JSON.stringify(mixed));
+    expect(result.version).toBe('3.0');
+    const legacy = result.current.activities.find(a => a.name === 'Legacy');
+    const modern = result.current.activities.find(a => a.name === 'Modern');
+    expect(legacy?.weight).toBe(2);
+    expect(legacy?.polarity).toBe('positive');
+    expect(modern?.weight).toBe(7);
+    expect(modern?.polarity).toBe('negative');
+  });
+
+  test('empty-arrays v2 payload migrates to v3 with empty arrays', () => {
+    const v2 = { version: '2.0', current: { activities: [] }, desired: { activities: [] } };
+    const result = StorageManager.import(JSON.stringify(v2));
+    expect(result.version).toBe('3.0');
+    expect(result.current.activities).toHaveLength(0);
+    expect(result.desired.activities).toHaveLength(0);
+  });
+
+  test('load migrates v2 and writes back; second load does not re-save', () => {
+    const v2 = {
+      version: '2.0',
+      current: { activities: [{ id: '1', name: 'Sport', value: 3 }] },
+      desired: { activities: [] },
+    };
+    localStorage.setItem('energiekuchen-data', JSON.stringify(v2));
+
+    const firstLoad = StorageManager.load();
+    expect(firstLoad?.version).toBe('3.0');
+    const stored = JSON.parse(localStorage.getItem('energiekuchen-data') as string);
+    expect(stored.version).toBe('3.0');
+    expect(stored.current.activities[0].weight).toBe(4);
+
+    const saveSpy = jest.spyOn(StorageManager, 'save');
+    StorageManager.load();
+    expect(saveSpy).not.toHaveBeenCalled();
+    saveSpy.mockRestore();
+  });
+
+  test('tiny-weight import round-trip preservation', () => {
+    const tiny = {
+      version: '3.0',
+      current: {
+        activities: [
+          { id: '1', name: 'A', weight: 0.001, polarity: 'positive' },
+          { id: '2', name: 'B', weight: 0.002, polarity: 'positive' },
+          { id: '3', name: 'C', weight: 0.003, polarity: 'positive' },
+        ],
+      },
+      desired: { activities: [] },
+    };
+    const result = StorageManager.import(JSON.stringify(tiny));
+    const total = result.current.activities.reduce((s, a) => s + a.weight, 0);
+    for (const a of result.current.activities) {
+      expect(a.weight).toBeGreaterThanOrEqual(Math.max(0.01, total * 0.01));
+    }
+  });
+
+  test('rejects v3 weight of zero', () => {
+    const originalError = console.error;
+    console.error = jest.fn();
+    const v3 = {
+      version: '3.0',
+      current: { activities: [{ id: '1', name: 'X', weight: 0, polarity: 'positive' }] },
+      desired: { activities: [] },
+    };
+    expect(() => importData(JSON.stringify(v3))).toThrow(/Gewicht/);
+    console.error = originalError;
+  });
+
+  test('rejects v3 negative weight', () => {
+    const originalError = console.error;
+    console.error = jest.fn();
+    const v3 = {
+      version: '3.0',
+      current: { activities: [{ id: '1', name: 'X', weight: -5, polarity: 'positive' }] },
+      desired: { activities: [] },
+    };
+    expect(() => importData(JSON.stringify(v3))).toThrow(/Gewicht/);
+    console.error = originalError;
+  });
+
+  test('rejects v3 weight above the 10000 cap', () => {
+    const originalError = console.error;
+    console.error = jest.fn();
+    const v3 = {
+      version: '3.0',
+      current: { activities: [{ id: '1', name: 'X', weight: 99999, polarity: 'positive' }] },
+      desired: { activities: [] },
+    };
+    expect(() => importData(JSON.stringify(v3))).toThrow(/Gewicht/);
+    console.error = originalError;
+  });
+
+  test('preserves a valid v3 labelOffset', () => {
+    const v3 = {
+      version: '3.0',
+      current: { activities: [{ id: '1', name: 'X', weight: 4, polarity: 'positive', labelOffset: { radial: 0.2, angular: 1 } }] },
+      desired: { activities: [] },
+    };
+    const result = importData(JSON.stringify(v3));
+    expect(result.current.activities[0].labelOffset).toEqual({ radial: 0.2, angular: 1 });
+  });
+
+  test('drops malformed labelOffset in v3 payload', () => {
+    const v3 = {
+      version: '3.0',
+      current: { activities: [{ id: '1', name: 'X', weight: 4, polarity: 'positive', labelOffset: { radial: NaN, angular: 0 } }] },
+      desired: { activities: [] },
+    };
+    const result = importData(JSON.stringify(v3));
+    expect(result.current.activities[0].labelOffset).toBeUndefined();
+  });
+
+  test('drops v2 activity missing both weight and value', () => {
+    const originalWarn = console.warn;
+    console.warn = jest.fn();
+    const v2 = {
+      version: '2.0',
+      current: { activities: [{ id: '1', name: 'Empty' }] },
+      desired: { activities: [] },
+    };
+    const result = importData(JSON.stringify(v2));
+    expect(result.current.activities).toHaveLength(0);
+    expect(console.warn).toHaveBeenCalled();
+    console.warn = originalWarn;
+  });
+
+  test('write-back swallow: quota errors do not crash load', () => {
+    const v2 = {
+      version: '2.0',
+      current: { activities: [{ id: '1', name: 'Sport', value: 3 }] },
+      desired: { activities: [] },
+    };
+    localStorage.setItem('energiekuchen-data', JSON.stringify(v2));
+
+    const originalSetItem = localStorage.setItem;
+    const originalError = console.error;
+    console.error = jest.fn();
+    let callCount = 0;
+    localStorage.setItem = jest.fn((key: string, value: string) => {
+      callCount++;
+      if (callCount === 1) throw new Error('quota');
+      return originalSetItem.call(localStorage, key, value);
+    }) as typeof localStorage.setItem;
+
+    const loaded = StorageManager.load();
+    expect(loaded?.version).toBe('3.0');
+
+    localStorage.setItem = originalSetItem;
+    console.error = originalError;
+  });
+
+  test('load returns null when getItem throws', () => {
+    const originalGetItem = localStorage.getItem;
+    const originalError = console.error;
+    console.error = jest.fn();
+    localStorage.getItem = jest.fn(() => {
+      throw new Error('storage broken');
+    }) as typeof localStorage.getItem;
+    expect(StorageManager.load()).toBeNull();
     localStorage.getItem = originalGetItem;
     console.error = originalError;
   });
 
-  test('should handle localStorage removeItem errors gracefully', () => {
+  test('clear swallows removeItem errors', () => {
     const originalRemoveItem = localStorage.removeItem;
-    localStorage.removeItem = jest.fn(() => {
-      throw new Error('Storage error');
-    });
-
-    // Suppress console.error for this test as it's expected
     const originalError = console.error;
     console.error = jest.fn();
-
-    // Should not throw
+    localStorage.removeItem = jest.fn(() => {
+      throw new Error('cannot remove');
+    }) as typeof localStorage.removeItem;
     expect(() => StorageManager.clear()).not.toThrow();
-
-    // Restore original methods
     localStorage.removeItem = originalRemoveItem;
     console.error = originalError;
   });
 
-  test('should handle corrupted JSON data in localStorage', () => {
-    // Manually set corrupted JSON in localStorage
-    localStorage.setItem('energiekuchen-data', '{"invalid": json}');
-
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    const loaded = StorageManager.load();
-    expect(loaded).toBeNull();
-    // Verify localStorage was cleared
-    expect(localStorage.getItem('energiekuchen-data')).toBeNull();
-
-    console.error = originalError;
-  });
-
-  test('should export valid JSON with proper formatting', () => {
-    const mockData = createMockEnergyPie();
-    StorageManager.save(mockData);
-
-    const exported = StorageManager.export();
-    expect(() => JSON.parse(exported)).not.toThrow();
-    expect(exported).toContain('\n'); // Should be formatted with newlines
-  });
-
-  test('should handle empty string import', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    expect(() => importData('')).toThrow('Ungültige Datei oder Datenformat');
-
-    console.error = originalError;
-  });
-
-  test('should handle null values in import validation', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    const invalidData = JSON.stringify({ version: null, positive: null, negative: null });
-    expect(() => importData(invalidData)).toThrow('Ungültiges Datenformat - keine Aktivitätsdaten gefunden');
-
-    console.error = originalError;
-  });
-
-  test('should validate StorageManager.import method', () => {
-    const mockData = createMockEnergyPie();
-    const exported = JSON.stringify(mockData, null, 2);
-
-    const imported = StorageManager.import(exported);
-
-    // StorageManager.import returns the data as-is since there are no more id/type fields
-    const expectedData = mockData;
-
-    expect(imported).toEqual(expectedData);
-  });
-
-  test('should handle StorageManager.import with invalid data', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    expect(() => StorageManager.import('invalid json')).toThrow('Ungültige Datei oder Datenformat');
-
-    console.error = originalError;
-  });
-
-  test('should validate activity name during import', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    const dataWithInvalidActivity = {
-      version: '1.0',
+  test('detects unversioned v3 payload by shape', () => {
+    const v3NoVersion = {
       current: {
-        activities: [
-          {
-            id: '1',
-            name: '', // Invalid: empty name
-            value: 5,
-          },
-        ],
+        activities: [{ id: '1', name: 'X', weight: 4, polarity: 'positive' }],
       },
-      desired: {
-        activities: [],
-      },
+      desired: { activities: [{ id: '2', name: 'Y', weight: 6, polarity: 'negative' }] },
     };
-
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Namen haben');
-
-    console.error = originalError;
+    const result = importData(JSON.stringify(v3NoVersion));
+    expect(result.version).toBe('3.0');
+    expect(result.current.activities[0].weight).toBe(4);
   });
 
-  test('should validate activity value during import', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    const dataWithInvalidActivity = {
+  test('load migrates v1 from localStorage and writes back v3', () => {
+    const v1 = {
       version: '1.0',
-      current: {
-        activities: [
-          {
-            id: '1',
-            name: 'Test Activity',
-            // value missing - this should trigger the validation error
-          },
-        ],
-      },
-      desired: {
-        activities: [],
-      },
+      positive: { activities: [{ id: '1', name: 'Sport', value: 3 }] },
+      negative: { activities: [{ id: '2', name: 'Stress', value: 2 }] },
     };
+    localStorage.setItem('energiekuchen-data', JSON.stringify(v1));
 
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Anteil haben');
+    const first = StorageManager.load();
+    expect(first?.version).toBe('3.0');
+    const stored = JSON.parse(localStorage.getItem('energiekuchen-data') as string);
+    expect(stored.version).toBe('3.0');
 
-    console.error = originalError;
+    const saveSpy = jest.spyOn(StorageManager, 'save');
+    StorageManager.load();
+    expect(saveSpy).not.toHaveBeenCalled();
+    saveSpy.mockRestore();
   });
 
-  test('should validate activity name type during import', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    const dataWithInvalidActivity = {
-      version: '1.0',
-      current: {
-        activities: [
-          {
-            id: '1',
-            name: 123, // Invalid: name should be string
-            value: 5,
-          },
-        ],
-      },
-      desired: {
-        activities: [],
-      },
-    };
-
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Namen haben');
-
-    console.error = originalError;
+  test('toV3Serializable rounds weight to 2 decimals', () => {
+    const result = toV3Serializable({
+      version: '3.0',
+      current: { activities: [{ id: '1', name: 'A', weight: 4.567, polarity: 'positive' }] },
+      desired: { activities: [] },
+    });
+    expect(result.current.activities[0].weight).toBe(4.57);
   });
 
-  test('should validate activity value type during import', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    const dataWithInvalidActivity = {
-      version: '1.0',
-      current: {
-        activities: [
-          {
-            id: '1',
-            name: 'Test Activity',
-            value: 'invalid', // Invalid: value should be number
-          },
-        ],
-      },
-      desired: {
-        activities: [],
-      },
-    };
-
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidActivity))).toThrow('Aktivität muss einen Anteil haben');
-
-    console.error = originalError;
+  test('toV3Serializable elides default labelOffset', () => {
+    const result = toV3Serializable({
+      version: '3.0',
+      current: { activities: [{ id: '1', name: 'A', weight: 4, polarity: 'positive', labelOffset: { radial: 0, angular: 0 } }] },
+      desired: { activities: [] },
+    });
+    expect(result.current.activities[0].labelOffset).toBeUndefined();
   });
 
-  test('should handle activities that are not arrays', () => {
-    const invalidData = {
-      version: '1.0',
-      current: {
-        activities: 'not an array', // Not an array
-      },
-    };
-
-    const result = StorageManager.import(JSON.stringify(invalidData));
-    expect(result.current.activities).toEqual([]);
+  test('toV3Serializable preserves non-default labelOffset', () => {
+    const offset = { radial: 0.3, angular: 1.2 };
+    const result = toV3Serializable({
+      version: '3.0',
+      current: { activities: [{ id: '1', name: 'A', weight: 4, polarity: 'positive', labelOffset: offset }] },
+      desired: { activities: [] },
+    });
+    expect(result.current.activities[0].labelOffset).toEqual(offset);
   });
 
-  test('should handle missing size field with default', () => {
-    const dataWithoutSize = {
-      version: '1.0',
-      current: {
-        activities: [],
-        // missing size field
-      },
-    };
-
-    const result = StorageManager.import(JSON.stringify(dataWithoutSize));
-    // Size fields no longer exist
-    expect(result.current.activities).toEqual([]);
-    expect(result.desired.activities).toEqual([]);
+  test('toV3Serializable elides absent details', () => {
+    const result = toV3Serializable({
+      version: '3.0',
+      current: { activities: [{ id: '1', name: 'A', weight: 4, polarity: 'positive' }] },
+      desired: { activities: [] },
+    });
+    expect(result.current.activities[0].details).toBeUndefined();
   });
 
-  test('should reject activity with value of zero', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    const dataWithZeroValue = {
+  test('v2 payload with empty id assigns a UUID', () => {
+    const v2 = {
       version: '2.0',
-      current: {
-        activities: [
-          {
-            id: '1',
-            name: 'Test Activity',
-            value: 0, // Invalid: zero is not allowed
-          },
-        ],
-      },
-      desired: {
-        activities: [],
-      },
+      current: { activities: [{ id: '', name: 'NoId', value: 2 }] },
+      desired: { activities: [] },
     };
-
-    expect(() => StorageManager.import(JSON.stringify(dataWithZeroValue))).toThrow('Anteil darf nicht 0 sein');
-
-    console.error = originalError;
-  });
-
-  test('should reject activity with value too high (6)', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    const dataWithInvalidValue = {
-      version: '2.0',
-      current: {
-        activities: [],
-      },
-      desired: {
-        activities: [
-          {
-            id: '1',
-            name: 'Test Activity',
-            value: 6, // Invalid: above maximum
-          },
-        ],
-      },
-    };
-
-    expect(() => StorageManager.import(JSON.stringify(dataWithInvalidValue))).toThrow('Anteil muss zwischen -5 und +5 liegen');
-
-    console.error = originalError;
-  });
-
-  test('should accept activity with negative value in valid range', () => {
-    const dataWithNegativeValue = {
-      version: '1.0',
-      current: {
-        activities: [
-          {
-            id: '1',
-            name: 'Test Activity',
-            value: -5, // Valid: -5 is in range
-          },
-        ],
-      },
-      desired: {
-        activities: [],
-      },
-    };
-
-    const result = StorageManager.import(JSON.stringify(dataWithNegativeValue));
-    expect(result.current.activities).toHaveLength(1);
-    expect(result.current.activities[0].value).toBe(-5);
-  });
-
-  test('should reject activity with value below minimum (-6)', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    const dataWithTooLowValue = {
-      version: '1.0',
-      current: {
-        activities: [
-          {
-            id: '1',
-            name: 'Test Activity',
-            value: -6, // Invalid: below minimum
-          },
-        ],
-      },
-    };
-
-    expect(() => StorageManager.import(JSON.stringify(dataWithTooLowValue))).toThrow('Anteil muss zwischen -5 und +5 liegen');
-
-    console.error = originalError;
-  });
-
-  test('should reject activity with non-integer value', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    const dataWithFloatValue = {
-      version: '1.0',
-      current: {
-        activities: [
-          {
-            id: '1',
-            name: 'Test Activity',
-            value: 3.5, // Invalid: not an integer
-          },
-        ],
-      },
-    };
-
-    expect(() => StorageManager.import(JSON.stringify(dataWithFloatValue))).toThrow('Anteil muss eine ganze Zahl sein');
-
-    console.error = originalError;
-  });
-
-  test('should accept valid activities with values in range -5 to 5', () => {
-    const validData = {
-      version: '2.0',
-      current: {
-        activities: [
-          { id: '1', name: 'Activity 1', value: -5 },
-          { id: '2', name: 'Activity 2', value: 1 },
-          { id: '3', name: 'Activity 3', value: 5 },
-        ],
-      },
-      desired: {
-        activities: [
-          { id: '4', name: 'Activity 4', value: -3 },
-          { id: '5', name: 'Activity 5', value: 4 },
-        ],
-      },
-    };
-
-    const result = StorageManager.import(JSON.stringify(validData));
-    expect(result.current.activities).toHaveLength(3);
-    expect(result.desired.activities).toHaveLength(2);
-    expect(result.current.activities[0].value).toBe(-5);
-    expect(result.current.activities[1].value).toBe(1);
-    expect(result.current.activities[2].value).toBe(5);
-    expect(result.desired.activities[0].value).toBe(-3);
-  });
-
-  test('should clear localStorage when loading data with invalid activity value', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    const invalidData = {
-      version: '1.0',
-      current: {
-        activities: [
-          { id: '1', name: 'Test Activity', value: 10 }, // Invalid value
-        ],
-      },
-      desired: {
-        activities: [],
-      },
-    };
-
-    localStorage.setItem('energiekuchen-data', JSON.stringify(invalidData));
-    const loaded = StorageManager.load();
-    expect(loaded).toBeNull();
-    // Verify localStorage was cleared
-    expect(localStorage.getItem('energiekuchen-data')).toBeNull();
-
-    console.error = originalError;
-  });
-
-  test('should clear localStorage when loading data with missing activity name', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    const invalidData = {
-      version: '1.0',
-      current: {
-        activities: [
-          { id: '1', name: '', value: 3 }, // Empty name
-        ],
-      },
-      desired: {
-        activities: [],
-      },
-    };
-
-    localStorage.setItem('energiekuchen-data', JSON.stringify(invalidData));
-    const loaded = StorageManager.load();
-    expect(loaded).toBeNull();
-    // Verify localStorage was cleared
-    expect(localStorage.getItem('energiekuchen-data')).toBeNull();
-
-    console.error = originalError;
-  });
-
-  test('should clear localStorage when loading data with non-integer value', () => {
-    // Suppress console.error for this test as it's expected
-    const originalError = console.error;
-    console.error = jest.fn();
-
-    const invalidData = {
-      version: '1.0',
-      current: {
-        activities: [
-          { id: '1', name: 'Test', value: 3.5 }, // Non-integer value
-        ],
-      },
-      desired: {
-        activities: [],
-      },
-    };
-
-    localStorage.setItem('energiekuchen-data', JSON.stringify(invalidData));
-    const loaded = StorageManager.load();
-    expect(loaded).toBeNull();
-    // Verify localStorage was cleared
-    expect(localStorage.getItem('energiekuchen-data')).toBeNull();
-
-    console.error = originalError;
-  });
-
-  test('should successfully load valid data from localStorage', () => {
-    const validData = {
-      version: '1.0',
-      current: {
-        activities: [{ id: '1', name: 'Activity 1', value: 3 }],
-      },
-      desired: {
-        activities: [{ id: '2', name: 'Activity 2', value: 4 }],
-      },
-    };
-
-    localStorage.setItem('energiekuchen-data', JSON.stringify(validData));
-    const loaded = StorageManager.load();
-    expect(loaded).toEqual(validData);
-    // Verify localStorage was NOT cleared
-    expect(localStorage.getItem('energiekuchen-data')).not.toBeNull();
-  });
-
-  test('should migrate v1.0 format with positive/negative to v2.0 current/desired', () => {
-    const oldFormatData = {
-      version: '1.0',
-      positive: {
-        activities: [{ id: '1', name: 'Energy Giving', value: 3 }],
-      },
-      negative: {
-        activities: [{ id: '2', name: 'Energy Draining', value: 2 }],
-      },
-    };
-
-    const result = StorageManager.import(JSON.stringify(oldFormatData));
-
-    // Should have migrated version
-    expect(result.version).toBe('2.0');
-
-    // Should have merged both into current chart
-    expect(result.current.activities).toHaveLength(2);
-
-    // Positive activity should have positive value
-    expect(result.current.activities[0].name).toBe('Energy Giving');
-    expect(result.current.activities[0].value).toBe(3);
-
-    // Negative activity should have negative value
-    expect(result.current.activities[1].name).toBe('Energy Draining');
-    expect(result.current.activities[1].value).toBe(-2);
-
-    // Desired chart should be empty
-    expect(result.desired.activities).toHaveLength(0);
-  });
-
-  test('should migrate v1.0 format with only positive activities', () => {
-    const oldFormatData = {
-      version: '1.0',
-      positive: {
-        activities: [
-          { id: '1', name: 'Activity 1', value: 1 },
-          { id: '2', name: 'Activity 2', value: 5 },
-        ],
-      },
-      negative: {
-        activities: [],
-      },
-    };
-
-    const result = StorageManager.import(JSON.stringify(oldFormatData));
-
-    expect(result.version).toBe('2.0');
-    expect(result.current.activities).toHaveLength(2);
-    expect(result.current.activities[0].value).toBe(1);
-    expect(result.current.activities[1].value).toBe(5);
-    expect(result.desired.activities).toHaveLength(0);
-  });
-
-  test('should migrate v1.0 format with only negative activities', () => {
-    const oldFormatData = {
-      version: '1.0',
-      positive: {
-        activities: [],
-      },
-      negative: {
-        activities: [
-          { id: '1', name: 'Activity 1', value: 1 },
-          { id: '2', name: 'Activity 2', value: 4 },
-        ],
-      },
-    };
-
-    const result = StorageManager.import(JSON.stringify(oldFormatData));
-
-    expect(result.version).toBe('2.0');
-    expect(result.current.activities).toHaveLength(2);
-    expect(result.current.activities[0].value).toBe(-1);
-    expect(result.current.activities[1].value).toBe(-4);
-    expect(result.desired.activities).toHaveLength(0);
-  });
-
-  test('should successfully load and migrate v1.0 format from localStorage', () => {
-    const oldFormatData = {
-      version: '1.0',
-      positive: {
-        activities: [{ id: '1', name: 'Old Activity', value: 3 }],
-      },
-      negative: {
-        activities: [{ id: '2', name: 'Another Activity', value: 2 }],
-      },
-    };
-
-    localStorage.setItem('energiekuchen-data', JSON.stringify(oldFormatData));
-    const loaded = StorageManager.load();
-
-    expect(loaded).not.toBeNull();
-    expect(loaded?.version).toBe('2.0');
-    expect(loaded?.current.activities).toHaveLength(2);
-    expect(loaded?.current.activities[0].value).toBe(3);
-    expect(loaded?.current.activities[1].value).toBe(-2);
-    expect(loaded?.desired.activities).toHaveLength(0);
+    const result = StorageManager.import(JSON.stringify(v2));
+    expect(result.current.activities[0].id).toMatch(/[0-9a-f-]{36}/);
   });
 });

@@ -1,7 +1,8 @@
 'use client';
 
-import { BREAKPOINTS } from '@/app/lib/utils/constants';
 import { useEffect, useState } from 'react';
+
+import { BREAKPOINTS } from '@/app/lib/utils/constants';
 
 export function useResponsive() {
   const [isSmall, setIsSmall] = useState(false);

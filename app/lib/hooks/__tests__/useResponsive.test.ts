@@ -1,5 +1,6 @@
-import { useResponsive } from '@/app/lib/hooks/useResponsive';
 import { act, renderHook } from '@testing-library/react';
+
+import { useResponsive } from '@/app/lib/hooks/useResponsive';
 
 // Mock window.innerWidth
 Object.defineProperty(window, 'innerWidth', {

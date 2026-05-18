@@ -1,15 +1,16 @@
 'use client';
 
-import { ChartLegend } from '@/app/components/charts/ChartLegend';
-import { EnergyChart } from '@/app/components/charts/EnergyChart';
-import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
-import { SharingManager } from '@/app/lib/utils/sharing';
-import { useEnergy } from '@/app/share/SharedEnergyProvider';
 import { ExclamationTriangleIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+import { ChartLegend } from '@/app/components/charts/ChartLegend';
+import { EnergyChart } from '@/app/components/charts/EnergyChart';
+import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
+import { SharingManager } from '@/app/lib/utils/sharing';
+import { useEnergy } from '@/app/share/SharedEnergyProvider';
 
 export default function SharedEnergyChart() {
   const router = useRouter();
@@ -142,7 +143,7 @@ export default function SharedEnergyChart() {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             {/* Current State Chart */}
             <div className="rounded-lg bg-white p-6 shadow-sm">
-              <EnergyChart activities={state.data.current.activities} chartType="current" className="mb-6" />
+              <EnergyChart activities={state.data.current.activities} chartType="current" readOnly className="mb-6" />
 
               <div data-testid="activity-list-current">
                 {state.data.current.activities.length > 0 ? (
@@ -163,7 +164,7 @@ export default function SharedEnergyChart() {
 
             {/* Desired State Chart */}
             <div className="rounded-lg bg-white p-6 shadow-sm">
-              <EnergyChart activities={state.data.desired.activities} chartType="desired" className="mb-6" />
+              <EnergyChart activities={state.data.desired.activities} chartType="desired" readOnly className="mb-6" />
 
               <div data-testid="activity-list-desired">
                 {state.data.desired.activities.length > 0 ? (

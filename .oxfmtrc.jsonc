@@ -12,5 +12,9 @@
   "quoteProps": "as-needed",
   "jsxSingleQuote": false,
   "htmlWhitespaceSensitivity": "ignore",
-  "plugins": ["prettier-plugin-organize-imports", "prettier-plugin-tailwindcss"]
+  "experimentalSortImports": {},
+  "experimentalTailwindcss": {
+    "stylesheet": "./app/globals.css",
+    "functions": ["clsx", "cn"],
+  },
 }
