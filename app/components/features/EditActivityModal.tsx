@@ -209,8 +209,23 @@ export function EditActivityModal() {
             <div id="polarity-group-label" className="mb-2 block text-sm font-medium text-gray-700">
               Polarität
             </div>
+            {/* Segmented-control style toggle. Both polarities are equally valid choices
+                with their own color identity (green / red), so this isn't a true on/off
+                switch — it's a two-option pill with a sliding colored indicator that
+                takes the active polarity's color. */}
             {/* eslint-disable-next-line jsx-a11y/interactive-supports-focus -- ARIA radiogroup: focus lives on individual radio children via roving tabindex */}
-            <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="polarity-group-label" onKeyDown={handlePolarityKeyDown}>
+            <div
+              className="relative grid grid-cols-2 rounded-full bg-gray-100 p-1 ring-1 ring-gray-900/5"
+              role="radiogroup"
+              aria-labelledby="polarity-group-label"
+              onKeyDown={handlePolarityKeyDown}>
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full transition-transform duration-200 ease-out',
+                  formData.polarity === 'positive' ? 'bg-green-500' : 'translate-x-full bg-red-500'
+                )}
+              />
               <button
                 ref={positivePolarityRef}
                 type="button"
@@ -220,8 +235,8 @@ export function EditActivityModal() {
                 tabIndex={formData.polarity === 'positive' ? 0 : -1}
                 onClick={() => selectPolarity('positive')}
                 className={cn(
-                  'rounded-md border-2 px-3 py-2 text-sm font-medium transition-colors',
-                  formData.polarity === 'positive' ? 'border-transparent bg-green-500 text-white' : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                  'relative z-10 rounded-full px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-yellow-500 focus:outline-none focus:ring-inset',
+                  formData.polarity === 'positive' ? 'text-white' : 'text-gray-700'
                 )}
                 data-testid="polarity-positive-button">
                 Energiequelle
@@ -235,8 +250,8 @@ export function EditActivityModal() {
                 tabIndex={formData.polarity === 'negative' ? 0 : -1}
                 onClick={() => selectPolarity('negative')}
                 className={cn(
-                  'rounded-md border-2 px-3 py-2 text-sm font-medium transition-colors',
-                  formData.polarity === 'negative' ? 'border-transparent bg-red-500 text-white' : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                  'relative z-10 rounded-full px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-yellow-500 focus:outline-none focus:ring-inset',
+                  formData.polarity === 'negative' ? 'text-white' : 'text-gray-700'
                 )}
                 data-testid="polarity-negative-button">
                 Energieräuber

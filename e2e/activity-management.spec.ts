@@ -304,7 +304,7 @@ test.describe('Activity Management', () => {
     expect(actualValue.length).toBe(150);
   });
 
-  test('polarity toggle round-trip moves activity to destination group', async ({ page }) => {
+  test('polarity toggle flips in place, list order unchanged', async ({ page }) => {
     await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Sport');
     await page.locator('[data-testid="quick-add-button-positive-current"]').click();
     await page.locator('[data-testid="quick-add-input-negative-current"]').fill('Stress');
@@ -322,10 +322,11 @@ test.describe('Activity Management', () => {
     await modal.locator('[data-testid="submit-activity-button"]').click();
     await expect(modal).not.toBeVisible();
 
-    // After toggling Sport to negative, it should sit after the existing negative (Stress).
+    // Sport was added first and stays at index 0 after the polarity flip.
     const itemTexts = await page.locator('[data-testid="activity-list-current"] [data-testid^="activity-item-"]').allTextContents();
     expect(itemTexts.length).toBe(2);
-    expect(itemTexts[itemTexts.length - 1]).toContain('Sport');
+    expect(itemTexts[0]).toContain('Sport');
+    expect(itemTexts[1]).toContain('Stress');
   });
 
   test('weight slider keyboard accessibility updates aria-valuenow', async ({ page }) => {

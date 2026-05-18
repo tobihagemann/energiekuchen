@@ -4,11 +4,11 @@ import { ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { PieLabel } from '@/app/components/charts/PieLabel';
-import { PieSlice } from '@/app/components/charts/PieSlice';
+import { BoundaryRect, PieSlice } from '@/app/components/charts/PieSlice';
 import { Button } from '@/app/components/ui/Button';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
-import { useAnimatedLabelOffsets, useAnimatedWeights } from '@/app/lib/hooks/useAnimatedWeights';
+import { useAnimatedRenderedEntries } from '@/app/lib/hooks/useAnimatedRenderedEntries';
 import { RenderedEntry, useChartData } from '@/app/lib/hooks/useChartData';
 import { usePieDrag, type BoundaryHandle } from '@/app/lib/hooks/usePieDrag';
 import { useResponsive } from '@/app/lib/hooks/useResponsive';
@@ -55,10 +55,9 @@ export function EnergyChart({ activities, chartType, className, onActivityClick,
     return () => mq.removeEventListener('change', update);
   }, []);
 
-  const renderedEntries = useMemo<RenderedEntry[]>(
-    () => [...activities.filter(a => a.polarity === 'positive'), ...activities.filter(a => a.polarity === 'negative')],
-    [activities]
-  );
+  // Render in activities[] order verbatim so polarities may interleave around the ring
+  // and the chart stays in sync with the activity list's order.
+  const renderedEntries = useMemo<RenderedEntry[]>(() => [...activities], [activities]);
 
   const chartSize = isSmall ? 280 : isMedium ? 360 : 440;
   const fontSize = isSmall ? 12 : isMedium ? 14 : 16;
@@ -77,16 +76,30 @@ export function EnergyChart({ activities, chartType, className, onActivityClick,
     readOnly,
   });
 
-  const targetWeights = useMemo(() => renderedEntries.map(e => drag.liveBoundaryWeights?.[e.id] ?? e.weight), [renderedEntries, drag.liveBoundaryWeights]);
-  const displayedWeights = useAnimatedWeights(targetWeights, { bypass: !!drag.draggingBoundary });
+  const targetEntries = useMemo<RenderedEntry[]>(
+    () =>
+      renderedEntries.map(e => ({
+        ...e,
+        weight: drag.liveBoundaryWeights?.[e.id] ?? e.weight,
+        labelOffset: drag.liveLabelOffset?.[e.id] ?? e.labelOffset,
+      })),
+    [renderedEntries, drag.liveBoundaryWeights, drag.liveLabelOffset]
+  );
+  const animatedEntries = useAnimatedRenderedEntries(targetEntries, {
+    bypass: !!drag.draggingBoundary || !!drag.draggingLabel,
+  });
 
-  const targetOffsets = useMemo(() => renderedEntries.map(e => drag.liveLabelOffset?.[e.id] ?? e.labelOffset), [renderedEntries, drag.liveLabelOffset]);
-  const displayedOffsets = useAnimatedLabelOffsets(targetOffsets, { bypass: !!drag.draggingLabel });
+  const realIndexById = useMemo(() => {
+    const map: Record<string, number> = {};
+    renderedEntries.forEach((e, i) => {
+      map[e.id] = i;
+    });
+    return map;
+  }, [renderedEntries]);
 
   const { slices, labels, layout, isEmpty } = useChartData({
-    renderedEntries,
-    displayedWeights,
-    displayedOffsets,
+    renderedEntries: animatedEntries,
+    draggedLabelId: drag.draggingLabel?.activityId ?? null,
     labelBBoxes,
     editingActivity: uiState.editingActivity,
     chartType,
@@ -146,39 +159,33 @@ export function EnergyChart({ activities, chartType, className, onActivityClick,
             if (isEmpty) {
               return <path key={slice.id} d={slice.pathD} fill={slice.fillColor} stroke={slice.borderColor} strokeWidth={2} />;
             }
-            const nextIndex = (i + 1) % renderedEntries.length;
-            const receiver = renderedEntries[i];
-            const donor = renderedEntries[nextIndex];
-            const boundaryHandle: BoundaryHandle | null =
-              renderedEntries.length >= 2 && receiver && donor
-                ? {
-                    receiverId: receiver.id,
-                    donorId: donor.id,
-                    receiverIndex: i,
-                    donorIndex: nextIndex,
-                  }
-                : null;
+            const animEntry = animatedEntries[i];
+            // Ghost slices (deleted activities still shrinking out) render as a plain path
+            // with no interactivity — there's no underlying activity to click, drag, or
+            // bind a boundary handle to.
+            if (animEntry?.isGhost) {
+              return <path key={slice.id} d={slice.pathD} fill={slice.fillColor} stroke={slice.borderColor} strokeWidth={2} pointerEvents="none" />;
+            }
+            const receiverRealIndex = realIndexById[animEntry.id];
+            // One-render window after a deletion: parent's `renderedEntries` has dropped
+            // the entry but the animation hook hasn't marked it ghost yet. Skip rather
+            // than pass `index={undefined}` to PieSlice (matches the boundary-handle
+            // layer's symmetric guard below).
+            if (receiverRealIndex === undefined) return null;
             const pct = getPercentage(slice.displayedWeight, total || 1);
             const sliceAriaLabel = `${slice.name}, ${pct} %, ${polarityLabel(slice.polarity)}`;
-            const entry = renderedEntries[i];
             return (
               <PieSlice
                 key={slice.id}
                 slice={slice}
-                cx={layout.cx}
-                cy={layout.cy}
-                radius={layout.radius}
-                index={i}
+                index={receiverRealIndex}
                 renderedEntries={renderedEntries}
                 chartType={chartType}
                 total={total || 1}
-                boundaryHandle={boundaryHandle}
-                isCoarsePointer={isCoarsePointer}
                 readOnly={readOnly}
                 ariaLabel={sliceAriaLabel}
-                currentLabelOffset={entry?.labelOffset}
+                currentLabelOffset={renderedEntries[receiverRealIndex]?.labelOffset}
                 onActivityClick={onActivityClick}
-                onBoundaryPointerDown={drag.onBoundaryPointerDown}
                 setActivityWeights={energy.setActivityWeights}
                 setLabelOffset={energy.setLabelOffset}
                 onAnnounce={announce}
@@ -186,20 +193,85 @@ export function EnergyChart({ activities, chartType, className, onActivityClick,
             );
           })}
 
+          {/* Re-stroke the selected slice's outline above all fills so neighbors' white
+              strokes don't overpaint the darker border on the shared radial edges. */}
           {!isEmpty &&
-            labels.map((label, i) => (
-              <PieLabel
-                key={label.id}
-                label={label}
-                radius={layout.radius}
-                fontSize={fontSize}
-                detailsFontSize={detailsFontSize}
-                initialOffset={renderedEntries[i]?.labelOffset}
-                readOnly={readOnly}
-                onLabelPointerDown={drag.onLabelPointerDown}
-                onBBoxChange={onBBoxChange}
-              />
-            ))}
+            uiState.editingActivity?.chartType === chartType &&
+            (() => {
+              const activeSlice = slices.find(s => s.id === uiState.editingActivity?.activityId);
+              if (!activeSlice) return null;
+              return (
+                <path
+                  d={activeSlice.pathD}
+                  fill="none"
+                  stroke={activeSlice.borderColor}
+                  strokeWidth={2}
+                  pointerEvents="none"
+                  data-testid={`pie-slice-outline-${activeSlice.id}`}
+                />
+              );
+            })()}
+
+          {/* Boundary handles render in a separate layer above all slice paths so a
+              neighboring slice's fill (drawn after the handle's "owner" slice) can't
+              overpaint the half of the indicator that sits on the neighbor's side. */}
+          {!isEmpty &&
+            renderedEntries.length >= 2 &&
+            slices.map((slice, i) => {
+              const animEntry = animatedEntries[i];
+              if (!animEntry || animEntry.isGhost) return null;
+              let donorAnimIndex: number | null = null;
+              for (let step = 1; step < animatedEntries.length; step++) {
+                const candidate = animatedEntries[(i + step) % animatedEntries.length];
+                if (candidate && !candidate.isGhost) {
+                  donorAnimIndex = (i + step) % animatedEntries.length;
+                  break;
+                }
+              }
+              const donor = donorAnimIndex !== null ? animatedEntries[donorAnimIndex] : null;
+              const receiverRealIndex = realIndexById[animEntry.id];
+              const donorRealIndex = donor ? realIndexById[donor.id] : -1;
+              if (!donor || receiverRealIndex === undefined || donorRealIndex === -1 || receiverRealIndex === donorRealIndex) return null;
+              const handle: BoundaryHandle = {
+                receiverId: animEntry.id,
+                donorId: donor.id,
+                receiverIndex: receiverRealIndex,
+                donorIndex: donorRealIndex,
+              };
+              return (
+                <BoundaryRect
+                  key={`boundary-${slice.id}`}
+                  cx={layout.cx}
+                  cy={layout.cy}
+                  radius={layout.radius}
+                  angle={slice.endAngle}
+                  boundaryHandle={handle}
+                  isCoarsePointer={isCoarsePointer}
+                  readOnly={readOnly}
+                  onBoundaryPointerDown={drag.onBoundaryPointerDown}
+                />
+              );
+            })}
+
+          {!isEmpty &&
+            labels.map(label => {
+              const realIdx = realIndexById[label.id];
+              // Skip labels for ghost entries — they belong to deleted activities.
+              if (realIdx === undefined) return null;
+              return (
+                <PieLabel
+                  key={label.id}
+                  label={label}
+                  radius={layout.radius}
+                  fontSize={fontSize}
+                  detailsFontSize={detailsFontSize}
+                  initialOffset={renderedEntries[realIdx]?.labelOffset}
+                  readOnly={readOnly}
+                  onLabelPointerDown={drag.onLabelPointerDown}
+                  onBBoxChange={onBBoxChange}
+                />
+              );
+            })}
         </svg>
 
         {showCenterButton && (

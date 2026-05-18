@@ -53,7 +53,8 @@ export function usePieDrag(opts: UsePieDragOptions): UsePieDragResult {
   const boundaryStateRef = useRef<{
     handle: BoundaryHandle;
     pointerId: number;
-    startAngle: number;
+    prevAngle: number;
+    cumulativeTheta: number;
     startReceiver: number;
     startDonor: number;
     deltaWeight: number;
@@ -78,7 +79,8 @@ export function usePieDrag(opts: UsePieDragOptions): UsePieDragResult {
       boundaryStateRef.current = {
         handle,
         pointerId: e.pointerId,
-        startAngle: polar.angle,
+        prevAngle: polar.angle,
+        cumulativeTheta: 0,
         startReceiver: receiverWeight,
         startDonor: donorWeight,
         deltaWeight: 0,
@@ -98,10 +100,18 @@ export function usePieDrag(opts: UsePieDragOptions): UsePieDragResult {
         if (moveEvent.pointerId !== state.pointerId) return;
         const movePoint = clientToSvgPoint(svgRef.current, moveEvent.clientX, moveEvent.clientY);
         const movePolar = cartesianToPolar(center.cx, center.cy, movePoint.x, movePoint.y);
-        const deltaTheta = normalizeAngle(movePolar.angle - state.startAngle);
-        let deltaWeight = (deltaTheta / (Math.PI * 2)) * total;
+        // Integrate small per-step deltas instead of diffing against the start angle:
+        // a one-shot diff wraps at ±π and flips the receiver/donor roles when the
+        // pointer crosses the start's antipode. Clamping the cumulative theta in radians
+        // mirrors the weight clamp and stays responsive when the user drags back.
         const maxIncrease = state.startDonor - floor;
         const maxDecrease = state.startReceiver - floor;
+        const maxIncreaseTheta = (maxIncrease / total) * Math.PI * 2;
+        const maxDecreaseTheta = (maxDecrease / total) * Math.PI * 2;
+        const step = normalizeAngle(movePolar.angle - state.prevAngle);
+        state.prevAngle = movePolar.angle;
+        state.cumulativeTheta = Math.max(-maxDecreaseTheta, Math.min(maxIncreaseTheta, state.cumulativeTheta + step));
+        let deltaWeight = (state.cumulativeTheta / (Math.PI * 2)) * total;
         if (deltaWeight > maxIncrease) deltaWeight = maxIncrease;
         if (deltaWeight < -maxDecrease) deltaWeight = -maxDecrease;
         state.deltaWeight = deltaWeight;

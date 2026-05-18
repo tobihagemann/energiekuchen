@@ -20,6 +20,8 @@ interface SliderProps {
 }
 
 const DEFAULT_RING_COLOR = 'oklch(0.852 0.199 91.936)'; // yellow-400
+const DEFAULT_FILL_COLOR = 'oklch(0.872 0.01 258.338)'; // gray-300
+const DISABLED_BORDER_COLOR = DEFAULT_FILL_COLOR;
 
 export function Slider({
   value,
@@ -45,7 +47,7 @@ export function Slider({
   const thumbPosition = `calc(${percentage}% - ${(percentage / 100) * 24}px)`;
   const fillWidth = `calc(${percentage}% - ${(percentage / 100) * 24}px + 12px)`;
 
-  const fillColor = color ?? 'oklch(0.872 0.01 258.338)'; // gray-300 fallback
+  const fillColor = color ?? DEFAULT_FILL_COLOR;
   const ringColor = color ?? DEFAULT_RING_COLOR;
 
   const updateValue = useCallback(
@@ -139,7 +141,10 @@ export function Slider({
         onTouchStart={handleTouchStart}
         data-testid={testId}>
         <div
-          className="absolute top-0 h-full"
+          // Left side rounded to match the track; right side stays square so it ends
+          // cleanly under the thumb (which sits at the fill's right edge) instead of
+          // bulging out past the thumb's left arc.
+          className="absolute top-0 h-full rounded-l-full"
           style={{
             left: '0px',
             width: fillWidth,
@@ -163,7 +168,7 @@ export function Slider({
           )}
           style={{
             left: thumbPosition,
-            borderColor: disabled ? 'oklch(0.872 0.01 258.338)' : ringColor,
+            borderColor: disabled ? DISABLED_BORDER_COLOR : ringColor,
           }}
         />
       </div>

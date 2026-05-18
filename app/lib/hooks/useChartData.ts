@@ -3,11 +3,23 @@
 import { useMemo } from 'react';
 
 import { getColorForPolarity } from '@/app/lib/utils/constants';
-import { applyLabelOffset, autoNudgeLabels, computeDefaultLabelPosition, LabelBBox, shouldShowLeaderLine } from '@/app/lib/utils/labelLayout';
+import {
+  applyLabelOffset,
+  computeDefaultLabelPosition,
+  computeLeaderStart,
+  constrainLabelPosition,
+  isLabelOutsideCircle,
+  LabelBBox,
+  nudgeOuterLabelsTangentially,
+  type SliceWedge,
+} from '@/app/lib/utils/labelLayout';
 import { polarToCartesian } from '@/app/lib/utils/polar';
-import type { Activity, ChartType, LabelOffset, Polarity } from '@/app/types';
+import type { Activity, ChartType, Polarity } from '@/app/types';
 
-export type RenderedEntry = Activity;
+// Entries flow in from `useAnimatedRenderedEntries`, which marks slices fading out from a
+// deletion as `isGhost: true`. Ghost slices still render (shrinking weight → vanishing
+// path), but their labels and layout participation are suppressed inside this hook.
+export type RenderedEntry = Activity & { isGhost?: boolean };
 
 export interface SliceGeometry {
   id: string;
@@ -34,7 +46,13 @@ export interface LabelGeometry {
   x: number;
   y: number;
   midAngle: number;
+  // Leader line endpoint on the pie's outer edge (at the slice arc midpoint), or null
+  // when no leader line is needed.
   leaderTo: { x: number; y: number } | null;
+  // Leader line start point at the bbox edge plus a small gap. Null when no line should
+  // be drawn (no leaderTo, or the gap overshoots the leader endpoint).
+  leaderFrom: { x: number; y: number } | null;
+  isOutside: boolean;
   centroid: { x: number; y: number };
 }
 
@@ -47,9 +65,12 @@ interface ChartLayout {
 }
 
 interface UseChartDataInput {
+  // Entries already carry the displayed weight and labelOffset (the animated values during
+  // an animation; the live target values otherwise).
   renderedEntries: RenderedEntry[];
-  displayedWeights: number[];
-  displayedOffsets: Array<LabelOffset | undefined>;
+  // Active label drag, if any. Excluded from the tangential overlap nudge so the dragged
+  // label stays at the cursor while neighbors move around it.
+  draggedLabelId: string | null;
   labelBBoxes: Record<string, LabelBBox>;
   editingActivity: { chartType: ChartType; activityId: string } | null;
   chartType: ChartType;
@@ -69,7 +90,7 @@ const LABEL_PADDING_FRACTION = 1.2;
 const START_ANGLE = -Math.PI / 2;
 
 export function useChartData(input: UseChartDataInput): UseChartDataResult {
-  const { renderedEntries, displayedWeights, displayedOffsets, labelBBoxes, editingActivity, chartType, chartSize } = input;
+  const { renderedEntries, draggedLabelId, labelBBoxes, editingActivity, chartType, chartSize } = input;
 
   return useMemo(() => {
     const radius = chartSize / 2;
@@ -105,7 +126,7 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
       return { slices: [slice], labels: [], layout, isEmpty: true };
     }
 
-    const total = displayedWeights.reduce((sum, w) => sum + w, 0) || 1;
+    const total = renderedEntries.reduce((sum, e) => sum + e.weight, 0) || 1;
     const slices: SliceGeometry[] = [];
     const labelInputs: Array<{
       id: string;
@@ -115,12 +136,13 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
       offsetPos: { x: number; y: number };
       midAngle: number;
       bbox: LabelBBox;
+      slice: SliceWedge;
     }> = [];
 
     let cursor = START_ANGLE;
     for (let i = 0; i < renderedEntries.length; i++) {
       const entry = renderedEntries[i];
-      const weight = displayedWeights[i] ?? entry.weight;
+      const weight = entry.weight;
       const sweep = (weight / total) * Math.PI * 2;
       const start = cursor;
       const end = cursor + sweep;
@@ -151,9 +173,14 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
         isFullCircle,
       });
 
+      // Ghost slices keep rendering (their path shrinks during the deletion animation),
+      // but they don't contribute a label — and they must not occupy a layout slot, or
+      // their stale full-size bbox could push visible labels around as their slice sweep
+      // approaches zero.
+      if (entry.isGhost) continue;
+
       const centroid = computeDefaultLabelPosition({ cx, cy, radius, midAngle: mid });
-      const offset = displayedOffsets[i];
-      const offsetPos = applyLabelOffset({ cx, cy, midAngle: mid }, offset, radius);
+      const offsetPos = applyLabelOffset({ cx, cy, midAngle: mid }, entry.labelOffset, radius);
       const bbox = labelBBoxes[entry.id] ?? estimateBBox(entry);
 
       labelInputs.push({
@@ -164,32 +191,47 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
         offsetPos,
         midAngle: mid,
         bbox,
+        slice: { startAngle: start, endAngle: end, midAngle: mid, sweep },
       });
     }
 
-    const nudged = autoNudgeLabels(
-      labelInputs.map(l => ({ id: l.id, x: l.offsetPos.x, y: l.offsetPos.y, bbox: l.bbox, midAngle: l.midAngle })),
-      radius,
-      { cx, cy }
-    );
+    const viewBoxHalf = viewBoxEdge / 2;
+    const center = { cx, cy };
+    const constrainedPositions = labelInputs.map(l => {
+      const pos = constrainLabelPosition(l.offsetPos, center, radius, l.bbox, viewBoxHalf, l.slice);
+      return { id: l.id, pos, bbox: l.bbox, isOutside: isLabelOutsideCircle(pos, center, radius) };
+    });
+
+    // Tangential overlap nudge among outer labels (skip dragged). Inner labels are
+    // separated by construction (each fully contained in its own slice ∩ inner disk).
+    const outerLabels = constrainedPositions.filter(l => l.isOutside).map(l => ({ id: l.id, pos: l.pos, bbox: l.bbox }));
+    const nudgedOuter = nudgeOuterLabelsTangentially(outerLabels, center, draggedLabelId, viewBoxHalf);
+    const nudgedById = new Map(nudgedOuter.map(n => [n.id, n.pos]));
 
     const labels: LabelGeometry[] = labelInputs.map((l, i) => {
-      const pos = nudged[i];
-      const leaderTo = shouldShowLeaderLine(pos, l.centroid, radius) ? l.centroid : null;
+      const constrained = nudgedById.get(l.id) ?? constrainedPositions[i].pos;
+      const isOutside = constrainedPositions[i].isOutside;
+      // Leader line attaches to the slice's arc midpoint on the circle, not the radial
+      // projection of the label — the connector stays at the slice's "center" even when
+      // the user drags the label tangentially.
+      const leaderTo = isOutside ? polarToCartesian(cx, cy, radius, l.midAngle) : null;
+      const leaderFrom = leaderTo ? computeLeaderStart(constrained, leaderTo, l.bbox) : null;
       return {
         id: l.id,
         name: l.name,
         details: l.details,
-        x: pos.x,
-        y: pos.y,
+        x: constrained.x,
+        y: constrained.y,
         midAngle: l.midAngle,
         leaderTo,
+        leaderFrom,
+        isOutside,
         centroid: l.centroid,
       };
     });
 
     return { slices, labels, layout, isEmpty: false };
-  }, [renderedEntries, displayedWeights, displayedOffsets, labelBBoxes, editingActivity, chartType, chartSize]);
+  }, [renderedEntries, draggedLabelId, labelBBoxes, editingActivity, chartType, chartSize]);
 }
 
 function slicePath(cx: number, cy: number, r: number, startAngle: number, endAngle: number): string {

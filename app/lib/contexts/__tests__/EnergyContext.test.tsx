@@ -97,7 +97,7 @@ describe('EnergyContext', () => {
     expect(result.current.state.data.current.activities[1].weight).toBe(4);
   });
 
-  test('TOGGLE_POLARITY inserts after last destination-polarity activity (non-empty)', () => {
+  test('TOGGLE_POLARITY flips polarity in place (non-empty destination)', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
     act(() => {
       result.current.addActivity('current', { name: 'P1', weight: 4, polarity: 'positive' });
@@ -110,13 +110,13 @@ describe('EnergyContext', () => {
       result.current.togglePolarity('current', p1Id);
     });
     const activities = result.current.state.data.current.activities;
-    expect(activities.map(a => a.name)).toEqual(['P2', 'N1', 'P1']);
-    expect(activities.find(a => a.name === 'P1')?.polarity).toBe('negative');
+    expect(activities.map(a => a.name)).toEqual(['P1', 'P2', 'N1']);
+    expect(activities[0].polarity).toBe('negative');
     // Renormalization should NOT have run (non-empty destination): weights unchanged.
     expect(activities.map(a => a.weight)).toEqual(weightsBefore);
   });
 
-  test('TOGGLE_POLARITY into empty destination (negative) places after positives', () => {
+  test('TOGGLE_POLARITY flips polarity in place (empty destination, positives only)', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
     act(() => {
       result.current.addActivity('current', { name: 'P1', weight: 4, polarity: 'positive' });
@@ -126,12 +126,12 @@ describe('EnergyContext', () => {
     act(() => {
       result.current.togglePolarity('current', p1Id);
     });
-    const names = result.current.state.data.current.activities.map(a => a.name);
-    expect(names).toEqual(['P2', 'P1']);
-    expect(result.current.state.data.current.activities[1].polarity).toBe('negative');
+    const activities = result.current.state.data.current.activities;
+    expect(activities.map(a => a.name)).toEqual(['P1', 'P2']);
+    expect(activities[0].polarity).toBe('negative');
   });
 
-  test('TOGGLE_POLARITY into empty destination (positive) places at index 0', () => {
+  test('TOGGLE_POLARITY flips polarity in place (empty destination, negatives only)', () => {
     const { result } = renderHook(() => useEnergy(), { wrapper });
     act(() => {
       result.current.addActivity('current', { name: 'N1', weight: 4, polarity: 'negative' });
@@ -142,8 +142,44 @@ describe('EnergyContext', () => {
       result.current.togglePolarity('current', n1Id);
     });
     const activities = result.current.state.data.current.activities;
-    expect(activities[0].name).toBe('N1');
+    expect(activities.map(a => a.name)).toEqual(['N1', 'N2']);
     expect(activities[0].polarity).toBe('positive');
+  });
+
+  test('TOGGLE_POLARITY into a previously-empty destination renormalizes to the 1% floor', () => {
+    // Seed below-floor state directly via dispatch so the renormalize doesn't already run
+    // through addActivity. Two positives at weight 0.01 + 100 give total = 100.01, floor
+    // ≈ 1.01, so the smaller slice violates the floor pre-toggle. The toggle's
+    // wasEmptyDestination branch must lift it.
+    const { result } = renderHook(() => useEnergy(), { wrapper });
+    act(() => {
+      result.current.dispatch({
+        type: 'SET_DATA',
+        payload: {
+          version: '3.0',
+          current: {
+            activities: [
+              { id: 'p1', name: 'P1', weight: 0.01, polarity: 'positive' },
+              { id: 'p2', name: 'P2', weight: 100, polarity: 'positive' },
+            ],
+          },
+          desired: { activities: [] },
+        },
+        shouldSave: false,
+      });
+    });
+    // Pre-condition: P1 is below floor. If this fails, the test has been weakened.
+    expect(result.current.state.data.current.activities[0].weight).toBeLessThan(1);
+    act(() => {
+      result.current.togglePolarity('current', 'p1');
+    });
+    const activities = result.current.state.data.current.activities;
+    const total = activities.reduce((sum, a) => sum + a.weight, 0);
+    const floor = Math.max(0.01, Math.ceil(total * 0.01 * 100) / 100);
+    for (const a of activities) {
+      expect(a.weight).toBeGreaterThanOrEqual(floor);
+    }
+    expect(activities.find(a => a.id === 'p1')!.polarity).toBe('negative');
   });
 
   test('should reset data correctly', () => {

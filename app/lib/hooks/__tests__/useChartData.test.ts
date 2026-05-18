@@ -19,6 +19,7 @@ const baseInput = {
   editingActivity: null,
   chartType: 'current' as const,
   chartSize: 360,
+  draggedLabelId: null,
 };
 
 describe('useChartData (SVG geometry)', () => {
@@ -27,8 +28,6 @@ describe('useChartData (SVG geometry)', () => {
       useChartData({
         ...baseInput,
         renderedEntries: [],
-        displayedWeights: [],
-        displayedOffsets: [],
       })
     );
     expect(result.current.isEmpty).toBe(true);
@@ -47,8 +46,6 @@ describe('useChartData (SVG geometry)', () => {
       useChartData({
         ...baseInput,
         renderedEntries: entries,
-        displayedWeights: [3, 6, 3],
-        displayedOffsets: [undefined, undefined, undefined],
       })
     );
     const total = result.current.slices.reduce((s, slice) => s + (slice.endAngle - slice.startAngle), 0);
@@ -64,8 +61,6 @@ describe('useChartData (SVG geometry)', () => {
       useChartData({
         ...baseInput,
         renderedEntries: entries,
-        displayedWeights: [5, 5],
-        displayedOffsets: [undefined, undefined],
       })
     );
     expect(result.current.slices[0].fillColor).toBe(POSITIVE_COLOR);
@@ -81,8 +76,6 @@ describe('useChartData (SVG geometry)', () => {
       useChartData({
         ...baseInput,
         renderedEntries: entries,
-        displayedWeights: [5, 5],
-        displayedOffsets: [undefined, undefined],
         editingActivity: { chartType: 'current', activityId: 'a' },
       })
     );
@@ -96,8 +89,6 @@ describe('useChartData (SVG geometry)', () => {
       useChartData({
         ...baseInput,
         renderedEntries: entries,
-        displayedWeights: [5],
-        displayedOffsets: [undefined],
       })
     );
     expect(result.current.slices[0].isFullCircle).toBe(true);
@@ -105,7 +96,7 @@ describe('useChartData (SVG geometry)', () => {
     expect(result.current.slices[0].pathD).toMatch(/A /);
   });
 
-  test('label leader-line is null when label sits near the centroid', () => {
+  test('label leader-line is null when label stays inside the circle', () => {
     const entries = makeRendered([
       { id: 'a', weight: 5, polarity: 'positive' },
       { id: 'b', weight: 5, polarity: 'positive' },
@@ -114,27 +105,41 @@ describe('useChartData (SVG geometry)', () => {
       useChartData({
         ...baseInput,
         renderedEntries: entries,
-        displayedWeights: [5, 5],
-        displayedOffsets: [undefined, undefined],
       })
     );
+    expect(result.current.labels[0].isOutside).toBe(false);
     expect(result.current.labels[0].leaderTo).toBeNull();
   });
 
-  test('label leader-line is set when offset pushes label past the threshold', () => {
+  test('label leader-line terminates at the slice arc midpoint when label is dragged outside', () => {
     const entries = makeRendered([
-      { id: 'a', weight: 5, polarity: 'positive' },
-      { id: 'b', weight: 5, polarity: 'positive' },
+      { id: 'a', name: 'A', weight: 5, polarity: 'positive', labelOffset: { radial: 0.6, angular: 0 } },
+      { id: 'b', name: 'B', weight: 5, polarity: 'positive' },
     ]);
+    // radial: 0.6 → past the radius — outside the circle. Small bbox keeps the constraint
+    // from clamping back inside on a 360px chart.
     const { result } = renderHook(() =>
       useChartData({
         ...baseInput,
         renderedEntries: entries,
-        displayedWeights: [5, 5],
-        displayedOffsets: [{ radial: 0.4, angular: 0 }, undefined],
+        labelBBoxes: { a: { w: 15, h: 16 } },
       })
     );
-    expect(result.current.labels[0].leaderTo).not.toBeNull();
+    const label = result.current.labels[0];
+    const radius = result.current.layout.radius;
+    expect(label.isOutside).toBe(true);
+    expect(label.leaderTo).not.toBeNull();
+    // Two equal slices starting at -π/2 → first slice spans [-π/2, π/2], midAngle = 0,
+    // so the leader endpoint sits at (radius, 0).
+    expect(label.leaderTo!.x).toBeCloseTo(radius, 5);
+    expect(label.leaderTo!.y).toBeCloseTo(0, 5);
+    // leaderFrom is the start of the connector at the bbox edge plus a small gap; it must
+    // be present whenever leaderTo is, and must sit between the label and leaderTo. Here
+    // the label sits outside the circle on the +x side, so leaderFrom is between
+    // leaderTo (on the circle) and the label.
+    expect(label.leaderFrom).not.toBeNull();
+    expect(label.leaderFrom!.x).toBeLessThan(label.x);
+    expect(label.leaderFrom!.x).toBeGreaterThan(label.leaderTo!.x);
   });
 
   test('layout includes 20% padding around the pie radius', () => {
@@ -143,8 +148,6 @@ describe('useChartData (SVG geometry)', () => {
       useChartData({
         ...baseInput,
         renderedEntries: entries,
-        displayedWeights: [5],
-        displayedOffsets: [undefined],
         chartSize: 360,
       })
     );
@@ -153,16 +156,93 @@ describe('useChartData (SVG geometry)', () => {
     expect(result.current.layout.viewBox).toBe('-216 -216 432 432');
   });
 
+  test('label bbox is constrained to its slice wedge', () => {
+    // Slice 'a' (weight 1 of 10) spans [-π/2, -3π/10]. A tangential offset that would
+    // place the label past the wedge gets projected back so the bbox fits in the wedge.
+    // angular = +π pushes label half-circle away from its slice's midAxis.
+    const entries = makeRendered([
+      { id: 'a', name: 'A', weight: 1, polarity: 'positive', labelOffset: { radial: 0, angular: Math.PI } },
+      { id: 'b', name: 'B', weight: 9, polarity: 'positive' },
+    ]);
+    const aBBox = { w: 15, h: 16 };
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        labelBBoxes: { a: aBBox, b: { w: 15, h: 16 } },
+      })
+    );
+    const labelA = result.current.labels.find(l => l.id === 'a')!;
+    // Verify the bbox fits in slice 'a's wedge — half-plane test for both radial edges.
+    const startAngle = -Math.PI / 2;
+    const endAngle = -Math.PI / 2 + (2 * Math.PI) / 10;
+    const nStart = { x: -Math.sin(startAngle), y: Math.cos(startAngle) };
+    const nEnd = { x: Math.sin(endAngle), y: -Math.cos(endAngle) };
+    const reqStart = Math.abs(nStart.x) * (aBBox.w / 2) + Math.abs(nStart.y) * (aBBox.h / 2);
+    const reqEnd = Math.abs(nEnd.x) * (aBBox.w / 2) + Math.abs(nEnd.y) * (aBBox.h / 2);
+    expect(nStart.x * labelA.x + nStart.y * labelA.y).toBeGreaterThanOrEqual(reqStart - 1e-3);
+    expect(nEnd.x * labelA.x + nEnd.y * labelA.y).toBeGreaterThanOrEqual(reqEnd - 1e-3);
+  });
+
+  test('at max chart density (20 equal slices), every label stays inside the viewBox', () => {
+    // 20 is the documented chart maximum (see VALIDATION_RULES.chart.maxActivities in
+    // validation.ts) and the densest case the outer-label nudge is sized for. Verify the
+    // pipeline (constrain + nudge) keeps every label fully inside the viewBox at that
+    // density on a small chart where outer labels are tightest.
+    const entries = makeRendered(
+      Array.from({ length: 20 }, (_, i) => ({
+        id: `a${i}`,
+        name: `Aktivität ${i + 1}`,
+        weight: 1,
+        polarity: (i % 2 === 0 ? 'positive' : 'negative') as 'positive' | 'negative',
+      }))
+    );
+    const bboxes = Object.fromEntries(entries.map(e => [e.id, { w: 70, h: 18 }]));
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        labelBBoxes: bboxes,
+        chartSize: 280,
+      })
+    );
+    const halfViewBox = result.current.layout.sizePx / 2;
+    expect(result.current.labels).toHaveLength(20);
+    for (const label of result.current.labels) {
+      const bbox = bboxes[label.id];
+      expect(label.x + bbox.w / 2).toBeLessThanOrEqual(halfViewBox + 1e-3);
+      expect(label.x - bbox.w / 2).toBeGreaterThanOrEqual(-halfViewBox - 1e-3);
+      expect(label.y + bbox.h / 2).toBeLessThanOrEqual(halfViewBox + 1e-3);
+      expect(label.y - bbox.h / 2).toBeGreaterThanOrEqual(-halfViewBox - 1e-3);
+    }
+  });
+
+  test('ghost entries render slices but are excluded from label layout', () => {
+    // Ghost slices fade out during deletion animations. They must keep rendering (their
+    // slice path shrinks toward zero sweep), but they should not occupy a label slot —
+    // otherwise their stale full-size bbox could nudge visible labels around.
+    const entries: RenderedEntry[] = [
+      { id: 'a', name: 'Visible A', polarity: 'positive', weight: 5 },
+      { id: 'ghost', name: 'Disappearing', polarity: 'positive', weight: 0.001, isGhost: true },
+      { id: 'b', name: 'Visible B', polarity: 'positive', weight: 5 },
+    ];
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        labelBBoxes: { a: { w: 70, h: 18 }, ghost: { w: 200, h: 50 }, b: { w: 70, h: 18 } },
+      })
+    );
+    expect(result.current.slices).toHaveLength(3);
+    expect(result.current.labels.map(l => l.id)).toEqual(['a', 'b']);
+  });
+
   test('memoizes on stable input', () => {
     const entries = makeRendered([{ id: 'a', weight: 5, polarity: 'positive' }]);
-    const weights = [5];
-    const offsets = [undefined];
     const { result, rerender } = renderHook(() =>
       useChartData({
         ...baseInput,
         renderedEntries: entries,
-        displayedWeights: weights,
-        displayedOffsets: offsets,
       })
     );
     const first = result.current;

@@ -101,6 +101,44 @@ describe('usePieDrag boundary', () => {
     });
   });
 
+  test('wrapping past the start antipode keeps the receiver capped, not flipped', () => {
+    const { hook } = setupHook();
+    const target = document.createElement('div');
+    target.setPointerCapture = () => {};
+    document.body.appendChild(target);
+
+    act(() => {
+      hook.result.current.onBoundaryPointerDown({ receiverId: 'a', donorId: 'b', receiverIndex: 0, donorIndex: 1 }, pointerEvent(200, 100, target));
+    });
+
+    // Sweep clockwise around the chart past the start antipode (π wrap point).
+    // A single-shot diff against the start angle would normalize to a large negative
+    // delta and swap the roles; cumulative integration keeps the donor at floor.
+    const path = [Math.PI / 4, Math.PI / 2, (3 * Math.PI) / 4, Math.PI - 0.01, Math.PI + 0.01, (5 * Math.PI) / 4];
+    for (const ang of path) {
+      act(() => {
+        document.dispatchEvent(
+          makePointerEvent('pointermove', {
+            clientX: 100 + 100 * Math.cos(ang),
+            clientY: 100 + 100 * Math.sin(ang),
+            pointerId: 1,
+          })
+        );
+      });
+    }
+    const live = hook.result.current.liveBoundaryWeights;
+    expect(live).not.toBeNull();
+    if (live) {
+      // Receiver grew (cap held), donor shrank toward floor — not the inverse.
+      expect(live.a).toBeCloseTo(9.9, 5);
+      expect(live.b).toBeCloseTo(0.1, 5);
+    }
+
+    act(() => {
+      document.dispatchEvent(makePointerEvent('pointerup', { clientX: 0, clientY: 100, pointerId: 1 }));
+    });
+  });
+
   test('readOnly short-circuits pointerdown to a no-op', () => {
     const { hook } = setupHook({ readOnly: true });
     const target = document.createElement('div');

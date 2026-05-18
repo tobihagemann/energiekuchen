@@ -12,20 +12,14 @@ import type { ChartType, LabelOffset } from '@/app/types';
 
 interface PieSliceProps {
   slice: SliceGeometry;
-  cx: number;
-  cy: number;
-  radius: number;
   index: number;
   renderedEntries: WeightEntry[];
   chartType: ChartType;
   total: number;
-  boundaryHandle: BoundaryHandle | null;
-  isCoarsePointer: boolean;
   readOnly: boolean;
   ariaLabel: string;
   currentLabelOffset: LabelOffset | undefined;
   onActivityClick?: (id: string) => void;
-  onBoundaryPointerDown: (handle: BoundaryHandle, e: React.PointerEvent) => void;
   setActivityWeights: (chartType: ChartType, entries: WeightEntry[]) => void;
   setLabelOffset: (chartType: ChartType, activityId: string, offset: LabelOffset | null) => void;
   onAnnounce: (message: string) => void;
@@ -34,24 +28,22 @@ interface PieSliceProps {
 const DRAG_VS_CLICK_TOLERANCE = 4;
 const ANGULAR_STEP = Math.PI / 36;
 const RADIAL_STEP = 0.05;
+// Boundary handle hit zone starts at this fraction of the radius so that adjacent
+// boundaries don't all overlap at the chart center. Below this, the cursor pile-up
+// would let a click on slice A's body capture slice B's boundary instead.
+const BOUNDARY_HIT_INNER_FRACTION = 0.15;
 
 export function PieSlice(props: PieSliceProps) {
   const {
     slice,
-    cx,
-    cy,
-    radius,
     index,
     renderedEntries,
     chartType,
     total,
-    boundaryHandle,
-    isCoarsePointer,
     readOnly,
     ariaLabel,
     currentLabelOffset,
     onActivityClick,
-    onBoundaryPointerDown,
     setActivityWeights,
     setLabelOffset,
     onAnnounce,
@@ -152,18 +144,6 @@ export function PieSlice(props: PieSliceProps) {
         onPointerUp={handlePointerUp}
         onKeyDown={handleKeyDown}
       />
-      {boundaryHandle && (
-        <BoundaryRect
-          cx={cx}
-          cy={cy}
-          radius={radius}
-          angle={slice.endAngle}
-          boundaryHandle={boundaryHandle}
-          isCoarsePointer={isCoarsePointer}
-          readOnly={readOnly}
-          onBoundaryPointerDown={onBoundaryPointerDown}
-        />
-      )}
     </g>
   );
 }
@@ -179,24 +159,41 @@ interface BoundaryRectProps {
   onBoundaryPointerDown: (handle: BoundaryHandle, e: React.PointerEvent) => void;
 }
 
-function BoundaryRect({ cx, cy, radius, angle, boundaryHandle, isCoarsePointer, readOnly, onBoundaryPointerDown }: BoundaryRectProps) {
-  const tangent = angle + Math.PI / 2;
+export function BoundaryRect({ cx, cy, radius, angle, boundaryHandle, isCoarsePointer, readOnly, onBoundaryPointerDown }: BoundaryRectProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const hitWidth = isCoarsePointer ? 24 : 12;
-  const visibleWidth = 2;
+  const indicatorWidth = 3;
   const angleDeg = (angle * 180) / Math.PI;
-  const cursor = Math.abs(Math.cos(tangent)) > Math.abs(Math.sin(tangent)) ? 'ns-resize' : 'ew-resize';
+  const cursor = pickResizeCursor(angle);
+  const hitX = radius * BOUNDARY_HIT_INNER_FRACTION;
+  const hitW = radius - hitX;
+  const showIndicator = !readOnly && isHovered;
 
   return (
     <g
       transform={`translate(${cx} ${cy}) rotate(${angleDeg})`}
       style={{ cursor: readOnly ? 'default' : cursor, touchAction: 'none' }}
       data-testid={`pie-boundary-handle-${boundaryHandle.receiverId}-${boundaryHandle.donorId}`}
+      onPointerEnter={() => setIsHovered(true)}
+      onPointerLeave={() => setIsHovered(false)}
       onPointerDown={e => {
         e.stopPropagation();
         onBoundaryPointerDown(boundaryHandle, e);
       }}>
-      <rect x={0} y={-hitWidth / 2} width={radius} height={hitWidth} fill="transparent" />
-      <rect x={0} y={-visibleWidth / 2} width={radius} height={visibleWidth} fill="oklch(1 0 0 / 0.4)" pointerEvents="none" />
+      <rect x={hitX} y={-hitWidth / 2} width={hitW} height={hitWidth} fill="transparent" />
+      {showIndicator && <rect x={hitX} y={-indicatorWidth / 2} width={hitW} height={indicatorWidth} fill="oklch(0 0 0 / 0.35)" pointerEvents="none" />}
     </g>
   );
+}
+
+// Pick a resize cursor based on the slice boundary's screen orientation. CSS
+// XY-resize cursors describe the drag direction, which is perpendicular to the
+// line: a horizontal line is dragged vertically (ns-resize), a backslash line
+// (NW-SE) is dragged along NE-SW (nesw-resize), etc. Line orientation θ ∈ [0, π)
+// is bucketed into four π/4-wide bins centered on 0, π/4, π/2, 3π/4.
+function pickResizeCursor(angle: number): string {
+  let theta = angle % Math.PI;
+  if (theta < 0) theta += Math.PI;
+  const bucket = Math.round(theta / (Math.PI / 4)) % 4;
+  return (['ns-resize', 'nesw-resize', 'ew-resize', 'nwse-resize'] as const)[bucket];
 }

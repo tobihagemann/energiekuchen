@@ -140,21 +140,18 @@ function energyReducer(state: EnergyState, action: EnergyAction): EnergyState {
     case 'TOGGLE_POLARITY': {
       const now = new Date().toISOString();
       const chart = state.data[action.payload.chartType];
-      const target = chart.activities.find(a => a.id === action.payload.activityId);
-      if (!target) return state;
+      const targetIdx = chart.activities.findIndex(a => a.id === action.payload.activityId);
+      if (targetIdx === -1) return state;
 
+      const target = chart.activities[targetIdx];
       const destinationPolarity = target.polarity === 'positive' ? 'negative' : 'positive';
-      const others = chart.activities.filter(a => a.id !== action.payload.activityId);
-      const wasEmptyDestination = others.every(a => a.polarity !== destinationPolarity);
+      const wasEmptyDestination = chart.activities.every((a, i) => i === targetIdx || a.polarity !== destinationPolarity);
 
-      // Insertion rule (R20 + R7): if the destination group has any activities, insert
-      // immediately after the last one; otherwise place at the start of the destination
-      // group (index 0 for positives, after the last positive for negatives).
-      const anchorPolarity = !wasEmptyDestination ? destinationPolarity : 'positive';
-      const insertAt = !wasEmptyDestination || destinationPolarity === 'negative' ? others.findLastIndex(a => a.polarity === anchorPolarity) + 1 : 0;
-
+      // Flip polarity in place so the pie keeps the activity at its current ring
+      // position. Renormalize when the destination group was previously empty, since
+      // the now-shared total can drive the flipped slice below the floor.
       const flipped: Activity = { ...target, polarity: destinationPolarity };
-      const nextActivities = [...others.slice(0, insertAt), flipped, ...others.slice(insertAt)];
+      const nextActivities = chart.activities.map((a, i) => (i === targetIdx ? flipped : a));
       const nextChart = wasEmptyDestination ? renormalizeChart({ activities: nextActivities }) : { activities: nextActivities };
 
       const updatedData = {
