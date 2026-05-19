@@ -110,6 +110,16 @@ describe('constrainLabelPosition', () => {
     expect(d).toBeGreaterThanOrEqual(radius + 0.5 * Math.hypot(400, 400) - 1e-6);
   });
 
+  test('pushes a centered label outward along the +x fallback when no slice is given', () => {
+    // labelPos == center → (px, py) = (0, 0) after translation. Large bbox makes inner
+    // infeasible (halfDiag ≥ radius), forcing the outer path through pushOutsideCircle's
+    // d == 0 branch and projectRadial's d == 0 branch. With no slice, the fallback angle
+    // defaults to 0, so the label lands on the +x axis.
+    const pos = constrainLabelPosition({ x: 0, y: 0 }, center, 10, { w: 20, h: 20 }, 100);
+    expect(pos.x).toBeGreaterThan(0);
+    expect(pos.y).toBeCloseTo(0, 5);
+  });
+
   test('snaps along the radial direction (preserves angle when projecting)', () => {
     // Query (0, 96): label is on the +y axis. Bbox top corner at y=101 > R=100 → snap.
     // Angle-aware max d at π/2 = ~94.5 (narrow side faces origin, so we can get close).
