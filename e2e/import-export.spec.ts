@@ -167,8 +167,11 @@ test.describe('Import & Export Functionality', () => {
     // Open import modal (works on both desktop and mobile)
     await openImportModal(page);
 
-    // Try to import JSON with missing required fields
+    // Try to import JSON with missing required fields. Pin the version to 3.0 so the
+    // import takes the strict v3 path (which throws) instead of the lenient v2 fallback
+    // that silently drops malformed entries.
     const invalidData = {
+      version: '3.0',
       current: {
         activities: [
           { name: 'Missing ID and Value' }, // Missing required fields

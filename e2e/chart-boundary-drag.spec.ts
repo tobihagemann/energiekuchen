@@ -1,4 +1,13 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+// Slices animate into their steady state after each add (see DEFAULT_DURATION_MS in
+// useAnimatedRenderedEntries.ts); poll callers use this to wait until divider angles —
+// and therefore boundary cursors — have settled.
+const POLL_OPTS = { intervals: [50, 100, 150], timeout: 2000 };
+
+function boundaryCursorsSorted(page: Page) {
+  return page.locator('[data-testid^="pie-boundary-handle-"]').evaluateAll(handles => handles.map(h => (h as SVGGElement).style.cursor).sort());
+}
 
 test.describe('Chart boundary drag', () => {
   test.beforeEach(async ({ page }) => {
@@ -24,9 +33,7 @@ test.describe('Chart boundary drag', () => {
       await page.locator('[data-testid="quick-add-button-positive-current"]').click();
     }
 
-    const cursors = await page.locator('[data-testid^="pie-boundary-handle-"]').evaluateAll(handles => handles.map(h => (h as SVGGElement).style.cursor));
-    expect(cursors.filter(c => c === 'ew-resize')).toHaveLength(2);
-    expect(cursors.filter(c => c === 'ns-resize')).toHaveLength(2);
+    await expect.poll(() => boundaryCursorsSorted(page), POLL_OPTS).toEqual(['ew-resize', 'ew-resize', 'ns-resize', 'ns-resize']);
   });
 
   test('boundary cursor uses diagonal variants for off-axis dividers', async ({ page }) => {
@@ -38,10 +45,7 @@ test.describe('Chart boundary drag', () => {
       await page.locator('[data-testid="quick-add-button-positive-current"]').click();
     }
 
-    const cursors = await page.locator('[data-testid^="pie-boundary-handle-"]').evaluateAll(handles => handles.map(h => (h as SVGGElement).style.cursor));
-    expect(cursors.filter(c => c === 'ew-resize')).toHaveLength(1);
-    expect(cursors.filter(c => c === 'nesw-resize')).toHaveLength(1);
-    expect(cursors.filter(c => c === 'nwse-resize')).toHaveLength(1);
+    await expect.poll(() => boundaryCursorsSorted(page), POLL_OPTS).toEqual(['ew-resize', 'nesw-resize', 'nwse-resize']);
   });
 
   test('boundary indicator only appears on hover', async ({ page }) => {
