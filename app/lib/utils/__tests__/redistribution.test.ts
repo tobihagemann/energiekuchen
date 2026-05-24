@@ -1,6 +1,6 @@
 import { Activity } from '@/app/types';
 
-import { getFloor } from '../floor';
+import { getFloor, round2 } from '../floor';
 import { redistributeProportionalAll, redistributeTwoDonor, renormalizeToFloor } from '../redistribution';
 
 const activity = (id: string, weight: number, polarity: 'positive' | 'negative' = 'positive'): Activity => ({
@@ -222,7 +222,7 @@ describe('redistributeProportionalAll', () => {
     expect(result.find(r => r.id === 'b')?.weight).toBeGreaterThanOrEqual(1);
   });
 
-  test('rounding residual is assigned back to largest non-clamped entry', () => {
+  test('settles a small rounding residual onto eligible entries', () => {
     // Choose values where proportional distribution leaves a small rounding residual.
     const entries = [
       { id: 'a', weight: 1 },
@@ -231,6 +231,55 @@ describe('redistributeProportionalAll', () => {
     ];
     const result = redistributeProportionalAll(entries, 'a', 1.01, 0.03);
     expect(totalOf(result)).toBeCloseTo(3, 2);
+  });
+
+  test('settles a negative rounding residual without breaking total or floor', () => {
+    // Shrinking the target frees weight the four near-floor entries absorb; the resulting
+    // -0.02 rounding residual exceeds any single recipient's headroom above floor, so it
+    // must be spread across entries.
+    const entries = [
+      { id: 'a', weight: 0.96 },
+      { id: 'b', weight: 0.01 },
+      { id: 'c', weight: 0.01 },
+      { id: 'd', weight: 0.01 },
+      { id: 'e', weight: 0.01 },
+    ];
+    const floor = getFloor(1); // 0.01
+    const result = redistributeProportionalAll(entries, 'a', 0.94, floor);
+    expect(totalOf(result)).toBeCloseTo(1, 2);
+    for (const r of result) {
+      expect(r.weight).toBeGreaterThanOrEqual(floor);
+    }
+  });
+
+  test('preserves total and floor at the 20-activity chart cap', () => {
+    // Max chart density (VALIDATION_RULES.chart.maxActivities = 20): growing one slice
+    // forces many others to the floor in a single commit.
+    const others = Array.from({ length: 19 }, (_, i) => ({ id: `o${i}`, weight: round2(1.6 + i * 0.1) }));
+    const entries = [{ id: 'a', weight: round2(100 - totalOf(others)) }, ...others];
+    const floor = getFloor(100);
+    const result = redistributeProportionalAll(entries, 'a', 80, floor);
+    expect(totalOf(result)).toBeCloseTo(100, 2);
+    for (const r of result) {
+      expect(r.weight).toBeGreaterThanOrEqual(floor);
+    }
+  });
+
+  test('settles a positive rounding residual without breaking total or floor', () => {
+    // Growing the target shrinks the other three; their proportional shares round down,
+    // leaving a +0.01 residual the loop must add back to an eligible entry.
+    const entries = [
+      { id: 'a', weight: 2 },
+      { id: 'b', weight: 1.9 },
+      { id: 'c', weight: 1.4 },
+      { id: 'd', weight: 1.7 },
+    ];
+    const floor = getFloor(7); // total 7
+    const result = redistributeProportionalAll(entries, 'a', 4.7, floor);
+    expect(totalOf(result)).toBeCloseTo(7, 2);
+    for (const r of result) {
+      expect(r.weight).toBeGreaterThanOrEqual(floor);
+    }
   });
 });
 

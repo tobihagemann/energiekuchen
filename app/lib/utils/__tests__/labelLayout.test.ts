@@ -1,6 +1,5 @@
 import {
   applyLabelOffset,
-  computeDefaultLabelPosition,
   computeLeaderStart,
   constrainLabelPosition,
   isInSnapZone,
@@ -10,14 +9,8 @@ import {
   SNAP_ZONE_FRACTION,
 } from '../labelLayout';
 
-describe('computeDefaultLabelPosition', () => {
-  test('places label at fraction 0.6 of radius along midAngle', () => {
-    const pos = computeDefaultLabelPosition({ cx: 0, cy: 0, radius: 100, midAngle: 0 });
-    expect(pos.x).toBeCloseTo(60);
-    expect(pos.y).toBeCloseTo(0);
-  });
-
-  test('LABEL_DEFAULT_RADIUS_FRACTION is 0.6', () => {
+describe('LABEL_DEFAULT_RADIUS_FRACTION', () => {
+  test('is 0.6', () => {
     expect(LABEL_DEFAULT_RADIUS_FRACTION).toBe(0.6);
   });
 });

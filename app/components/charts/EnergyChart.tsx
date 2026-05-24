@@ -37,7 +37,7 @@ function polarityLabel(polarity: Polarity): string {
 
 export function EnergyChart({ activities, chartType, className, onActivityClick, readOnly = false }: EnergyChartProps) {
   const { state: uiState } = useUI();
-  const energy = useEnergy();
+  const { state: energyState, setActivityWeights, setLabelOffset, copyActivitiesFromCurrent } = useEnergy();
   const { isSmall, isMedium } = useResponsive();
   const svgRef = useRef<SVGSVGElement>(null);
   const [labelBBoxes, setLabelBBoxes] = useState<Record<string, LabelBBox>>({});
@@ -71,8 +71,8 @@ export function EnergyChart({ activities, chartType, className, onActivityClick,
     total: total || 1,
     chartType,
     renderedEntries,
-    setActivityWeights: energy.setActivityWeights,
-    setLabelOffset: energy.setLabelOffset,
+    setActivityWeights,
+    setLabelOffset,
     readOnly,
   });
 
@@ -127,7 +127,7 @@ export function EnergyChart({ activities, chartType, className, onActivityClick,
     setLabelBBoxes(prev => (prev[id]?.w === bbox.w && prev[id]?.h === bbox.h ? prev : { ...prev, [id]: bbox }));
   }, []);
 
-  const hasCurrentActivities = energy.state.data.current.activities.length > 0;
+  const hasCurrentActivities = energyState.data.current.activities.length > 0;
   const showCenterButton = !readOnly && isEmpty && chartType === 'desired';
 
   const title = chartTypeLabel(chartType);
@@ -172,7 +172,7 @@ export function EnergyChart({ activities, chartType, className, onActivityClick,
             // than pass `index={undefined}` to PieSlice (matches the boundary-handle
             // layer's symmetric guard below).
             if (receiverRealIndex === undefined) return null;
-            const pct = getPercentage(slice.displayedWeight, total || 1);
+            const pct = getPercentage(slice.weight, total || 1);
             const sliceAriaLabel = `${slice.name}, ${pct} %, ${polarityLabel(slice.polarity)}`;
             return (
               <PieSlice
@@ -186,8 +186,8 @@ export function EnergyChart({ activities, chartType, className, onActivityClick,
                 ariaLabel={sliceAriaLabel}
                 currentLabelOffset={renderedEntries[receiverRealIndex]?.labelOffset}
                 onActivityClick={onActivityClick}
-                setActivityWeights={energy.setActivityWeights}
-                setLabelOffset={energy.setLabelOffset}
+                setActivityWeights={setActivityWeights}
+                setLabelOffset={setLabelOffset}
                 onAnnounce={announce}
               />
             );
@@ -277,7 +277,7 @@ export function EnergyChart({ activities, chartType, className, onActivityClick,
         {showCenterButton && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <Button
-              onClick={energy.copyActivitiesFromCurrent}
+              onClick={copyActivitiesFromCurrent}
               disabled={!hasCurrentActivities}
               className="pointer-events-auto gap-2 ring-4 ring-white"
               data-testid="copy-from-current-chart-button">

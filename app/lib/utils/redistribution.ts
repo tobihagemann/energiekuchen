@@ -2,7 +2,9 @@ import { Activity } from '@/app/types';
 
 import { getFloor, round2 } from './floor';
 
-const MAX_ITERATIONS = 8;
+// Defensive cap guaranteeing termination; the proportional spread clamps many entries per
+// pass, so the loop converges in a few passes even at the 20-activity chart cap.
+const MAX_ITERATIONS = 20;
 
 export interface WeightEntry {
   id: string;
@@ -97,23 +99,38 @@ export function redistributeProportionalAll(entries: WeightEntry[], targetId: st
     if (!newlyClamped) break;
   }
 
-  // Round to 2 decimals and assign rounding residual to the largest non-clamped non-target entry.
+  // Round to 2 decimals, then settle the rounding residual across the non-clamped,
+  // non-target entries one cent at a time so both the chart total and the per-entry floor
+  // hold. A negative residual only draws from entries that stay at or above floor; the
+  // target is the fallback recipient only when no non-target entry is eligible.
   const rounded = working.map(e => ({ id: e.id, weight: round2(e.weight) }));
   const roundedSum = rounded.reduce((sum, e) => sum + e.weight, 0);
-  const roundingResidual = round2(totalOld - roundedSum);
+  let residualCents = Math.round((totalOld - roundedSum) * 100);
 
-  if (roundingResidual !== 0) {
-    let bestIndex = -1;
-    let bestWeight = -Infinity;
+  if (residualCents !== 0) {
+    const eligible: number[] = [];
     for (let i = 0; i < rounded.length; i++) {
-      if (i === targetIndex || clamped.has(i)) continue;
-      if (rounded[i].weight > bestWeight) {
-        bestWeight = rounded[i].weight;
-        bestIndex = i;
-      }
+      if (i !== targetIndex && !clamped.has(i)) eligible.push(i);
     }
-    if (bestIndex === -1) bestIndex = targetIndex;
-    rounded[bestIndex] = { ...rounded[bestIndex], weight: round2(rounded[bestIndex].weight + roundingResidual) };
+    if (eligible.length === 0) eligible.push(targetIndex);
+
+    const stepCents = residualCents > 0 ? 1 : -1;
+    const step = stepCents / 100;
+    while (residualCents !== 0) {
+      let bestIndex = -1;
+      let bestWeight = -Infinity;
+      for (const i of eligible) {
+        // post-round2 subtraction can dip just under floor by an ulp (e.g. floor 0.02, entry 0.03: 0.03 - 0.01 = 0.0199…).
+        if (stepCents < 0 && rounded[i].weight - 0.01 < floor - 1e-9) continue;
+        if (rounded[i].weight > bestWeight) {
+          bestWeight = rounded[i].weight;
+          bestIndex = i;
+        }
+      }
+      if (bestIndex === -1) break;
+      rounded[bestIndex] = { ...rounded[bestIndex], weight: round2(rounded[bestIndex].weight + step) };
+      residualCents -= stepCents;
+    }
   }
 
   return rounded;

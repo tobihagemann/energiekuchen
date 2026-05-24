@@ -36,7 +36,7 @@ describe('useChartData (SVG geometry)', () => {
     expect(result.current.labels).toEqual([]);
   });
 
-  test('multi-slice angles sum to 2π', () => {
+  test('slices walk contiguously from the start angle and pass weights through', () => {
     const entries = makeRendered([
       { id: 'a', weight: 3, polarity: 'positive' },
       { id: 'b', weight: 6, polarity: 'positive' },
@@ -48,8 +48,14 @@ describe('useChartData (SVG geometry)', () => {
         renderedEntries: entries,
       })
     );
-    const total = result.current.slices.reduce((s, slice) => s + (slice.endAngle - slice.startAngle), 0);
-    expect(total).toBeCloseTo(Math.PI * 2);
+    const slices = result.current.slices;
+    // Weights 3/6/3 of 12 give sweeps of π/2, π, π/2; walking from the fixed start angle
+    // (-π/2) the cumulative endAngles land at 0, π, and 3π/2 (= start + 2π).
+    const startAngle = -Math.PI / 2;
+    expect(slices.map(s => s.weight)).toEqual([3, 6, 3]);
+    expect(slices[0].endAngle).toBeCloseTo(startAngle + Math.PI / 2);
+    expect(slices[1].endAngle).toBeCloseTo(startAngle + Math.PI / 2 + Math.PI);
+    expect(slices[2].endAngle).toBeCloseTo(startAngle + Math.PI * 2);
   });
 
   test('renders polarity colors', () => {
@@ -91,9 +97,11 @@ describe('useChartData (SVG geometry)', () => {
         renderedEntries: entries,
       })
     );
-    expect(result.current.slices[0].isFullCircle).toBe(true);
+    // The full-circle path is two arcs with no line-to-center command, unlike a wedge's
+    // "M cx cy L …" path — confirming the single slice renders as a full circle.
     expect(result.current.slices[0].pathD).toMatch(/^M /);
     expect(result.current.slices[0].pathD).toMatch(/A /);
+    expect(result.current.slices[0].pathD).not.toMatch(/L /);
   });
 
   test('label leader-line is null when label stays inside the circle', () => {

@@ -21,10 +21,6 @@ export interface SliceWedge {
   sweep: number;
 }
 
-export function computeDefaultLabelPosition({ cx, cy, radius, midAngle }: { cx: number; cy: number; radius: number; midAngle: number }): Point {
-  return polarToCartesian(cx, cy, radius * LABEL_DEFAULT_RADIUS_FRACTION, midAngle);
-}
-
 // Adds an offset to the default position. `radial` units are pie radii (additive on top of
 // the default 0.6r centroid); `angular` rotates the default direction around the center.
 export function applyLabelOffset({ cx, cy, midAngle }: { cx: number; cy: number; midAngle: number }, offset: LabelOffset | undefined, radius: number): Point {

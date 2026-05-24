@@ -5,7 +5,6 @@ import { useMemo } from 'react';
 import { getColorForPolarity } from '@/app/lib/utils/constants';
 import {
   applyLabelOffset,
-  computeDefaultLabelPosition,
   computeLeaderStart,
   constrainLabelPosition,
   isLabelOutsideCircle,
@@ -24,19 +23,14 @@ export type RenderedEntry = Activity & { isGhost?: boolean };
 export interface SliceGeometry {
   id: string;
   name: string;
-  details?: string;
   polarity: Polarity;
-  startAngle: number;
   endAngle: number;
-  midAngle: number;
-  normalized: number;
-  displayedWeight: number;
+  weight: number;
   pathD: string;
   fillColor: string;
   hoverFillColor: string;
   borderColor: string;
   hoverBorderColor: string;
-  isFullCircle: boolean;
 }
 
 export interface LabelGeometry {
@@ -53,7 +47,6 @@ export interface LabelGeometry {
   // be drawn (no leaderTo, or the gap overshoots the leader endpoint).
   leaderFrom: { x: number; y: number } | null;
   isOutside: boolean;
-  centroid: { x: number; y: number };
 }
 
 interface ChartLayout {
@@ -111,17 +104,13 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
         id: '__empty__',
         name: '',
         polarity: 'positive',
-        startAngle: START_ANGLE,
         endAngle: START_ANGLE + Math.PI * 2,
-        midAngle: 0,
-        normalized: 1,
-        displayedWeight: 0,
+        weight: 0,
         pathD: fullCirclePath(cx, cy, radius),
         fillColor: EMPTY_CHART_COLOR,
         hoverFillColor: EMPTY_CHART_HOVER,
         borderColor: 'oklch(1 0 0)',
         hoverBorderColor: 'oklch(1 0 0)',
-        isFullCircle: true,
       };
       return { slices: [slice], labels: [], layout, isEmpty: true };
     }
@@ -132,7 +121,6 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
       id: string;
       name: string;
       details?: string;
-      centroid: { x: number; y: number };
       offsetPos: { x: number; y: number };
       midAngle: number;
       bbox: LabelBBox;
@@ -158,19 +146,14 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
       slices.push({
         id: entry.id,
         name: entry.name,
-        details: entry.details,
         polarity: entry.polarity,
-        startAngle: start,
         endAngle: end,
-        midAngle: mid,
-        normalized: weight / total,
-        displayedWeight: weight,
+        weight,
         pathD,
         fillColor: baseColor,
         hoverFillColor: `oklch(from ${baseColor} calc(l + 0.1) c h)`,
         borderColor: isActive ? `oklch(from ${baseColor} calc(l - 0.1) c h)` : 'oklch(1 0 0)',
         hoverBorderColor: isActive ? `oklch(from ${baseColor} calc(l - 0.1) c h)` : 'oklch(1 0 0)',
-        isFullCircle,
       });
 
       // Ghost slices keep rendering (their path shrinks during the deletion animation),
@@ -179,7 +162,6 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
       // approaches zero.
       if (entry.isGhost) continue;
 
-      const centroid = computeDefaultLabelPosition({ cx, cy, radius, midAngle: mid });
       const offsetPos = applyLabelOffset({ cx, cy, midAngle: mid }, entry.labelOffset, radius);
       const bbox = labelBBoxes[entry.id] ?? estimateBBox(entry);
 
@@ -187,7 +169,6 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
         id: entry.id,
         name: entry.name,
         details: entry.details,
-        centroid,
         offsetPos,
         midAngle: mid,
         bbox,
@@ -226,7 +207,6 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
         leaderTo,
         leaderFrom,
         isOutside,
-        centroid: l.centroid,
       };
     });
 
