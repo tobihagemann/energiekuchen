@@ -3,7 +3,6 @@ import {
   computeLeaderStart,
   constrainLabelPosition,
   isInSnapZone,
-  isLabelOutsideCircle,
   LABEL_DEFAULT_RADIUS_FRACTION,
   nudgeOuterLabelsTangentially,
   SNAP_ZONE_FRACTION,
@@ -35,17 +34,6 @@ describe('applyLabelOffset', () => {
   });
 });
 
-describe('isLabelOutsideCircle', () => {
-  test('returns true when the label is beyond the radius', () => {
-    expect(isLabelOutsideCircle({ x: 101, y: 0 }, { cx: 0, cy: 0 }, 100)).toBe(true);
-  });
-
-  test('returns false when the label sits on or inside the radius', () => {
-    expect(isLabelOutsideCircle({ x: 100, y: 0 }, { cx: 0, cy: 0 }, 100)).toBe(false);
-    expect(isLabelOutsideCircle({ x: 50, y: 0 }, { cx: 0, cy: 0 }, 100)).toBe(false);
-  });
-});
-
 describe('constrainLabelPosition', () => {
   const center = { cx: 0, cy: 0 };
   const radius = 100;
@@ -67,37 +55,37 @@ describe('constrainLabelPosition', () => {
   }
 
   test('leaves the position unchanged when the bbox sits fully inside', () => {
-    const pos = constrainLabelPosition({ x: 50, y: 0 }, center, radius, bbox, viewBoxHalf);
+    const { pos } = constrainLabelPosition({ x: 50, y: 0 }, center, radius, bbox, viewBoxHalf);
     expect(pos.x).toBe(50);
     expect(pos.y).toBe(0);
   });
 
   test('leaves the position unchanged when the bbox sits fully outside', () => {
-    const pos = constrainLabelPosition({ x: 115, y: 0 }, center, radius, bbox, viewBoxHalf);
+    const { pos } = constrainLabelPosition({ x: 115, y: 0 }, center, radius, bbox, viewBoxHalf);
     expect(pos.x).toBe(115);
     expect(pos.y).toBe(0);
   });
 
   test('snaps inward when the forbidden ring crossing is shorter that way', () => {
-    const pos = constrainLabelPosition({ x: 92, y: 0 }, center, radius, bbox, viewBoxHalf);
+    const { pos } = constrainLabelPosition({ x: 92, y: 0 }, center, radius, bbox, viewBoxHalf);
     expect(pos.x).toBeCloseTo(maxInnerD(0, bbox.w, bbox.h, radius), 5);
     expect(pos.y).toBeCloseTo(0, 5);
   });
 
   test('snaps outward when the forbidden ring crossing is shorter that way', () => {
-    const pos = constrainLabelPosition({ x: 108, y: 0 }, center, radius, bbox, viewBoxHalf);
+    const { pos } = constrainLabelPosition({ x: 108, y: 0 }, center, radius, bbox, viewBoxHalf);
     expect(pos.x).toBeCloseTo(minOuterD(0, bbox.w, bbox.h, radius), 5);
     expect(pos.y).toBeCloseTo(0, 5);
   });
 
   test('clamps to the viewBox even when the radial snap would push past the edge', () => {
-    const pos = constrainLabelPosition({ x: 300, y: 0 }, center, radius, bbox, viewBoxHalf);
+    const { pos } = constrainLabelPosition({ x: 300, y: 0 }, center, radius, bbox, viewBoxHalf);
     expect(pos.x).toBe(190);
     expect(pos.y).toBe(0);
   });
 
   test('forces a too-large bbox to the outside', () => {
-    const pos = constrainLabelPosition({ x: 30, y: 0 }, center, radius, { w: 400, h: 400 }, 600);
+    const { pos } = constrainLabelPosition({ x: 30, y: 0 }, center, radius, { w: 400, h: 400 }, 600);
     const d = Math.hypot(pos.x, pos.y);
     // bbox too big to fit any side → fallback bound R + halfDiag.
     expect(d).toBeGreaterThanOrEqual(radius + 0.5 * Math.hypot(400, 400) - 1e-6);
@@ -108,7 +96,7 @@ describe('constrainLabelPosition', () => {
     // infeasible (halfDiag ≥ radius), forcing the outer path through pushOutsideCircle's
     // d == 0 branch and projectRadial's d == 0 branch. With no slice, the fallback angle
     // defaults to 0, so the label lands on the +x axis.
-    const pos = constrainLabelPosition({ x: 0, y: 0 }, center, 10, { w: 20, h: 20 }, 100);
+    const { pos } = constrainLabelPosition({ x: 0, y: 0 }, center, 10, { w: 20, h: 20 }, 100);
     expect(pos.x).toBeGreaterThan(0);
     expect(pos.y).toBeCloseTo(0, 5);
   });
@@ -116,7 +104,7 @@ describe('constrainLabelPosition', () => {
   test('snaps along the radial direction (preserves angle when projecting)', () => {
     // Query (0, 96): label is on the +y axis. Bbox top corner at y=101 > R=100 → snap.
     // Angle-aware max d at π/2 = ~94.5 (narrow side faces origin, so we can get close).
-    const pos = constrainLabelPosition({ x: 0, y: 96 }, center, radius, bbox, viewBoxHalf);
+    const { pos } = constrainLabelPosition({ x: 0, y: 96 }, center, radius, bbox, viewBoxHalf);
     expect(pos.x).toBeCloseTo(0, 5);
     expect(pos.y).toBeCloseTo(maxInnerD(Math.PI / 2, bbox.w, bbox.h, radius), 5);
   });
@@ -127,7 +115,7 @@ describe('constrainLabelPosition', () => {
     const wideFlat = { w: 150, h: 16 };
     const conservativeBound = radius - 0.5 * Math.hypot(wideFlat.w, wideFlat.h); // ≈ 24.5 here
     // Drag to (0, 150) — well past the conservative cap on the y-axis.
-    const pos = constrainLabelPosition({ x: 0, y: 150 }, center, 180, wideFlat, 250);
+    const { pos } = constrainLabelPosition({ x: 0, y: 150 }, center, 180, wideFlat, 250);
     expect(pos.y).toBeGreaterThan(conservativeBound + 50);
   });
 
@@ -146,7 +134,7 @@ describe('constrainLabelPosition', () => {
     test('keeps a label that already fits on the inner side', () => {
       // Sit comfortably on the midAxis, inside the circle, well clear of the radial edges.
       const onAxis = { x: 50 * Math.cos(slice.midAngle), y: 50 * Math.sin(slice.midAngle) };
-      const pos = constrainLabelPosition(onAxis, center, radius, bbox, viewBoxHalf, slice);
+      const { pos } = constrainLabelPosition(onAxis, center, radius, bbox, viewBoxHalf, slice);
       expect(pos.x).toBeCloseTo(onAxis.x, 5);
       expect(pos.y).toBeCloseTo(onAxis.y, 5);
     });
@@ -154,7 +142,7 @@ describe('constrainLabelPosition', () => {
     test('inner side pushes a label whose bbox crosses a radial edge back into the wedge', () => {
       // Center on the endAngle ray (angle = 0), inside the circle. Inner candidate should
       // shift the bbox so it doesn't cross the radial edge.
-      const pos = constrainLabelPosition({ x: 50, y: 0 }, center, radius, bbox, viewBoxHalf, slice);
+      const { pos } = constrainLabelPosition({ x: 50, y: 0 }, center, radius, bbox, viewBoxHalf, slice);
       const d = Math.hypot(pos.x, pos.y);
       const halfDiag = 0.5 * Math.hypot(bbox.w, bbox.h);
       // Picked the inner candidate (closer to the query) → bbox-in-wedge must hold.
@@ -169,7 +157,7 @@ describe('constrainLabelPosition', () => {
       const narrow = { startAngle: -Math.PI / 24, endAngle: Math.PI / 24, midAngle: 0, sweep: Math.PI / 12 };
       const wideBbox = { w: 40, h: 20 };
       const desired = { x: 30, y: 0 };
-      const pos = constrainLabelPosition(desired, center, radius, wideBbox, viewBoxHalf, narrow);
+      const { pos } = constrainLabelPosition(desired, center, radius, wideBbox, viewBoxHalf, narrow);
       expect(pos.y).toBeCloseTo(0, 5);
       expect(pos.x).toBeCloseTo(minOuterD(0, wideBbox.w, wideBbox.h, radius), 5);
     });
@@ -180,7 +168,7 @@ describe('constrainLabelPosition', () => {
       // to extend past the wedge edges.
       const narrow = { startAngle: -Math.PI / 48, endAngle: Math.PI / 48, midAngle: 0, sweep: Math.PI / 24 };
       const wideBbox = { w: 60, h: 20 };
-      const pos = constrainLabelPosition({ x: 50, y: 0 }, center, radius, wideBbox, viewBoxHalf, narrow);
+      const { pos } = constrainLabelPosition({ x: 50, y: 0 }, center, radius, wideBbox, viewBoxHalf, narrow);
       expect(pos.x).toBeCloseTo(minOuterD(0, wideBbox.w, wideBbox.h, radius), 5);
       expect(pos.y).toBeCloseTo(0, 5);
       // Bbox is NOT in the wedge angularly — that's intentional.
@@ -191,22 +179,43 @@ describe('constrainLabelPosition', () => {
       // Forbidden ring [88.82, 111.18] for this bbox. Query on slice midAxis at d=90 is in
       // the ring and closer to inner (≈1.2 away) than outer (≈21 away). Wedge is wide.
       const onAxisAtNinety = { x: 90 * Math.cos(slice.midAngle), y: 90 * Math.sin(slice.midAngle) };
-      const pos = constrainLabelPosition(onAxisAtNinety, center, radius, bbox, viewBoxHalf, slice);
+      const { pos, placement } = constrainLabelPosition(onAxisAtNinety, center, radius, bbox, viewBoxHalf, slice);
       const d = Math.hypot(pos.x, pos.y);
       expect(d).toBeLessThan(radius);
+      expect(placement).toBe('inner');
     });
 
     test('picks the outer side when the user drops the label outside the circle', () => {
       // Drop the label past the outer forbidden bound on the midAxis.
       const farOnAxis = { x: 130 * Math.cos(slice.midAngle), y: 130 * Math.sin(slice.midAngle) };
-      const pos = constrainLabelPosition(farOnAxis, center, radius, bbox, viewBoxHalf, slice);
+      const { pos, placement } = constrainLabelPosition(farOnAxis, center, radius, bbox, viewBoxHalf, slice);
       const d = Math.hypot(pos.x, pos.y);
       expect(d).toBeGreaterThan(radius);
+      expect(placement).toBe('outer');
+    });
+
+    test('reports outer placement even when the viewBox clamp pulls the center back inside the circle', () => {
+      // Smallest chart: radius 140, viewBoxHalf 168 — only 28px of axis margin. A wide label on
+      // a narrow horizontal slice forces the outer branch (inner infeasible), but the viewBox
+      // clamp (maxAbsX = 168 − 90 = 78) drags the pushed-out center (~230) back to x=78, which is
+      // inside the radius. Placement must still report 'outer' so the caller renders a leader line
+      // + dark text instead of misclassifying it as an in-slice label.
+      const smallRadius = 140;
+      const smallViewBoxHalf = 168;
+      const wideBbox = { w: 180, h: 20 };
+      const narrow = { startAngle: -Math.PI / 24, endAngle: Math.PI / 24, midAngle: 0, sweep: Math.PI / 12 };
+      const { pos, placement } = constrainLabelPosition({ x: 120, y: 0 }, center, smallRadius, wideBbox, smallViewBoxHalf, narrow);
+      expect(placement).toBe('outer');
+      expect(pos.x).toBeCloseTo(smallViewBoxHalf - wideBbox.w / 2, 5);
+      expect(pos.y).toBeCloseTo(0, 5);
+      // The decoupling: the clamped center sits inside the radius, so a radial distance test
+      // would wrongly read "inside" — placement must not depend on it.
+      expect(Math.hypot(pos.x, pos.y)).toBeLessThan(smallRadius);
     });
 
     test('skips the wedge when the slice spans more than π', () => {
       const big = { startAngle: -Math.PI / 2, endAngle: -Math.PI / 2 + (3 * Math.PI) / 2, midAngle: Math.PI / 4, sweep: (3 * Math.PI) / 2 };
-      const pos = constrainLabelPosition({ x: 50, y: 50 }, center, radius, bbox, viewBoxHalf, big);
+      const { pos } = constrainLabelPosition({ x: 50, y: 50 }, center, radius, bbox, viewBoxHalf, big);
       expect(pos.x).toBeCloseTo(50, 5);
       expect(pos.y).toBeCloseTo(50, 5);
     });

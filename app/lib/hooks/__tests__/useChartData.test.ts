@@ -150,6 +150,38 @@ describe('useChartData (SVG geometry)', () => {
     expect(label.leaderFrom!.x).toBeGreaterThan(label.leaderTo!.x);
   });
 
+  test('keeps a dragged-out label classified as outside even when the viewBox clamp pulls it back inside on a small chart', () => {
+    // radial: 1.0 pushes the label far past the radius, but a wide bbox on the 280px chart makes
+    // the outer candidate's viewBox clamp (maxAbsX = 168 − 90 = 78) drag the center back to x=78,
+    // inside the radius. The outside classification must survive the clamp so the label still
+    // renders with dark text and a leader toward its slice — a radial test on the clamped center
+    // would wrongly read "inside".
+    const entries = makeRendered([
+      { id: 'a', name: 'A', weight: 5, polarity: 'positive', labelOffset: { radial: 1.0, angular: 0 } },
+      { id: 'b', name: 'B', weight: 5, polarity: 'positive' },
+    ]);
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        labelBBoxes: { a: { w: 180, h: 20 } },
+        chartSize: 280,
+      })
+    );
+    const label = result.current.labels.find(l => l.id === 'a')!;
+    const radius = result.current.layout.radius;
+    expect(label.isOutside).toBe(true);
+    // The clamp pulled the center inside the radius — the decoupling is what keeps isOutside true.
+    expect(Math.hypot(label.x, label.y)).toBeLessThan(radius);
+    // Leader still terminates at the slice arc midpoint (first of two equal slices → (radius, 0)).
+    expect(label.leaderTo).not.toBeNull();
+    expect(label.leaderTo!.x).toBeCloseTo(radius, 5);
+    expect(label.leaderTo!.y).toBeCloseTo(0, 5);
+    // The wide bbox overlaps the arc, so no connector segment is drawn — the outside flag and
+    // the leader line are decoupled.
+    expect(label.leaderFrom).toBeNull();
+  });
+
   test('layout includes 20% padding around the pie radius', () => {
     const entries = makeRendered([{ id: 'a', weight: 5, polarity: 'positive' }]);
     const { result } = renderHook(() =>

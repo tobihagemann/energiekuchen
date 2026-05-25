@@ -7,7 +7,6 @@ import {
   applyLabelOffset,
   computeLeaderStart,
   constrainLabelPosition,
-  isLabelOutsideCircle,
   LabelBBox,
   nudgeOuterLabelsTangentially,
   type SliceWedge,
@@ -179,8 +178,8 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
     const viewBoxHalf = viewBoxEdge / 2;
     const center = { cx, cy };
     const constrainedPositions = labelInputs.map(l => {
-      const pos = constrainLabelPosition(l.offsetPos, center, radius, l.bbox, viewBoxHalf, l.slice);
-      return { id: l.id, pos, bbox: l.bbox, isOutside: isLabelOutsideCircle(pos, center, radius) };
+      const { pos, placement } = constrainLabelPosition(l.offsetPos, center, radius, l.bbox, viewBoxHalf, l.slice);
+      return { id: l.id, pos, bbox: l.bbox, isOutside: placement === 'outer' };
     });
 
     // Tangential overlap nudge among outer labels (skip dragged). Inner labels are
