@@ -80,7 +80,8 @@ interface Activity {
   polarity: 'positive' | 'negative'; // green = positive (Energiequelle), red = negative (Energieräuber)
   details?: string; // Optional details text (max 150 chars, supports multi-line)
   labelOffset?: { radial: number; angular: number }; // Optional polar offset from the slice centroid
-  // Note: color is computed from polarity, not stored; slice size comes directly from weight.
+  // Note: color is computed from polarity and the slice's weight rank within its polarity
+  // (larger = darker shade), not stored; slice size comes directly from weight.
 }
 ```
 

@@ -2,41 +2,38 @@
 
 import { useMemo } from 'react';
 
-import { getColorForPolarity } from '@/app/lib/utils/constants';
 import {
   applyLabelOffset,
-  computeDefaultLabelPosition,
   computeLeaderStart,
   constrainLabelPosition,
-  isLabelOutsideCircle,
   LabelBBox,
   nudgeOuterLabelsTangentially,
   type SliceWedge,
 } from '@/app/lib/utils/labelLayout';
 import { polarToCartesian } from '@/app/lib/utils/polar';
+import { assignShadeDepths, getActiveBorderExpr, getInsideTextColor, getShadeColor } from '@/app/lib/utils/shade';
+import { computeStartAngles, START_ANGLE } from '@/app/lib/utils/sliceAngles';
 import type { Activity, ChartType, Polarity } from '@/app/types';
 
 // Entries flow in from `useAnimatedRenderedEntries`, which marks slices fading out from a
 // deletion as `isGhost: true`. Ghost slices still render (shrinking weight → vanishing
 // path), but their labels and layout participation are suppressed inside this hook.
-export type RenderedEntry = Activity & { isGhost?: boolean };
+// `startAngle`/`shadeDepth` are the animated channels; absent on a plain activity, in which
+// case this hook walks the contiguous angles and ranks the depths itself.
+export type RenderedEntry = Activity & { isGhost?: boolean; startAngle?: number; shadeDepth?: number };
 
 export interface SliceGeometry {
   id: string;
   name: string;
-  details?: string;
   polarity: Polarity;
   startAngle: number;
   endAngle: number;
-  midAngle: number;
-  normalized: number;
-  displayedWeight: number;
+  weight: number;
   pathD: string;
   fillColor: string;
   hoverFillColor: string;
   borderColor: string;
   hoverBorderColor: string;
-  isFullCircle: boolean;
 }
 
 export interface LabelGeometry {
@@ -53,7 +50,9 @@ export interface LabelGeometry {
   // be drawn (no leaderTo, or the gap overshoots the leader endpoint).
   leaderFrom: { x: number; y: number } | null;
   isOutside: boolean;
-  centroid: { x: number; y: number };
+  // Adaptive text color for an inside label, keyed on the slice's shade depth so it stays
+  // legible on both pale and dark fills. Outside labels use the canvas gray-900 instead.
+  insideTextColor: string;
 }
 
 interface ChartLayout {
@@ -87,7 +86,6 @@ export interface UseChartDataResult {
 const EMPTY_CHART_COLOR = 'oklch(0.967 0.003 264.542)';
 const EMPTY_CHART_HOVER = 'oklch(0.985 0.002 247.839)';
 const LABEL_PADDING_FRACTION = 1.2;
-const START_ANGLE = -Math.PI / 2;
 
 export function useChartData(input: UseChartDataInput): UseChartDataResult {
   const { renderedEntries, draggedLabelId, labelBBoxes, editingActivity, chartType, chartSize } = input;
@@ -113,15 +111,12 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
         polarity: 'positive',
         startAngle: START_ANGLE,
         endAngle: START_ANGLE + Math.PI * 2,
-        midAngle: 0,
-        normalized: 1,
-        displayedWeight: 0,
+        weight: 0,
         pathD: fullCirclePath(cx, cy, radius),
         fillColor: EMPTY_CHART_COLOR,
         hoverFillColor: EMPTY_CHART_HOVER,
         borderColor: 'oklch(1 0 0)',
         hoverBorderColor: 'oklch(1 0 0)',
-        isFullCircle: true,
       };
       return { slices: [slice], labels: [], layout, isEmpty: true };
     }
@@ -132,25 +127,38 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
       id: string;
       name: string;
       details?: string;
-      centroid: { x: number; y: number };
       offsetPos: { x: number; y: number };
       midAngle: number;
       bbox: LabelBBox;
       slice: SliceWedge;
+      insideTextColor: string;
     }> = [];
 
-    let cursor = START_ANGLE;
+    // Use the animated start angles only when every entry carries one (all-or-nothing: a
+    // single gap would mix animated starts with a cumulative fallback and break the ring);
+    // otherwise walk the contiguous angles ourselves. Depths follow the same contract —
+    // recompute the whole ring (ghost-exclusive) if any entry lacks a precomputed depth.
+    const startAngles = renderedEntries.every(e => e.startAngle !== undefined)
+      ? renderedEntries.map(e => e.startAngle as number)
+      : computeStartAngles(
+          renderedEntries.map(e => e.weight),
+          START_ANGLE
+        );
+    const fallbackDepths = renderedEntries.some(e => e.shadeDepth === undefined) ? assignShadeDepths(renderedEntries.filter(e => !e.isGhost)) : null;
+
     for (let i = 0; i < renderedEntries.length; i++) {
       const entry = renderedEntries[i];
       const weight = entry.weight;
       const sweep = (weight / total) * Math.PI * 2;
-      const start = cursor;
-      const end = cursor + sweep;
+      const start = startAngles[i];
+      const end = start + sweep;
       const mid = start + sweep / 2;
-      cursor = end;
 
       const isActive = editingActivity?.chartType === chartType && editingActivity?.activityId === entry.id;
-      const baseColor = getColorForPolarity(entry.polarity);
+      // When the fallback is engaged it owns the whole ring (a ghost, excluded from ranking,
+      // lands on the mid 0.5); otherwise every entry already carries its animated depth.
+      const depth = fallbackDepths ? (fallbackDepths[entry.id] ?? 0.5) : (entry.shadeDepth as number);
+      const shadedColor = getShadeColor(entry.polarity, depth);
 
       const isFullCircle = renderedEntries.length === 1;
       const pathD = isFullCircle ? fullCirclePath(cx, cy, radius) : slicePath(cx, cy, radius, start, end);
@@ -158,19 +166,15 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
       slices.push({
         id: entry.id,
         name: entry.name,
-        details: entry.details,
         polarity: entry.polarity,
         startAngle: start,
         endAngle: end,
-        midAngle: mid,
-        normalized: weight / total,
-        displayedWeight: weight,
+        weight,
         pathD,
-        fillColor: baseColor,
-        hoverFillColor: `oklch(from ${baseColor} calc(l + 0.1) c h)`,
-        borderColor: isActive ? `oklch(from ${baseColor} calc(l - 0.1) c h)` : 'oklch(1 0 0)',
-        hoverBorderColor: isActive ? `oklch(from ${baseColor} calc(l - 0.1) c h)` : 'oklch(1 0 0)',
-        isFullCircle,
+        fillColor: shadedColor,
+        hoverFillColor: `oklch(from ${shadedColor} calc(l + 0.1) c h)`,
+        borderColor: isActive ? getActiveBorderExpr(shadedColor, depth) : 'oklch(1 0 0)',
+        hoverBorderColor: isActive ? getActiveBorderExpr(shadedColor, depth) : 'oklch(1 0 0)',
       });
 
       // Ghost slices keep rendering (their path shrinks during the deletion animation),
@@ -179,7 +183,6 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
       // approaches zero.
       if (entry.isGhost) continue;
 
-      const centroid = computeDefaultLabelPosition({ cx, cy, radius, midAngle: mid });
       const offsetPos = applyLabelOffset({ cx, cy, midAngle: mid }, entry.labelOffset, radius);
       const bbox = labelBBoxes[entry.id] ?? estimateBBox(entry);
 
@@ -187,19 +190,19 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
         id: entry.id,
         name: entry.name,
         details: entry.details,
-        centroid,
         offsetPos,
         midAngle: mid,
         bbox,
         slice: { startAngle: start, endAngle: end, midAngle: mid, sweep },
+        insideTextColor: getInsideTextColor(depth),
       });
     }
 
     const viewBoxHalf = viewBoxEdge / 2;
     const center = { cx, cy };
     const constrainedPositions = labelInputs.map(l => {
-      const pos = constrainLabelPosition(l.offsetPos, center, radius, l.bbox, viewBoxHalf, l.slice);
-      return { id: l.id, pos, bbox: l.bbox, isOutside: isLabelOutsideCircle(pos, center, radius) };
+      const { pos, placement } = constrainLabelPosition(l.offsetPos, center, radius, l.bbox, viewBoxHalf, l.slice);
+      return { id: l.id, pos, bbox: l.bbox, isOutside: placement === 'outer' };
     });
 
     // Tangential overlap nudge among outer labels (skip dragged). Inner labels are
@@ -226,7 +229,7 @@ export function useChartData(input: UseChartDataInput): UseChartDataResult {
         leaderTo,
         leaderFrom,
         isOutside,
-        centroid: l.centroid,
+        insideTextColor: l.insideTextColor,
       };
     });
 

@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 
 import type { SliceGeometry } from '@/app/lib/hooks/useChartData';
 import type { BoundaryHandle } from '@/app/lib/hooks/usePieDrag';
+import { DEFAULT_LABEL_OFFSET } from '@/app/lib/utils/constants';
 import { getFloor } from '@/app/lib/utils/floor';
 import { getPercentage } from '@/app/lib/utils/percentage';
 import { redistributeTwoDonor, type WeightEntry } from '@/app/lib/utils/redistribution';
@@ -92,7 +93,7 @@ export function PieSlice(props: PieSliceProps) {
       const floor = getFloor(total);
 
       if (isShift) {
-        const current = currentLabelOffset ?? { radial: 0, angular: 0 };
+        const current = currentLabelOffset ?? DEFAULT_LABEL_OFFSET;
         let next: LabelOffset = { ...current };
         if (e.key === 'ArrowRight') next.angular = current.angular + ANGULAR_STEP;
         else if (e.key === 'ArrowLeft') next.angular = current.angular - ANGULAR_STEP;

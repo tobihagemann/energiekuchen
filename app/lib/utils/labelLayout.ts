@@ -21,10 +21,6 @@ export interface SliceWedge {
   sweep: number;
 }
 
-export function computeDefaultLabelPosition({ cx, cy, radius, midAngle }: { cx: number; cy: number; radius: number; midAngle: number }): Point {
-  return polarToCartesian(cx, cy, radius * LABEL_DEFAULT_RADIUS_FRACTION, midAngle);
-}
-
 // Adds an offset to the default position. `radial` units are pie radii (additive on top of
 // the default 0.6r centroid); `angular` rotates the default direction around the center.
 export function applyLabelOffset({ cx, cy, midAngle }: { cx: number; cy: number; midAngle: number }, offset: LabelOffset | undefined, radius: number): Point {
@@ -34,12 +30,15 @@ export function applyLabelOffset({ cx, cy, midAngle }: { cx: number; cy: number;
   return polarToCartesian(cx, cy, effectiveRadius, midAngle + angular);
 }
 
-// A leader line is drawn only when the label's center has crossed the pie's outer edge.
-// Labels nudged within the pie sit on a colored slice and don't need a connector.
-export function isLabelOutsideCircle(labelPos: Point, center: { cx: number; cy: number }, radius: number): boolean {
-  const dx = labelPos.x - center.cx;
-  const dy = labelPos.y - center.cy;
-  return dx * dx + dy * dy > radius * radius;
+// Which feasible region the constrained label landed in. The caller uses this — not a
+// radial distance test on the returned position — to decide "outside" rendering (leader
+// line + dark text), because the outer candidate's viewBox clamp can pull an outer label's
+// center back inside the circle on small charts with wide bboxes.
+type LabelPlacement = 'inner' | 'outer';
+
+export interface ConstrainedLabel {
+  pos: Point;
+  placement: LabelPlacement;
 }
 
 // Snap a label so it sits in one of two feasible regions for the slice:
@@ -60,7 +59,7 @@ export function constrainLabelPosition(
   bbox: LabelBBox,
   viewBoxHalf: number,
   slice?: SliceWedge
-): Point {
+): ConstrainedLabel {
   const wedgeActive = slice !== undefined && slice.sweep > 0 && slice.sweep <= Math.PI + 1e-9;
   const halfDiag = 0.5 * Math.hypot(bbox.w, bbox.h);
 
@@ -71,15 +70,19 @@ export function constrainLabelPosition(
   const outer = computeOuterCandidate(px, py, slice, bbox, radius, halfDiag, viewBoxHalf, wedgeActive);
 
   let result: Point;
+  let placement: LabelPlacement;
   if (!inner) {
     result = outer;
+    placement = 'outer';
   } else {
     const dInner = (px - inner.x) ** 2 + (py - inner.y) ** 2;
     const dOuter = (px - outer.x) ** 2 + (py - outer.y) ** 2;
-    result = dInner <= dOuter ? inner : outer;
+    const pickInner = dInner <= dOuter;
+    placement = pickInner ? 'inner' : 'outer';
+    result = pickInner ? inner : outer;
   }
 
-  return { x: result.x + center.cx, y: result.y + center.cy };
+  return { pos: { x: result.x + center.cx, y: result.y + center.cy }, placement };
 }
 
 // Closest point in (shrunk wedge ∩ inner disk) to (px, py), or null when infeasible.

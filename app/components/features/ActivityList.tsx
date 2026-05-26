@@ -19,6 +19,7 @@ import { useState } from 'react';
 import { AddActivity } from '@/app/components/features/AddActivity';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
+import { assignShadeDepths } from '@/app/lib/utils/shade';
 import { Activity, ChartType } from '@/app/types';
 
 import { SortableActivityItem } from './SortableActivityItem';
@@ -84,6 +85,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
   };
 
   const totalWeight = activities.reduce((sum, a) => sum + a.weight, 0);
+  const shadeDepths = assignShadeDepths(activities);
 
   return (
     <div className={className} data-testid={`activity-list-${chartType}`}>
@@ -111,6 +113,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
                   key={activity.id}
                   activity={activity}
                   totalWeight={totalWeight}
+                  shadeDepth={shadeDepths[activity.id]}
                   isEditing={false}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
@@ -123,6 +126,7 @@ export function ActivityList({ chartType, activities, className }: ActivityListP
               <SortableActivityItem
                 activity={activities.find(a => a.id === activeId)!}
                 totalWeight={totalWeight}
+                shadeDepth={shadeDepths[activeId]}
                 isEditing={false}
                 onEdit={() => {}}
                 onDelete={() => {}}

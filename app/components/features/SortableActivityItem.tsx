@@ -12,12 +12,13 @@ import { Activity } from '@/app/types';
 interface SortableActivityItemProps {
   activity: Activity;
   totalWeight: number;
+  shadeDepth?: number;
   isEditing: boolean;
   onEdit: (activityId: string) => void;
   onDelete: (activityId: string) => void;
 }
 
-export function SortableActivityItem({ activity, totalWeight, isEditing, onEdit, onDelete }: SortableActivityItemProps) {
+export function SortableActivityItem({ activity, totalWeight, shadeDepth, isEditing, onEdit, onDelete }: SortableActivityItemProps) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: activity.id });
 
   const style = {
@@ -37,7 +38,7 @@ export function SortableActivityItem({ activity, totalWeight, isEditing, onEdit,
             <Bars3Icon className="h-4 w-4" />
           </button>
         )}
-        <ActivityColorBadge polarity={activity.polarity} />
+        <ActivityColorBadge polarity={activity.polarity} depth={shadeDepth} />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium text-gray-900" data-testid={`activity-name-${activity.id}`}>
             {activity.name}
