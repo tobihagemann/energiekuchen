@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 
 import { RenderedEntry, useChartData } from '@/app/lib/hooks/useChartData';
-import { NEGATIVE_COLOR, POSITIVE_COLOR } from '@/app/lib/utils/constants';
+import { getActiveBorderExpr, getInsideTextColor, getShadeColor } from '@/app/lib/utils/shade';
 
 function makeRendered(entries: Array<Partial<RenderedEntry>>): RenderedEntry[] {
   return entries.map((e, i) => ({
@@ -58,7 +58,9 @@ describe('useChartData (SVG geometry)', () => {
     expect(slices[2].endAngle).toBeCloseTo(startAngle + Math.PI * 2);
   });
 
-  test('renders polarity colors', () => {
+  test('shades each lone-polarity slice at the band midpoint', () => {
+    // One positive and one negative slice: each is alone in its polarity, so both map to the
+    // mid (0.5) depth and render the band-midpoint shade for their color.
     const entries = makeRendered([
       { id: 'a', weight: 5, polarity: 'positive' },
       { id: 'b', weight: 5, polarity: 'negative' },
@@ -69,11 +71,14 @@ describe('useChartData (SVG geometry)', () => {
         renderedEntries: entries,
       })
     );
-    expect(result.current.slices[0].fillColor).toBe(POSITIVE_COLOR);
-    expect(result.current.slices[1].fillColor).toBe(NEGATIVE_COLOR);
+    expect(result.current.slices[0].fillColor).toBe(getShadeColor('positive', 0.5));
+    expect(result.current.slices[1].fillColor).toBe(getShadeColor('negative', 0.5));
   });
 
-  test('darkens border for active editing slice', () => {
+  test('gives the active editing slice an adaptive contrast border, others stay white', () => {
+    // Two equal-weight positives: ties keep input order, so 'a' ranks darkest. A 2-slice group
+    // fans to depth 2/3 (green-600), still a dark fill, so its active border lightens
+    // (calc(l + 0.1)) to stay visible.
     const entries = makeRendered([
       { id: 'a', weight: 5, polarity: 'positive' },
       { id: 'b', weight: 5, polarity: 'positive' },
@@ -85,7 +90,7 @@ describe('useChartData (SVG geometry)', () => {
         editingActivity: { chartType: 'current', activityId: 'a' },
       })
     );
-    expect(result.current.slices[0].borderColor).toBe(`oklch(from ${POSITIVE_COLOR} calc(l - 0.1) c h)`);
+    expect(result.current.slices[0].borderColor).toBe(getActiveBorderExpr(getShadeColor('positive', 2 / 3), 2 / 3));
     expect(result.current.slices[1].borderColor).toBe('oklch(1 0 0)');
   });
 
@@ -275,6 +280,70 @@ describe('useChartData (SVG geometry)', () => {
     );
     expect(result.current.slices).toHaveLength(3);
     expect(result.current.labels.map(l => l.id)).toEqual(['a', 'b']);
+  });
+
+  test('consumes supplied shadeDepth directly for fill and inside-text color', () => {
+    // Both entries carry an explicit shadeDepth, so the fallback ranking is bypassed and
+    // each slice's fill plus its label's adaptive inside-text color come from that depth: a
+    // pale slice (0.2) gets dark text, a dark slice (0.9) gets white.
+    const entries: RenderedEntry[] = [
+      { id: 'a', name: 'A', polarity: 'positive', weight: 5, shadeDepth: 0.2 },
+      { id: 'b', name: 'B', polarity: 'positive', weight: 5, shadeDepth: 0.9 },
+    ];
+    const { result } = renderHook(() => useChartData({ ...baseInput, renderedEntries: entries }));
+    expect(result.current.slices[0].fillColor).toBe(getShadeColor('positive', 0.2));
+    expect(result.current.slices[1].fillColor).toBe(getShadeColor('positive', 0.9));
+    const labelA = result.current.labels.find(l => l.id === 'a')!;
+    const labelB = result.current.labels.find(l => l.id === 'b')!;
+    expect(labelA.insideTextColor).toBe(getInsideTextColor(0.2));
+    expect(labelB.insideTextColor).toBe(getInsideTextColor(0.9));
+  });
+
+  test('uses animated start angles only when every entry carries one', () => {
+    const entries: RenderedEntry[] = [
+      { id: 'a', name: 'A', polarity: 'positive', weight: 5, startAngle: 0.5 },
+      { id: 'b', name: 'B', polarity: 'positive', weight: 5, startAngle: 2 },
+    ];
+    const { result } = renderHook(() => useChartData({ ...baseInput, renderedEntries: entries }));
+    expect(result.current.slices[0].startAngle).toBe(0.5);
+    expect(result.current.slices[1].startAngle).toBe(2);
+    // Sweep still derives from weight: end = start + (5/10) * 2π.
+    expect(result.current.slices[0].endAngle).toBeCloseTo(0.5 + Math.PI);
+  });
+
+  test('falls back to the contiguous walk when any entry lacks a start angle (all-or-nothing)', () => {
+    // Only 'b' carries a start angle; the ring must ignore both animated starts and walk
+    // computeStartAngles for the whole ring rather than splicing the lone animated value in.
+    const entries: RenderedEntry[] = [
+      { id: 'a', name: 'A', polarity: 'positive', weight: 5 },
+      { id: 'b', name: 'B', polarity: 'positive', weight: 5, startAngle: 1.234 },
+    ];
+    const { result } = renderHook(() => useChartData({ ...baseInput, renderedEntries: entries }));
+    const startAngle = -Math.PI / 2;
+    expect(result.current.slices[0].startAngle).toBeCloseTo(startAngle);
+    expect(result.current.slices[1].startAngle).toBeCloseTo(startAngle + Math.PI);
+  });
+
+  test('depth fallback ranks the whole ring ghost-exclusive when any entry lacks shadeDepth', () => {
+    // 'a' has no shadeDepth, so the whole-ring fallback engages. The ghost must be excluded
+    // from ranking (it must not inflate n), so a(8)/b(2) rank as a darkest, b palest — and
+    // 'b's own (stale) shadeDepth is ignored once the fallback owns the ring. With the ghost
+    // out, it's a 2-slice group: a fans to depth 2/3 (green-600), b to 1/3 (green-400).
+    const entries: RenderedEntry[] = [
+      { id: 'a', name: 'A', polarity: 'positive', weight: 8 },
+      { id: 'ghost', name: 'G', polarity: 'positive', weight: 0.001, isGhost: true, shadeDepth: 0.42 },
+      { id: 'b', name: 'B', polarity: 'positive', weight: 2, shadeDepth: 0.99 },
+    ];
+    const { result } = renderHook(() =>
+      useChartData({
+        ...baseInput,
+        renderedEntries: entries,
+        labelBBoxes: { a: { w: 20, h: 16 }, ghost: { w: 20, h: 16 }, b: { w: 20, h: 16 } },
+      })
+    );
+    const byId = Object.fromEntries(result.current.slices.map(s => [s.id, s]));
+    expect(byId['a'].fillColor).toBe(getShadeColor('positive', 2 / 3));
+    expect(byId['b'].fillColor).toBe(getShadeColor('positive', 1 / 3));
   });
 
   test('memoizes on stable input', () => {

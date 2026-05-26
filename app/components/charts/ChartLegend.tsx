@@ -3,6 +3,7 @@
 import { ActivityColorBadge } from '@/app/components/ui/ActivityColorBadge';
 import { cn } from '@/app/lib/utils/cn';
 import { getPercentage } from '@/app/lib/utils/percentage';
+import { assignShadeDepths } from '@/app/lib/utils/shade';
 import { Activity } from '@/app/types';
 
 interface ChartLegendProps {
@@ -17,6 +18,7 @@ export function ChartLegend({ activities, onActivityClick, className }: ChartLeg
   }
 
   const totalWeight = activities.reduce((sum, a) => sum + a.weight, 0);
+  const shadeDepths = assignShadeDepths(activities);
 
   return (
     <div className={cn('space-y-2', className)}>
@@ -27,7 +29,7 @@ export function ChartLegend({ activities, onActivityClick, className }: ChartLeg
           className={cn('flex items-center justify-between rounded p-2 transition-colors hover:bg-gray-50', onActivityClick && 'cursor-pointer')}
           onClick={() => onActivityClick?.(activity.id)}>
           <div className="flex min-w-0 flex-1 items-center space-x-3">
-            <ActivityColorBadge polarity={activity.polarity} />
+            <ActivityColorBadge polarity={activity.polarity} depth={shadeDepths[activity.id]} />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium text-gray-900">
                 {activity.name}

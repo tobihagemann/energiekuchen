@@ -15,3 +15,4 @@ Co-locate unit tests in a `__tests__/` folder beside the source, named `<name>.t
 - **knip:** export only what's consumed _outside the defining file_. Test-only references count as "used", so `pnpm knip` will **not** flag exports that only tests touch — remove that dead code yourself.
 - **Load/save validation symmetry:** validators on the load path must match the write path, or autosave + reload silently erases user data. Change them together.
 - **Discriminated unions:** pass an explicit generic to `useState` for union fields (e.g. polarity) — initial-value inference widens to `string`.
+- **Id-keyed maps over activity ids:** activity ids are user-controlled (import/share preserves them via `ensureActivityId`). Build id-keyed lookups with `Object.create(null)` or a `Map` — a `"__proto__"` id is silently swallowed by a plain object's prototype setter, so the read returns `Object.prototype` instead of the stored value.

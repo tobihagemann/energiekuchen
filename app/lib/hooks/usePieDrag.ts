@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 
+import { DEFAULT_LABEL_OFFSET } from '@/app/lib/utils/constants';
 import { getFloor } from '@/app/lib/utils/floor';
 import { applyLabelOffset, isInSnapZone, LABEL_DEFAULT_RADIUS_FRACTION } from '@/app/lib/utils/labelLayout';
 import { cartesianToPolar, clientToSvgPoint, normalizeAngle } from '@/app/lib/utils/polar';
@@ -165,7 +166,7 @@ export function usePieDrag(opts: UsePieDragOptions): UsePieDragResult {
       labelStateRef.current = {
         handle,
         pointerId: e.pointerId,
-        offset: handle.initialOffset ?? { radial: 0, angular: 0 },
+        offset: handle.initialOffset ?? DEFAULT_LABEL_OFFSET,
       };
       setDraggingLabel(handle);
       try {

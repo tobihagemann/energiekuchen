@@ -26,10 +26,12 @@ Energiekuchen ist eine webbasierte Anwendung, die als visuelles Coaching-Tool di
 
 ### Browser-Unterstützung
 
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
+Die Diagramm-Farben nutzen die relative CSS-Farbsyntax (`oklch(from …)`), die erst ab Baseline 2024 verfügbar ist:
+
+- Chrome 119+
+- Firefox 128+
+- Safari 16.4+
+- Edge 119+
 
 ## Funktionale Anforderungen
 
@@ -176,14 +178,11 @@ Alle Farben folgen dem Tailwind CSS 4 Standard mit oklch-Farbformat (siehe `docs
 - **Hintergrund:**
   - gray-50 für Seitenhintergrund
   - Weiß (#fff) für Content-Bereiche, Karten und Modals
-- **Positiv (Energiegebend):** Grüntöne für positive Werte (+1 bis +5)
-  - Absolute Level 1-5: Von green-300 bis green-700
-  - Beispiel: `oklch(0.723 0.219 149.579)` für green-500
-  - Farbe wird basierend auf Absolutwert bestimmt
-- **Negativ (Energiezehrend):** Rottöne für negative Werte (-1 bis -5)
-  - Absolute Level 1-5: Von red-300 bis red-700
-  - Beispiel: `oklch(0.637 0.237 25.331)` für red-500
-  - Farbe wird basierend auf Absolutwert bestimmt
+- **Positiv (Energiegebend):** Grüntöne, abgestuft nach Gewichtungsrang innerhalb der Polarität (größter Anteil am dunkelsten)
+  - Band von green-200 (hell) bis green-800 (dunkel), Mittelpunkt green-500 `oklch(0.723 0.219 149.579)`
+  - Das Band weitet sich mit der Anzahl der Aktivitäten: wenige bleiben nahe green-500, erst ein voller Chart erreicht die Extreme
+- **Negativ (Energiezehrend):** Rottöne, abgestuft nach Gewichtungsrang innerhalb der Polarität (größter Anteil am dunkelsten)
+  - Band von red-200 (hell) bis red-800 (dunkel), Mittelpunkt red-500 `oklch(0.637 0.237 25.331)`
   - Zusätzlich red-500/600 für Lösch-Buttons und Fehlermeldungen
 
 ### 5. Interaktivität

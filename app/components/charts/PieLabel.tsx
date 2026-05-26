@@ -8,7 +8,6 @@ import type { LabelOffset } from '@/app/types';
 
 const OUTSIDE_TEXT_COLOR = 'oklch(0.21 0.034 264.665)'; // gray-900
 const LEADER_LINE_COLOR = 'oklch(0.872 0.01 258.338)'; // gray-300
-const INSIDE_TEXT_COLOR = 'oklch(1 0 0)'; // white
 
 interface PieLabelProps {
   label: LabelGeometry;
@@ -87,7 +86,7 @@ export function PieLabel({ label, radius, fontSize, detailsFontSize, initialOffs
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              color: label.isOutside ? OUTSIDE_TEXT_COLOR : INSIDE_TEXT_COLOR,
+              color: label.isOutside ? OUTSIDE_TEXT_COLOR : label.insideTextColor,
               fontWeight: 'bold',
               fontSize: `${fontSize}px`,
               lineHeight: 1.1,
