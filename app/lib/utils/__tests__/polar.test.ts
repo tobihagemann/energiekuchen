@@ -1,4 +1,4 @@
-import { cartesianToPolar, clientToSvgPoint, normalizeAngle, polarToCartesian, sliceCentroid } from '../polar';
+import { cartesianToPolar, clientToSvgPoint, normalizeAngle, polarToCartesian, sliceCentroid, svgUserUnitsPerCssPx } from '../polar';
 
 describe('polarToCartesian', () => {
   test('places (r, 0) on the +x axis', () => {
@@ -121,5 +121,69 @@ describe('clientToSvgPoint', () => {
     const point = clientToSvgPoint(svg, 60, 70);
     expect(point.x).toBeCloseTo(100);
     expect(point.y).toBeCloseTo(100);
+  });
+});
+
+describe('svgUserUnitsPerCssPx', () => {
+  test('inverts the getScreenCTM scale: a half-size SVG yields a 2x factor', () => {
+    const svg = {
+      getScreenCTM: () => ({ a: 0.5, b: 0, c: 0, d: 0.5, e: 0, f: 0 }),
+    } as unknown as SVGSVGElement;
+    const factor = svgUserUnitsPerCssPx(svg);
+    expect(factor.x).toBeCloseTo(2);
+    expect(factor.y).toBeCloseTo(2);
+  });
+
+  test('falls back to the viewBox/rect ratio when getScreenCTM returns null', () => {
+    const svg = {
+      getScreenCTM: () => null,
+      getBoundingClientRect: () => ({ left: 0, top: 0, width: 168, height: 168 }),
+      viewBox: { baseVal: { x: 0, y: 0, width: 336, height: 336 } },
+    } as unknown as SVGSVGElement;
+    const factor = svgUserUnitsPerCssPx(svg);
+    expect(factor.x).toBeCloseTo(2);
+    expect(factor.y).toBeCloseTo(2);
+  });
+
+  test('returns an identity factor when the SVG has no usable scale (zero-size, null CTM)', () => {
+    const svg = {
+      getScreenCTM: () => null,
+      getBoundingClientRect: () => ({ left: 0, top: 0, width: 0, height: 0 }),
+      viewBox: { baseVal: { x: 0, y: 0, width: 336, height: 336 } },
+    } as unknown as SVGSVGElement;
+    const factor = svgUserUnitsPerCssPx(svg);
+    expect(factor.x).toBe(1);
+    expect(factor.y).toBe(1);
+  });
+
+  test('falls through to the viewBox/rect fallback when getScreenCTM has zero scale', () => {
+    const svg = {
+      getScreenCTM: () => ({ a: 0, b: 0, c: 0, d: 0, e: 0, f: 0 }),
+      getBoundingClientRect: () => ({ left: 0, top: 0, width: 168, height: 168 }),
+      viewBox: { baseVal: { x: 0, y: 0, width: 336, height: 336 } },
+    } as unknown as SVGSVGElement;
+    const factor = svgUserUnitsPerCssPx(svg);
+    expect(factor.x).toBeCloseTo(2);
+    expect(factor.y).toBeCloseTo(2);
+  });
+
+  test('falls back per-axis: a zero-height rect yields identity on y only', () => {
+    const svg = {
+      getScreenCTM: () => null,
+      getBoundingClientRect: () => ({ left: 0, top: 0, width: 168, height: 0 }),
+      viewBox: { baseVal: { x: 0, y: 0, width: 336, height: 336 } },
+    } as unknown as SVGSVGElement;
+    const factor = svgUserUnitsPerCssPx(svg);
+    expect(factor.x).toBeCloseTo(2);
+    expect(factor.y).toBe(1);
+  });
+
+  test('returns distinct per-axis factors for a non-uniform CTM scale', () => {
+    const svg = {
+      getScreenCTM: () => ({ a: 0.5, b: 0, c: 0, d: 0.25, e: 0, f: 0 }),
+    } as unknown as SVGSVGElement;
+    const factor = svgUserUnitsPerCssPx(svg);
+    expect(factor.x).toBeCloseTo(2);
+    expect(factor.y).toBeCloseTo(4);
   });
 });

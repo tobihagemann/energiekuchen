@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import type { LabelGeometry } from '@/app/lib/hooks/useChartData';
 import type { LabelHandle } from '@/app/lib/hooks/usePieDrag';
+import { svgUserUnitsPerCssPx } from '@/app/lib/utils/polar';
 import type { LabelOffset } from '@/app/types';
 
 const OUTSIDE_TEXT_COLOR = 'oklch(0.21 0.034 264.665)'; // gray-900
@@ -30,7 +31,10 @@ export function PieLabel({ label, radius, fontSize, detailsFontSize, initialOffs
     const report = () => {
       const rect = el.getBoundingClientRect();
       if (rect.width && rect.height) {
-        onBBoxChange(label.id, { w: rect.width, h: rect.height });
+        // Convert the measured CSS-px bbox into SVG user units for labelLayout (identity when scale is 1).
+        const svg = el.closest('svg');
+        const factor = svg ? svgUserUnitsPerCssPx(svg) : { x: 1, y: 1 };
+        onBBoxChange(label.id, { w: rect.width * factor.x, h: rect.height * factor.y });
       }
     };
     report();
