@@ -64,3 +64,22 @@ export function clientToSvgPoint(svg: SVGSVGElement, clientX: number, clientY: n
     y: (clientY - rect.top) * scaleY + viewBox.y,
   };
 }
+
+// getBoundingClientRect on foreignObject content returns screen CSS px, but labelLayout
+// consumes label bboxes as SVG user units; this per-axis factor reconciles the two.
+export function svgUserUnitsPerCssPx(svg: SVGSVGElement): Point {
+  const ctm = svg.getScreenCTM();
+  if (ctm) {
+    const sx = Math.hypot(ctm.a, ctm.b);
+    const sy = Math.hypot(ctm.c, ctm.d);
+    if (sx > 0 && sy > 0) return { x: 1 / sx, y: 1 / sy };
+  }
+
+  // Fallback path for environments where getScreenCTM is unavailable (older jsdom).
+  const rect = svg.getBoundingClientRect();
+  const viewBox = svg.viewBox.baseVal;
+  return {
+    x: rect.width > 0 ? viewBox.width / rect.width : 1,
+    y: rect.height > 0 ? viewBox.height / rect.height : 1,
+  };
+}
