@@ -119,6 +119,8 @@ The breakpoints do not align: the 1024–1279 px window renders two medium-sized
 
 6. **Color Definitions**: When defining colors in code (not using Tailwind classes), always use oklch color format from `docs/color-palette.md`.
 
+7. **Playwright CI Container**: E2E runs in CI inside the `mcr.microsoft.com/playwright:vX.Y.Z-noble` container pinned in `.github/workflows/test.yml`, which ships pre-baked browsers for that exact Playwright version. When upgrading `@playwright/test`, bump this image tag in lockstep — otherwise CI fails with `browserType.launch: Executable doesn't exist` even though local tests pass (your machine has browsers installed for the new version).
+
 ## Common Tasks
 
 When modifying charts:
