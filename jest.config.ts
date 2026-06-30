@@ -26,6 +26,8 @@ const config: Config = {
     'app/lib/hooks/**/*.{js,jsx,ts,tsx}',
     'app/lib/contexts/**/*.{js,jsx,ts,tsx}',
     '!app/lib/utils/cn.ts',
+    // DOM/canvas/Web-Share glue: jsdom can't exercise it, so it's E2E-tested instead.
+    '!app/lib/utils/imageExportBrowser.ts',
     '!app/**/*.d.ts',
     '!app/**/__tests__/**',
     '!app/**/*.test.*',

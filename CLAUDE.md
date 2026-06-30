@@ -26,7 +26,7 @@ pnpm build            # Build for production
 
 - **Next.js 16** with App Router for static site generation
 - **React 19** with TypeScript for component development
-- **Chart.js** for interactive pie chart visualizations
+- **Custom inline SVG** for interactive pie chart visualizations (hand-rolled `<path>`/`<text>` in `app/components/charts/`; no Chart.js or canvas)
 - **React Context API** with useReducer for state management
 - **Tailwind CSS 4** for responsive styling
 - **Client-side only** - no server dependencies, all data in localStorage

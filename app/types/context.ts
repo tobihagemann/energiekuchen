@@ -52,6 +52,7 @@ export interface EnergyContextType {
 export interface UIState {
   // Modal states
   isShareModalOpen: boolean;
+  isExportModalOpen: boolean;
   isImportModalOpen: boolean;
   isDeleteModalOpen: boolean;
   isEditModalOpen: boolean;
@@ -71,6 +72,8 @@ export interface UIState {
 export type UIAction =
   | { type: 'OPEN_SHARE_MODAL' }
   | { type: 'CLOSE_SHARE_MODAL' }
+  | { type: 'OPEN_EXPORT_MODAL' }
+  | { type: 'CLOSE_EXPORT_MODAL' }
   | { type: 'OPEN_IMPORT_MODAL' }
   | { type: 'CLOSE_IMPORT_MODAL' }
   | { type: 'OPEN_DELETE_MODAL' }
@@ -89,6 +92,8 @@ export interface UIContextType {
   state: UIState;
   openShareModal: () => void;
   closeShareModal: () => void;
+  openExportModal: () => void;
+  closeExportModal: () => void;
   openImportModal: () => void;
   closeImportModal: () => void;
   openDeleteModal: () => void;

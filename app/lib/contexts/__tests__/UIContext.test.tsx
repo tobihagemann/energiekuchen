@@ -11,6 +11,7 @@ describe('UIContext', () => {
 
     expect(result.current.state).toEqual({
       isShareModalOpen: false,
+      isExportModalOpen: false,
       isImportModalOpen: false,
       isDeleteModalOpen: false,
       isEditModalOpen: false,
@@ -36,6 +37,22 @@ describe('UIContext', () => {
     });
 
     expect(result.current.state.isShareModalOpen).toBe(false);
+  });
+
+  it('should open and close export modal', () => {
+    const { result } = renderHook(() => useUI(), { wrapper });
+
+    act(() => {
+      result.current.openExportModal();
+    });
+
+    expect(result.current.state.isExportModalOpen).toBe(true);
+
+    act(() => {
+      result.current.closeExportModal();
+    });
+
+    expect(result.current.state.isExportModalOpen).toBe(false);
   });
 
   it('should open and close import modal', () => {
@@ -170,12 +187,14 @@ describe('UIContext', () => {
     // Open all modals
     act(() => {
       result.current.openShareModal();
+      result.current.openExportModal();
       result.current.openImportModal();
       result.current.openDeleteModal();
       result.current.openEditModal();
     });
 
     expect(result.current.state.isShareModalOpen).toBe(true);
+    expect(result.current.state.isExportModalOpen).toBe(true);
     expect(result.current.state.isImportModalOpen).toBe(true);
     expect(result.current.state.isDeleteModalOpen).toBe(true);
     expect(result.current.state.isEditModalOpen).toBe(true);
@@ -185,6 +204,7 @@ describe('UIContext', () => {
     });
 
     expect(result.current.state.isShareModalOpen).toBe(false);
+    expect(result.current.state.isExportModalOpen).toBe(false);
     expect(result.current.state.isImportModalOpen).toBe(false);
     expect(result.current.state.isDeleteModalOpen).toBe(false);
     expect(result.current.state.isEditModalOpen).toBe(false);
@@ -208,6 +228,7 @@ describe('UIContext', () => {
 
     expect(result.current.state).toEqual({
       isShareModalOpen: true,
+      isExportModalOpen: false,
       isImportModalOpen: false,
       isDeleteModalOpen: false,
       isEditModalOpen: false,
