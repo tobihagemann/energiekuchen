@@ -12,6 +12,12 @@ function uiReducer(state: UIState, action: UIAction): UIState {
     case 'CLOSE_SHARE_MODAL':
       return { ...state, isShareModalOpen: false };
 
+    case 'OPEN_EXPORT_MODAL':
+      return { ...state, isExportModalOpen: true };
+
+    case 'CLOSE_EXPORT_MODAL':
+      return { ...state, isExportModalOpen: false };
+
     case 'OPEN_IMPORT_MODAL':
       return { ...state, isImportModalOpen: true };
 
@@ -52,6 +58,7 @@ function uiReducer(state: UIState, action: UIAction): UIState {
       return {
         ...state,
         isShareModalOpen: false,
+        isExportModalOpen: false,
         isImportModalOpen: false,
         isDeleteModalOpen: false,
         isEditModalOpen: false,
@@ -68,6 +75,7 @@ const UIContext = createContext<UIContextType | undefined>(undefined);
 export function UIProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(uiReducer, {
     isShareModalOpen: false,
+    isExportModalOpen: false,
     isImportModalOpen: false,
     isDeleteModalOpen: false,
     isEditModalOpen: false,
@@ -80,6 +88,8 @@ export function UIProvider({ children }: { children: ReactNode }) {
 
   const openShareModal = () => dispatch({ type: 'OPEN_SHARE_MODAL' });
   const closeShareModal = () => dispatch({ type: 'CLOSE_SHARE_MODAL' });
+  const openExportModal = () => dispatch({ type: 'OPEN_EXPORT_MODAL' });
+  const closeExportModal = () => dispatch({ type: 'CLOSE_EXPORT_MODAL' });
   const openImportModal = () => dispatch({ type: 'OPEN_IMPORT_MODAL' });
   const closeImportModal = () => dispatch({ type: 'CLOSE_IMPORT_MODAL' });
   const openDeleteModal = () => dispatch({ type: 'OPEN_DELETE_MODAL' });
@@ -98,6 +108,8 @@ export function UIProvider({ children }: { children: ReactNode }) {
     state,
     openShareModal,
     closeShareModal,
+    openExportModal,
+    closeExportModal,
     openImportModal,
     closeImportModal,
     openDeleteModal,

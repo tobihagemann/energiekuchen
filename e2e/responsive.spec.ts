@@ -13,6 +13,7 @@ test.describe('Responsive Design', () => {
 
     // Header should show all navigation items horizontally
     await expect(page.getByTestId('import-button')).toBeVisible();
+    await expect(page.getByTestId('export-modal-button')).toBeVisible();
     await expect(page.getByTestId('share-button')).toBeVisible();
     await expect(page.getByTestId('delete-button')).toBeVisible();
 
@@ -30,6 +31,7 @@ test.describe('Responsive Design', () => {
 
     // Header navigation should adapt to medium screen
     await expect(page.getByTestId('import-button')).toBeVisible();
+    await expect(page.getByTestId('export-modal-button')).toBeVisible();
     await expect(page.getByTestId('share-button')).toBeVisible();
     await expect(page.getByTestId('delete-button')).toBeVisible();
 

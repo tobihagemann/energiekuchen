@@ -48,14 +48,14 @@ test.describe('Import & Export Functionality', () => {
     await page.locator('[data-testid="quick-add-input-negative-desired"]').fill('Email Overload');
     await page.locator('[data-testid="quick-add-button-negative-desired"]').click();
 
-    // Open share modal
-    await page.locator('[data-testid="share-button"]').click();
-    await expect(page.locator('[data-testid="share-modal"]')).toBeVisible();
+    // Open export modal
+    await page.locator('[data-testid="export-modal-button"]').click();
+    await expect(page.locator('[data-testid="export-modal"]')).toBeVisible();
 
     // Set up download handling
     const downloadPromise = page.waitForEvent('download');
 
-    // Click export button in the modal
+    // Click the JSON export button in the modal
     const exportButton = page.locator('[data-testid="export-button"], button:has-text("Als JSON exportieren")').first();
     await exportButton.click();
 

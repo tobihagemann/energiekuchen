@@ -40,6 +40,44 @@ async function closeModal(page: Page) {
   }
 }
 
+type WebShareMode = 'success' | 'notallowed' | 'abort' | 'error' | 'none';
+
+// Stub the Web Share API on the next navigation so the image-share button is offered and the
+// outcome is observable, then reload and wait for the dashboard. `mode` selects how
+// navigator.share settles ('none' stubs only canShare; share is never invoked). addInitScript
+// can't capture a live closure, so the mode is passed as a serializable argument.
+async function stubWebShare(page: Page, mode: WebShareMode = 'success') {
+  await page.addInitScript((shareMode: string) => {
+    const w = window as unknown as { __shareCalled?: boolean; __sharedFileType?: string; __sharedFileCount?: number };
+    w.__shareCalled = false;
+    navigator.canShare = (data?: { files?: unknown[] }) => Array.isArray(data?.files) && data.files.length > 0;
+    if (shareMode !== 'none') {
+      navigator.share = (data?: { files?: File[] }) => {
+        w.__shareCalled = true;
+        w.__sharedFileCount = data?.files?.length ?? 0;
+        w.__sharedFileType = data?.files?.[0]?.type ?? '';
+        if (shareMode === 'notallowed') return Promise.reject(new DOMException('blocked', 'NotAllowedError'));
+        if (shareMode === 'abort') return Promise.reject(new DOMException('cancel', 'AbortError'));
+        if (shareMode === 'error') return Promise.reject(new Error('share failed'));
+        return Promise.resolve();
+      };
+    }
+  }, mode);
+  await page.reload();
+  await expect(page.locator('[data-testid="charts-section"]')).toBeVisible();
+}
+
+function shareWasCalled(page: Page): Promise<boolean | undefined> {
+  return page.evaluate(() => (window as unknown as { __shareCalled?: boolean }).__shareCalled);
+}
+
+async function addActivityAndOpenShare(page: Page, name = 'Yoga') {
+  await page.locator('[data-testid="quick-add-input-positive-current"]').fill(name);
+  await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+  await page.locator('[data-testid="share-button"]').click();
+  await expect(page.locator('[data-testid="share-modal"]')).toBeVisible();
+}
+
 test.describe('Sharing Functionality', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -174,6 +212,86 @@ test.describe('Sharing Functionality', () => {
     // Close modal with Escape key
     await page.keyboard.press('Escape');
     await expect(page.locator('[data-testid="share-modal"]')).not.toBeVisible();
+  });
+
+  test('does not offer JSON export in the share modal', async ({ page }) => {
+    await page.locator('[data-testid="quick-add-input-positive-current"]').fill('Reading');
+    await page.locator('[data-testid="quick-add-button-positive-current"]').click();
+
+    await page.locator('[data-testid="share-button"]').click();
+    await expect(page.locator('[data-testid="share-modal"]')).toBeVisible();
+
+    await expect(page.locator('[data-testid="share-modal"] [data-testid="export-button"]')).toHaveCount(0);
+  });
+
+  test('should share the energiekuchen as an image via the Web Share API', async ({ page }) => {
+    await stubWebShare(page, 'success');
+    await addActivityAndOpenShare(page);
+
+    const imageButton = page.locator('[data-testid="share-image-button"]');
+    await expect(imageButton).toBeEnabled({ timeout: 10000 });
+    await imageButton.click();
+
+    await expect.poll(() => shareWasCalled(page)).toBe(true);
+    const sharedType = await page.evaluate(() => (window as unknown as { __sharedFileType?: string }).__sharedFileType);
+    const sharedCount = await page.evaluate(() => (window as unknown as { __sharedFileCount?: number }).__sharedFileCount);
+    expect(sharedType).toBe('image/png');
+    expect(sharedCount).toBe(1);
+  });
+
+  test('should download the image when native share is blocked (NotAllowedError)', async ({ page }) => {
+    await stubWebShare(page, 'notallowed');
+    await addActivityAndOpenShare(page);
+
+    const imageButton = page.locator('[data-testid="share-image-button"]');
+    await expect(imageButton).toBeEnabled({ timeout: 10000 });
+
+    // The native share must be attempted first, then fall back to a normal PNG download.
+    const downloadPromise = page.waitForEvent('download');
+    await imageButton.click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/energiekuchen.*\.png$/);
+    expect(await shareWasCalled(page)).toBe(true);
+  });
+
+  test('should stay silent when the native share sheet is cancelled (AbortError)', async ({ page }) => {
+    await stubWebShare(page, 'abort');
+    await addActivityAndOpenShare(page);
+
+    const imageButton = page.locator('[data-testid="share-image-button"]');
+    await expect(imageButton).toBeEnabled({ timeout: 10000 });
+
+    let downloaded = false;
+    page.on('download', () => {
+      downloaded = true;
+    });
+    await imageButton.click();
+
+    // A cancelled share neither downloads nor surfaces an error.
+    await expect.poll(() => shareWasCalled(page)).toBe(true);
+    await page.waitForTimeout(500);
+    expect(downloaded).toBe(false);
+    await expect(page.locator('[data-testid="share-image-error"]')).toHaveCount(0);
+  });
+
+  test('should show an error when native share fails unexpectedly', async ({ page }) => {
+    await stubWebShare(page, 'error');
+    await addActivityAndOpenShare(page);
+
+    const imageButton = page.locator('[data-testid="share-image-button"]');
+    await expect(imageButton).toBeEnabled({ timeout: 10000 });
+    await imageButton.click();
+
+    await expect(page.locator('[data-testid="share-image-error"]')).toContainText('Fehler beim Teilen des Bildes');
+  });
+
+  test('should disable image share when both charts are empty', async ({ page }) => {
+    await stubWebShare(page, 'none');
+
+    await page.locator('[data-testid="share-button"]').click();
+    await expect(page.locator('[data-testid="share-modal"]')).toBeVisible();
+
+    await expect(page.locator('[data-testid="share-image-button"]')).toBeDisabled();
   });
 
   test('should handle empty data sharing', async ({ page }) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDownTrayIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ArrowDownTrayIcon, ArrowUpTrayIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -8,7 +8,7 @@ import { Button } from '@/app/components/ui/Button';
 import { useUI } from '@/app/lib/contexts/UIContext';
 
 export function Header() {
-  const { openShareModal, openImportModal, openDeleteModal } = useUI();
+  const { openShareModal, openExportModal, openImportModal, openDeleteModal } = useUI();
 
   return (
     <header className="border-b border-gray-200 bg-white shadow-sm" data-testid="header">
@@ -23,8 +23,13 @@ export function Header() {
           {/* Navigation */}
           <nav className="flex items-center space-x-1 sm:space-x-2" data-testid="navigation">
             <Button variant="ghost" size="sm" onClick={openImportModal} data-testid="import-button">
-              <ArrowDownTrayIcon className="h-4 w-4 sm:mr-2" />
+              <ArrowUpTrayIcon className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Importieren</span>
+            </Button>
+
+            <Button variant="ghost" size="sm" onClick={openExportModal} data-testid="export-modal-button">
+              <ArrowDownTrayIcon className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Exportieren</span>
             </Button>
 
             <Button variant="ghost" size="sm" onClick={openShareModal} data-testid="share-button">

@@ -85,7 +85,8 @@ export interface UseChartDataResult {
 
 const EMPTY_CHART_COLOR = 'oklch(0.967 0.003 264.542)';
 const EMPTY_CHART_HOVER = 'oklch(0.985 0.002 247.839)';
-const LABEL_PADDING_FRACTION = 1.2;
+// Fraction by which the viewBox exceeds the chart diameter, leaving room for outside labels.
+export const LABEL_PADDING_FRACTION = 1.2;
 
 export function useChartData(input: UseChartDataInput): UseChartDataResult {
   const { renderedEntries, draggedLabelId, labelBBoxes, editingActivity, chartType, chartSize } = input;

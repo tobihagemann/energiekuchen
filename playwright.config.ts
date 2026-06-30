@@ -20,7 +20,11 @@ export default defineConfig({
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
     },
-    // Commented out for faster development - uncomment for full cross-browser testing
+    // Commented out for faster development - uncomment for full cross-browser testing.
+    // MANUAL ACCEPTANCE GATE: image export (e2e/export.spec.ts) is rasterization-fidelity
+    // critical and must be verified under WebKit before release — that is the platform where a
+    // naive foreignObject export blanks out the chart labels. Run it with:
+    //   pnpm exec playwright test e2e/export.spec.ts --project=webkit
     // {
     //   name: 'firefox',
     //   use: { ...devices['Desktop Firefox'] },

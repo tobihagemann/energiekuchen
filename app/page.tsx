@@ -5,6 +5,7 @@ import { ActivityList } from '@/app/components/features/ActivityList';
 import { DeleteActivityModal } from '@/app/components/features/DeleteActivityModal';
 import { DeleteModal } from '@/app/components/features/DeleteModal';
 import { EditActivityModal } from '@/app/components/features/EditActivityModal';
+import { ExportModal } from '@/app/components/features/ExportModal';
 import { ImportModal } from '@/app/components/features/ImportModal';
 import { ShareModal } from '@/app/components/features/ShareModal';
 import { Header } from '@/app/components/layout/Header';
@@ -59,6 +60,7 @@ export default function Dashboard() {
       </main>
 
       <ShareModal />
+      <ExportModal />
       <ImportModal />
       <DeleteModal />
       <EditActivityModal />

@@ -1,8 +1,9 @@
 'use client';
 
 import { CheckIcon, ClipboardIcon, ShareIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { EnergiekuchenExportSvg } from '@/app/components/charts/EnergiekuchenExportSvg';
 import { Button } from '@/app/components/ui/Button';
 import { ErrorMessage } from '@/app/components/ui/ErrorMessage';
 import { Input } from '@/app/components/ui/Input';
@@ -11,19 +12,25 @@ import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
 import { Modal } from '@/app/components/ui/Modal';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { useUI } from '@/app/lib/contexts/UIContext';
+import { buildExportFilename } from '@/app/lib/utils/imageExport';
+import { canShareImageFiles, downloadBlob, rasterizeSvgElement, shareImageFile } from '@/app/lib/utils/imageExportBrowser';
 import { SHARE_TOO_LARGE_ERROR, SharingManager } from '@/app/lib/utils/sharing';
-import { exportData } from '@/app/lib/utils/storage';
 import { ShareData } from '@/app/types/storage';
 
 export function ShareModal() {
   const { state } = useEnergy();
   const { state: uiState, closeShareModal } = useUI();
+  const imageSvgRef = useRef<SVGSVGElement>(null);
   const [shareData, setShareData] = useState<ShareData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState('');
-  const [exportError, setExportError] = useState('');
   const [shareSizeError, setShareSizeError] = useState('');
+  const [canShareImage, setCanShareImage] = useState(false);
+  const [imageBlob, setImageBlob] = useState<Blob | null>(null);
+  const [imageShareError, setImageShareError] = useState('');
+
+  const isBothEmpty = state.data.current.activities.length === 0 && state.data.desired.activities.length === 0;
 
   const generateShareData = useCallback(async () => {
     setIsGenerating(true);
@@ -48,14 +55,25 @@ export function ShareModal() {
     }
   }, [uiState.isShareModalOpen, shareData, generateShareData]);
 
+  // Feature-detect image sharing on the client only, avoiding a hydration mismatch.
+  useEffect(() => {
+    setCanShareImage(canShareImageFiles());
+  }, []);
+
+  // Invalidate the cached PNG when the data changes so a stale image is never shared.
+  useEffect(() => {
+    setImageBlob(null);
+  }, [state.data]);
+
   // Reset data when modal closes
   useEffect(() => {
     if (!uiState.isShareModalOpen) {
       setShareData(null);
       setCopied(false);
       setCopyError('');
-      setExportError('');
       setShareSizeError('');
+      setImageBlob(null);
+      setImageShareError('');
     }
   }, [uiState.isShareModalOpen]);
 
@@ -73,35 +91,44 @@ export function ShareModal() {
     }
   };
 
+  // Pre-generate and cache the PNG once the export layout is measured. navigator.share() needs
+  // transient user activation that an async rasterize would outlive, so the click handler must
+  // share an already-built Blob synchronously.
+  const handleImageReady = useCallback(async () => {
+    const svg = imageSvgRef.current;
+    if (!svg) return;
+    try {
+      const blob = await rasterizeSvgElement(svg);
+      setImageBlob(blob);
+    } catch (error) {
+      console.error('Image generation error:', error);
+    }
+  }, []);
+
+  const handleShareImage = async () => {
+    if (!imageBlob) return;
+    setImageShareError('');
+    try {
+      await shareImageFile(imageBlob, buildExportFilename('png'), { title: 'Mein Energiekuchen', text: 'Schau dir meinen Energiekuchen an!' });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+      if (error instanceof Error && error.name === 'NotAllowedError') {
+        downloadBlob(imageBlob, buildExportFilename('png'));
+        return;
+      }
+      console.error('Image share error:', error);
+      setImageShareError('Fehler beim Teilen des Bildes');
+    }
+  };
+
   const handleClose = () => {
     closeShareModal();
     setShareData(null);
     setCopied(false);
     setCopyError('');
-    setExportError('');
     setShareSizeError('');
-  };
-
-  const handleExport = () => {
-    setExportError('');
-    try {
-      const dataToExport = exportData(state.data);
-      const blob = new Blob([dataToExport], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      // Create filesystem-safe timestamp: YYYY-MM-DD_HH-MM-SS
-      const now = new Date();
-      const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
-      link.download = `energiekuchen_${timestamp}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Export error:', error);
-      setExportError('Fehler beim Exportieren der Daten');
-    }
+    setImageBlob(null);
+    setImageShareError('');
   };
 
   return (
@@ -181,26 +208,31 @@ export function ShareModal() {
           )}
         </div>
 
-        {/* Divider */}
-        <hr className="border-gray-200" />
+        {/* Image Share Section — only on platforms that support native file sharing */}
+        {canShareImage && (
+          <>
+            <hr className="border-gray-200" />
 
-        {/* Export Section */}
-        <div className="space-y-4 sm:space-y-6">
-          <div className="text-gray-600">Exportiere deine Energiekuchen-Daten als JSON-Datei zur Sicherung oder Weitergabe.</div>
+            <div className="space-y-4 sm:space-y-6">
+              <div className="text-gray-600">Teile deinen Energiekuchen als Bild direkt über deine Apps.</div>
 
-          <Button onClick={handleExport} variant="secondary" className="w-full" data-testid="export-button">
-            Daten exportieren
-          </Button>
+              <Button onClick={handleShareImage} variant="secondary" className="w-full" disabled={isBothEmpty || !imageBlob} data-testid="share-image-button">
+                Als Bild teilen
+              </Button>
 
-          <ErrorMessage error={exportError} testId="export-error" className="p-2" />
-
-          <div className="rounded-md bg-blue-50 p-3">
-            <p className="text-sm text-blue-800">
-              <strong>Hinweis:</strong> Die exportierte Datei kann später über die Import-Funktion wieder geladen werden.
-            </p>
-          </div>
-        </div>
+              <ErrorMessage error={imageShareError} testId="share-image-error" className="p-2" />
+            </div>
+          </>
+        )}
       </div>
+
+      {/* Offscreen but layout-preserving (never display:none) so the export labels can be measured
+          via getBBox on the exact mobile/WebKit path this targets. */}
+      {canShareImage && !isBothEmpty && (
+        <div aria-hidden style={{ position: 'absolute', left: '-99999px', top: 0, width: 900, opacity: 0, pointerEvents: 'none' }}>
+          <EnergiekuchenExportSvg ref={imageSvgRef} onReady={handleImageReady} />
+        </div>
+      )}
     </Modal>
   );
 }

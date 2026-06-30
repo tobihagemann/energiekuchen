@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import React, { useRef, useState } from 'react';
 
 import { useEnergy } from '../../lib/contexts/EnergyContext';
@@ -71,7 +71,7 @@ export function ImportModal() {
   };
 
   return (
-    <Modal isOpen={uiState.isImportModalOpen} onClose={closeImportModal} title={modalTitle} titleIcon={<ArrowDownTrayIcon className="h-5 w-5" />} size="md">
+    <Modal isOpen={uiState.isImportModalOpen} onClose={closeImportModal} title={modalTitle} titleIcon={<ArrowUpTrayIcon className="h-5 w-5" />} size="md">
       <div className="space-y-4 sm:space-y-6" data-testid="import-modal">
         {/* Error Display */}
         <ErrorMessage error={importError} testId="import-error" />

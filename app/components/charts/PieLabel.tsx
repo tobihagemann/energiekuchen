@@ -4,11 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 
 import type { LabelGeometry } from '@/app/lib/hooks/useChartData';
 import type { LabelHandle } from '@/app/lib/hooks/usePieDrag';
+import { LEADER_LINE_COLOR, OUTSIDE_TEXT_COLOR } from '@/app/lib/utils/constants';
 import { svgUserUnitsPerCssPx } from '@/app/lib/utils/polar';
 import type { LabelOffset } from '@/app/types';
-
-const OUTSIDE_TEXT_COLOR = 'oklch(0.21 0.034 264.665)'; // gray-900
-const LEADER_LINE_COLOR = 'oklch(0.872 0.01 258.338)'; // gray-300
 
 interface PieLabelProps {
   label: LabelGeometry;
