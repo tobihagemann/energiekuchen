@@ -17,29 +17,29 @@ export function Header() {
           {/* Logo/Title */}
           <Link href="/" className="flex items-center space-x-3" data-testid="logo">
             <Image src="/logo-32@2x.png" alt="Energiekuchen Logo" width={32} height={32} className="h-8 w-8" />
-            <h1 className="text-xl font-bold text-gray-900">Energiekuchen</h1>
+            <h1 className="hidden text-xl font-bold text-gray-900 md:block">Energiekuchen</h1>
           </Link>
 
           {/* Navigation */}
           <nav className="flex items-center space-x-1 sm:space-x-2" data-testid="navigation">
             <Button variant="ghost" size="sm" onClick={openImportModal} data-testid="import-button">
-              <ArrowUpTrayIcon className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Importieren</span>
+              <ArrowUpTrayIcon className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Importieren</span>
             </Button>
 
             <Button variant="ghost" size="sm" onClick={openExportModal} data-testid="export-modal-button">
-              <ArrowDownTrayIcon className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Exportieren</span>
+              <ArrowDownTrayIcon className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Exportieren</span>
             </Button>
 
             <Button variant="ghost" size="sm" onClick={openShareModal} data-testid="share-button">
-              <ShareIcon className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Teilen</span>
+              <ShareIcon className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Teilen</span>
             </Button>
 
             <Button variant="ghost" size="sm" onClick={openDeleteModal} data-testid="delete-button">
-              <TrashIcon className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Löschen</span>
+              <TrashIcon className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Löschen</span>
             </Button>
           </nav>
         </div>
