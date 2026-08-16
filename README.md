@@ -25,7 +25,7 @@ pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the application.
+Open [http://localhost:16749](http://localhost:16749) to see the application.
 
 ### Available Scripts
 

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "prepare": "husky",
-    "dev": "next dev",
+    "dev": "next dev -p 16749",
     "prod": "next build && next start",
     "build": "next build",
     "lint": "run-p lint:types lint:code lint:format",
