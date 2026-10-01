@@ -67,4 +67,15 @@ test.describe('Legal Pages', () => {
     await page.waitForTimeout(500);
     await expect(page.getByRole('dialog')).not.toBeVisible();
   });
+
+  for (const path of ['/', '/impressum']) {
+    test(`footer on ${path} should link to PsyBoard in a new tab`, async ({ page }) => {
+      await page.goto(path);
+
+      const psyboardLink = page.getByRole('contentinfo').getByRole('link', { name: 'PsyBoard' });
+      await expect(psyboardLink).toBeVisible();
+      await expect(psyboardLink).toHaveAttribute('href', 'https://psyboard.net/');
+      await expect(psyboardLink).toHaveAttribute('target', '_blank');
+    });
+  }
 });

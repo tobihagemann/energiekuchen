@@ -18,6 +18,12 @@ export function Footer() {
               Quellcode auf GitHub
             </a>
           </div>
+          <div className="text-center text-sm text-gray-600">
+            Mehr Werkzeuge für Therapie, Beratung und Coaching:{' '}
+            <a href="https://psyboard.net/" target="_blank" rel="noopener noreferrer" className="underline transition-colors hover:text-gray-900">
+              PsyBoard
+            </a>
+          </div>
           <div className="text-xs text-gray-400">
             ©{' '}
             <a href="https://tobiha.de/" target="_blank" rel="noopener noreferrer" className="underline transition-colors hover:text-gray-600">
