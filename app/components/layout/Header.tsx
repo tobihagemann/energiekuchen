@@ -1,9 +1,9 @@
 'use client';
 
 import { ArrowDownTrayIcon, ArrowUpTrayIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/outline';
-import Image from 'next/image';
 import Link from 'next/link';
 
+import { BrandMark } from '@/app/components/ui/BrandMark';
 import { Button } from '@/app/components/ui/Button';
 import { useUI } from '@/app/lib/contexts/UIContext';
 
@@ -16,7 +16,7 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo/Title */}
           <Link href="/" className="flex items-center space-x-3" data-testid="logo">
-            <Image src="/logo-32@2x.png" alt="Energiekuchen Logo" width={32} height={32} className="h-8 w-8" />
+            <BrandMark className="h-8 w-8" />
             <h1 className="hidden text-xl font-bold text-gray-900 md:block">Energiekuchen</h1>
           </Link>
 

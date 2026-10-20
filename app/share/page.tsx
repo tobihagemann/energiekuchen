@@ -1,13 +1,13 @@
 'use client';
 
 import { ExclamationTriangleIcon, LightBulbIcon } from '@heroicons/react/24/outline';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { ChartLegend } from '@/app/components/charts/ChartLegend';
 import { EnergyChart } from '@/app/components/charts/EnergyChart';
+import { BrandMark } from '@/app/components/ui/BrandMark';
 import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
 import { SharingManager } from '@/app/lib/utils/sharing';
 import { useEnergy } from '@/app/share/SharedEnergyProvider';
@@ -74,7 +74,7 @@ export default function SharedEnergyChart() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
               <Link href="/" className="flex items-center space-x-3">
-                <Image src="/logo-32@2x.png" alt="Energiekuchen Logo" width={32} height={32} className="h-8 w-8" />
+                <BrandMark className="h-8 w-8" />
                 <h1 className="text-xl font-bold text-gray-900">Energiekuchen</h1>
               </Link>
               <Link
@@ -125,7 +125,7 @@ export default function SharedEnergyChart() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center space-x-3">
-              <Image src="/logo-32@2x.png" alt="Energiekuchen Logo" width={32} height={32} className="h-8 w-8" />
+              <BrandMark className="h-8 w-8" />
               <h1 className="text-xl font-bold text-gray-900">Energiekuchen</h1>
             </Link>
             <Link
@@ -188,7 +188,7 @@ export default function SharedEnergyChart() {
           <div className="mt-8 rounded-lg border border-yellow-200 bg-yellow-50 p-6">
             <div className="text-center">
               <div className="mb-4 flex justify-center">
-                <Image src="/logo-32@2x.png" alt="Energiekuchen Logo" width={32} height={32} />
+                <BrandMark className="h-8 w-8" />
               </div>
               <h3 className="mb-2 text-lg font-medium text-yellow-800">Gefällt dir dieser Energiekuchen?</h3>
               <p className="mb-4 text-yellow-700">Erstelle deinen eigenen Energiekuchen und teile ihn mit anderen!</p>

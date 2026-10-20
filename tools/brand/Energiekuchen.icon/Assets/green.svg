@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- green-500: oklch(0.723 0.219 149.579). The flat mark takes this layer's color from icon.json. -->
+  <path transform="matrix(1.41417 0 0 1.41417 107.5967 127.43428)" d="M512.4 240l-176 0c-17.7 0-32-14.3-32-32l0-176c0-17.7 14.4-32.2 31.9-29.9 107 14.2 191.8 99 206 206 2.3 17.5-12.2 31.9-29.9 31.9z" fill="#00c950" />
+</svg>
