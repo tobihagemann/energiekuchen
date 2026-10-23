@@ -3,7 +3,7 @@
 import { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { ChartExportSvg, EXPORT_FONT_FAMILY, EXPORT_TITLE_HEIGHT } from '@/app/components/charts/ChartExportSvg';
-import { EXPORT_LOGO_DATA_URI } from '@/app/components/charts/exportLogo';
+import { BrandMark } from '@/app/components/ui/BrandMark';
 import { useEnergy } from '@/app/lib/contexts/EnergyContext';
 import { OUTSIDE_TEXT_COLOR } from '@/app/lib/utils/constants';
 import { activityLayoutKey, formatExportDate } from '@/app/lib/utils/imageExport';
@@ -91,7 +91,7 @@ export const EnergiekuchenExportSvg = forwardRef<SVGSVGElement, EnergiekuchenExp
         const brandStartX = (WIDTH - (FOOTER_LOGO_SIZE + FOOTER_LOGO_GAP + estWordmarkWidth)) / 2;
         return (
           <>
-            <image href={EXPORT_LOGO_DATA_URI} x={brandStartX} y={brandRowY - FOOTER_LOGO_SIZE / 2} width={FOOTER_LOGO_SIZE} height={FOOTER_LOGO_SIZE} />
+            <BrandMark x={brandStartX} y={brandRowY - FOOTER_LOGO_SIZE / 2} width={FOOTER_LOGO_SIZE} height={FOOTER_LOGO_SIZE} />
             <text
               x={brandStartX + FOOTER_LOGO_SIZE + FOOTER_LOGO_GAP}
               y={brandRowY}
