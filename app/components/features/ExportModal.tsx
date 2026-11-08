@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { EnergiekuchenExportSvg } from '@/app/components/charts/EnergiekuchenExportSvg';
 import { Button } from '@/app/components/ui/Button';
@@ -22,15 +22,6 @@ export function ExportModal() {
   const [exportError, setExportError] = useState('');
 
   const isBothEmpty = state.data.current.activities.length === 0 && state.data.desired.activities.length === 0;
-
-  // Reset transient state when the modal closes (the preview unmounts, so readiness resets too).
-  useEffect(() => {
-    if (!uiState.isExportModalOpen) {
-      setIsImageReady(false);
-      setImageError('');
-      setExportError('');
-    }
-  }, [uiState.isExportModalOpen]);
 
   const handleDownloadImage = async () => {
     const svg = svgRef.current;

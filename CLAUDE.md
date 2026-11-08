@@ -6,7 +6,7 @@ A German-language web application that helps users visualize and balance their p
 
 ```bash
 # Code Quality
-pnpm lint             # Run tsgo + oxlint + oxfmt checks
+pnpm lint             # Run tsc + oxlint + oxfmt checks
 pnpm format           # Format code with oxfmt + oxlint
 pnpm knip             # Check for unused dependencies, exports, and types
 

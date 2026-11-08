@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react';
+import { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 
 import { ChartExportSvg, EXPORT_FONT_FAMILY, EXPORT_TITLE_HEIGHT } from '@/app/components/charts/ChartExportSvg';
 import { BrandMark } from '@/app/components/ui/BrandMark';
@@ -43,7 +43,9 @@ export const EnergiekuchenExportSvg = forwardRef<SVGSVGElement, EnergiekuchenExp
   const exportDate = useMemo(() => formatExportDate(), []);
 
   const onReadyRef = useRef(onReady);
-  onReadyRef.current = onReady;
+  useLayoutEffect(() => {
+    onReadyRef.current = onReady;
+  });
   const readyRef = useRef<Record<ChartType, boolean>>({ current: false, desired: false });
   const firedRef = useRef(false);
 
