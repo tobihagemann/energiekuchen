@@ -36,7 +36,7 @@ pnpm build            # Build for production
 pnpm prod             # Build and start production server
 
 # Code Quality
-pnpm lint             # Run tsgo + oxlint + oxfmt checks
+pnpm lint             # Run tsc + oxlint + oxfmt checks
 pnpm format           # Format code with oxfmt + oxlint
 pnpm knip             # Check for unused dependencies, exports, and types
 

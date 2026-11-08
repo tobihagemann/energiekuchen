@@ -1,7 +1,7 @@
 'use client';
 
 import { PencilIcon } from '@heroicons/react/24/outline';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { useEnergy } from '../../lib/contexts/EnergyContext';
 import { useUI } from '../../lib/contexts/UIContext';
@@ -71,7 +71,9 @@ export function EditActivityModal() {
   const initialSliderPercentRef = useRef(clampedInitial);
   const [errors, setErrors] = useState<string[]>([]);
 
-  useEffect(() => {
+  // Layout effect: the form must be filled before the modal paints, or input typed into the
+  // briefly empty fields is overwritten.
+  useLayoutEffect(() => {
     if (activity && snapshot) {
       const clamped = Math.min(sliderMax, Math.max(sliderMin, snapshot.initialPct));
       setFormData({

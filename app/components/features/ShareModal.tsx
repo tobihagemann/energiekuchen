@@ -1,7 +1,7 @@
 'use client';
 
 import { CheckIcon, ClipboardIcon, ShareIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 import { EnergiekuchenExportSvg } from '@/app/components/charts/EnergiekuchenExportSvg';
 import { Button } from '@/app/components/ui/Button';
@@ -15,67 +15,51 @@ import { useUI } from '@/app/lib/contexts/UIContext';
 import { buildExportFilename } from '@/app/lib/utils/imageExport';
 import { canShareImageFiles, downloadBlob, rasterizeSvgElement, shareImageFile } from '@/app/lib/utils/imageExportBrowser';
 import { SHARE_TOO_LARGE_ERROR, SharingManager } from '@/app/lib/utils/sharing';
+import { EnergyPie } from '@/app/types';
 import { ShareData } from '@/app/types/storage';
+
+interface ShareResult {
+  data: ShareData | null;
+  sizeError: string;
+}
+
+const subscribeNever = () => () => {};
 
 export function ShareModal() {
   const { state } = useEnergy();
   const { state: uiState, closeShareModal } = useUI();
   const imageSvgRef = useRef<SVGSVGElement>(null);
-  const [shareData, setShareData] = useState<ShareData | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [shareResult, setShareResult] = useState<ShareResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState('');
-  const [shareSizeError, setShareSizeError] = useState('');
-  const [canShareImage, setCanShareImage] = useState(false);
-  const [imageBlob, setImageBlob] = useState<Blob | null>(null);
+  const [image, setImage] = useState<{ blob: Blob; data: EnergyPie } | null>(null);
   const [imageShareError, setImageShareError] = useState('');
 
   const isBothEmpty = state.data.current.activities.length === 0 && state.data.desired.activities.length === 0;
-
-  const generateShareData = useCallback(async () => {
-    setIsGenerating(true);
-    setShareSizeError('');
-    try {
-      const data = await SharingManager.generateShareData(state.data);
-      setShareData(data);
-    } catch (error) {
-      console.error('Share generation error:', error);
-      setShareData(null);
-      if (error instanceof Error && error.message === SHARE_TOO_LARGE_ERROR) {
-        setShareSizeError(error.message);
-      }
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [state.data]);
-
-  useEffect(() => {
-    if (uiState.isShareModalOpen && !shareData) {
-      generateShareData();
-    }
-  }, [uiState.isShareModalOpen, shareData, generateShareData]);
-
+  const isGenerating = shareResult === null;
+  const shareData = shareResult?.data ?? null;
+  const shareSizeError = shareResult?.sizeError ?? '';
   // Feature-detect image sharing on the client only, avoiding a hydration mismatch.
-  useEffect(() => {
-    setCanShareImage(canShareImageFiles());
-  }, []);
+  const canShareImage = useSyncExternalStore(subscribeNever, canShareImageFiles, () => false);
+  // A PNG rendered from older data is never shared.
+  const imageBlob = image?.data === state.data ? image.blob : null;
 
-  // Invalidate the cached PNG when the data changes so a stale image is never shared.
   useEffect(() => {
-    setImageBlob(null);
-  }, [state.data]);
-
-  // Reset data when modal closes
-  useEffect(() => {
-    if (!uiState.isShareModalOpen) {
-      setShareData(null);
-      setCopied(false);
-      setCopyError('');
-      setShareSizeError('');
-      setImageBlob(null);
-      setImageShareError('');
-    }
-  }, [uiState.isShareModalOpen]);
+    if (!uiState.isShareModalOpen || shareResult) return;
+    let cancelled = false;
+    SharingManager.generateShareData(state.data).then(
+      data => {
+        if (!cancelled) setShareResult({ data, sizeError: '' });
+      },
+      (error: unknown) => {
+        console.error('Share generation error:', error);
+        if (!cancelled) setShareResult({ data: null, sizeError: error instanceof Error && error.message === SHARE_TOO_LARGE_ERROR ? error.message : '' });
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [uiState.isShareModalOpen, shareResult, state.data]);
 
   const handleCopyUrl = async () => {
     if (!shareData) return;
@@ -97,13 +81,14 @@ export function ShareModal() {
   const handleImageReady = useCallback(async () => {
     const svg = imageSvgRef.current;
     if (!svg) return;
+    const data = state.data;
     try {
       const blob = await rasterizeSvgElement(svg);
-      setImageBlob(blob);
+      setImage({ blob, data });
     } catch (error) {
       console.error('Image generation error:', error);
     }
-  }, []);
+  }, [state.data]);
 
   const handleShareImage = async () => {
     if (!imageBlob) return;
@@ -123,11 +108,10 @@ export function ShareModal() {
 
   const handleClose = () => {
     closeShareModal();
-    setShareData(null);
+    setShareResult(null);
     setCopied(false);
     setCopyError('');
-    setShareSizeError('');
-    setImageBlob(null);
+    setImage(null);
     setImageShareError('');
   };
 
@@ -201,7 +185,7 @@ export function ShareModal() {
             <div className="py-8 text-center text-gray-500">
               <div className="mb-2 text-lg">⚠️</div>
               <div className="text-sm">Fehler beim Erstellen des Sharing-Links</div>
-              <Button variant="secondary" size="sm" onClick={generateShareData} className="mt-3">
+              <Button variant="secondary" size="sm" onClick={() => setShareResult(null)} className="mt-3">
                 Erneut versuchen
               </Button>
             </div>

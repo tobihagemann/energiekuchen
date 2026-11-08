@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { LABEL_PADDING_FRACTION, RenderedEntry, useChartData } from '@/app/lib/hooks/useChartData';
 import { LEADER_LINE_COLOR, OUTSIDE_TEXT_COLOR } from '@/app/lib/utils/constants';
@@ -52,7 +52,9 @@ function measureLabels(root: SVGGElement): Record<string, LabelBBox> {
 export function ChartExportSvg({ activities, chartType, size, title, onReady }: ChartExportSvgProps) {
   const rootRef = useRef<SVGGElement>(null);
   const onReadyRef = useRef(onReady);
-  onReadyRef.current = onReady;
+  useLayoutEffect(() => {
+    onReadyRef.current = onReady;
+  });
   const firedKeyRef = useRef<string | null>(null);
 
   const [measuredBBoxes, setMeasuredBBoxes] = useState<Record<string, LabelBBox>>(EMPTY_BBOXES);
